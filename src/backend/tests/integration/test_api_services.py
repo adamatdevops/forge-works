@@ -1,15 +1,15 @@
 """Tests for Service API endpoints."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models.service import Service, ServiceStatus, ServiceTier
 from app.db.models.team import Team
 from app.db.models.template import Template
-from app.db.models.service import Service, ServiceStatus, ServiceTier
-from tests.conftest import create_team_data, create_template_data, create_service_data
+from tests.conftest import create_service_data, create_team_data, create_template_data
 
 
 @pytest.fixture
@@ -23,8 +23,8 @@ async def sample_team(test_session: AsyncSession) -> Team:
         description=data["description"],
         email=data["email"],
         slack_channel=data["slack_channel"],
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     test_session.add(team)
     await test_session.commit()
@@ -53,8 +53,8 @@ async def sample_template(test_session: AsyncSession) -> Template:
         includes_tests=data["includes_tests"],
         is_active=data["is_active"],
         is_recommended=data["is_recommended"],
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     test_session.add(template)
     await test_session.commit()
@@ -82,8 +82,8 @@ async def sample_service(
         namespace="production",
         tags=["api", "users"],
         metadata={"env": "production"},
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     test_session.add(service)
     await test_session.commit()

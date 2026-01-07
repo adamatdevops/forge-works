@@ -1,8 +1,8 @@
 """CRUD operations for Template model."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -83,9 +83,7 @@ class TemplateCRUD:
     @staticmethod
     async def exists(db: AsyncSession, template_id: str) -> bool:
         """Check if a template exists."""
-        result = await db.execute(
-            select(func.count(Template.id)).where(Template.id == template_id)
-        )
+        result = await db.execute(select(func.count(Template.id)).where(Template.id == template_id))
         return result.scalar_one() > 0
 
     @staticmethod

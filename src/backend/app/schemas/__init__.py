@@ -3,17 +3,17 @@
 from app.schemas.service import (
     ServiceBase,
     ServiceCreate,
-    ServiceUpdate,
-    ServiceResponse,
     ServiceListResponse,
+    ServiceResponse,
     ServiceStatsResponse,
+    ServiceUpdate,
 )
 from app.schemas.template import (
-    TemplateResponse,
-    TemplateListResponse,
     RecommendationRequest,
     RecommendationResponse,
     RecommendationScore,
+    TemplateListResponse,
+    TemplateResponse,
 )
 
 __all__ = [

@@ -7,7 +7,7 @@ Based on MVP.md requirements:
 - Sample actions for audit log
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 # =============================================================================
@@ -194,7 +194,7 @@ ML_SERVICE_ID = TEMPLATES[4]["id"]
 # =============================================================================
 # SERVICES (12 mock services)
 # =============================================================================
-now = datetime.now(timezone.utc)
+now = datetime.now(UTC)
 
 SERVICES = [
     # Payment services (triggers anomaly - high deploy frequency)

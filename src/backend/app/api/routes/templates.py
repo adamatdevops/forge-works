@@ -10,11 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.template import TemplateCRUD
 from app.db.base import get_db
 from app.schemas.template import (
-    TemplateResponse,
-    TemplateListResponse,
     RecommendationRequest,
     RecommendationResponse,
     RecommendationScore,
+    TemplateListResponse,
+    TemplateResponse,
 )
 
 router = APIRouter()
@@ -168,9 +168,7 @@ async def recommend_template(
     return RecommendationResponse(
         session_id=session_id,
         recommendations=top_recommendations,
-        top_recommendation=(
-            top_recommendations[0].template if top_recommendations else None
-        ),
+        top_recommendation=(top_recommendations[0].template if top_recommendations else None),
         processing_time_ms=round(processing_time, 2),
         model_version="1.0.0-rule-based",
     )
@@ -209,22 +207,20 @@ def _calculate_template_score(
 
     # Requirements/capabilities match (20% weight)
     if request.requirements:
-        matching_capabilities = set(
-            c.lower() for c in template.capabilities
-        ) & set(r.lower() for r in request.requirements)
+        matching_capabilities = set(c.lower() for c in template.capabilities) & set(
+            r.lower() for r in request.requirements
+        )
 
-        matching_ideal = set(
-            i.lower() for i in template.ideal_for
-        ) & set(r.lower() for r in request.requirements)
+        matching_ideal = set(i.lower() for i in template.ideal_for) & set(
+            r.lower() for r in request.requirements
+        )
 
         total_matches = len(matching_capabilities) + len(matching_ideal)
         if total_matches > 0:
             req_score = min(0.20, 0.05 * total_matches)
             score += req_score
             if matching_capabilities:
-                reasons.append(
-                    f"Matching capabilities: {', '.join(matching_capabilities)}"
-                )
+                reasons.append(f"Matching capabilities: {', '.join(matching_capabilities)}")
             if matching_ideal:
                 reasons.append(f"Ideal for: {', '.join(matching_ideal)}")
 

@@ -1,14 +1,14 @@
 """CRUD operations for Service model."""
 
 import re
-from typing import Sequence
+from collections.abc import Sequence
 
-from sqlalchemy import select, func, delete
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models.service import Service, ServiceStatus, ServiceTier
 from app.db.models.anomaly import Anomaly
+from app.db.models.service import Service, ServiceStatus, ServiceTier
 from app.schemas.service import ServiceCreate, ServiceUpdate
 
 
@@ -85,8 +85,7 @@ class ServiceCRUD:
         if search:
             search_pattern = f"%{search}%"
             query = query.where(
-                (Service.name.ilike(search_pattern))
-                | (Service.description.ilike(search_pattern))
+                (Service.name.ilike(search_pattern)) | (Service.description.ilike(search_pattern))
             )
 
         if include_relations:
@@ -120,8 +119,7 @@ class ServiceCRUD:
         if search:
             search_pattern = f"%{search}%"
             query = query.where(
-                (Service.name.ilike(search_pattern))
-                | (Service.description.ilike(search_pattern))
+                (Service.name.ilike(search_pattern)) | (Service.description.ilike(search_pattern))
             )
 
         result = await db.execute(query)
@@ -204,7 +202,7 @@ class ServiceCRUD:
 
         # Active anomalies
         anomaly_result = await db.execute(
-            select(func.count(Anomaly.id)).where(Anomaly.is_active == True)
+            select(func.count(Anomaly.id)).where(Anomaly.is_active.is_(True))
         )
         active_anomalies = anomaly_result.scalar_one()
 
@@ -213,9 +211,7 @@ class ServiceCRUD:
         deploys_today = deploys_result.scalar_one() or 0
 
         # Total rollbacks this week
-        rollbacks_result = await db.execute(
-            select(func.sum(Service.rollbacks_this_week))
-        )
+        rollbacks_result = await db.execute(select(func.sum(Service.rollbacks_this_week)))
         rollbacks_this_week = rollbacks_result.scalar_one() or 0
 
         return {

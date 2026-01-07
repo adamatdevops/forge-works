@@ -12,10 +12,10 @@ from app.db.base import get_db
 from app.db.models.service import ServiceStatus, ServiceTier
 from app.schemas.service import (
     ServiceCreate,
-    ServiceUpdate,
-    ServiceResponse,
     ServiceListResponse,
+    ServiceResponse,
     ServiceStatsResponse,
+    ServiceUpdate,
 )
 
 router = APIRouter()

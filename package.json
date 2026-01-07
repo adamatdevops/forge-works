@@ -1,0 +1,35 @@
+{
+  "name": "forge-works",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ForgeWorks - Internal Developer Platform (Golden Path Orchestrator)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adamatdevops/forge-works.git"
+  },
+  "author": "Adam Keinan",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "dev:backend": "turbo run dev --filter=@forge-works/backend",
+    "dev:frontend": "turbo run dev --filter=@forge-works/frontend",
+    "test:backend": "turbo run test --filter=@forge-works/backend",
+    "test:frontend": "turbo run test --filter=@forge-works/frontend",
+    "lint:backend": "turbo run lint --filter=@forge-works/backend",
+    "lint:frontend": "turbo run lint --filter=@forge-works/frontend"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  }
+}

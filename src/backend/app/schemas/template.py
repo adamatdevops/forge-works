@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TemplateResponse(BaseModel):
@@ -90,7 +90,5 @@ class RecommendationResponse(BaseModel):
     session_id: str = Field(..., description="Unique session ID for tracking")
     recommendations: list[RecommendationScore]
     top_recommendation: TemplateResponse | None
-    processing_time_ms: float = Field(
-        ..., description="ML inference time in milliseconds"
-    )
+    processing_time_ms: float = Field(..., description="ML inference time in milliseconds")
     model_version: str = Field(..., description="Recommender model version")

@@ -1,8 +1,8 @@
 """CRUD operations for Team model."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -54,7 +54,5 @@ class TeamCRUD:
     @staticmethod
     async def exists(db: AsyncSession, team_id: str) -> bool:
         """Check if a team exists."""
-        result = await db.execute(
-            select(func.count(Team.id)).where(Team.id == team_id)
-        )
+        result = await db.execute(select(func.count(Team.id)).where(Team.id == team_id))
         return result.scalar_one() > 0

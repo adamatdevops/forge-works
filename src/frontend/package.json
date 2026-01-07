@@ -1,0 +1,24 @@
+{
+  "name": "@forge-works/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ForgeWorks Frontend - Next.js Dashboard (Phase 3)",
+  "scripts": {
+    "dev": "echo 'Frontend not yet implemented - Phase 3'",
+    "build": "echo 'Frontend not yet implemented - Phase 3'",
+    "test": "echo 'Frontend not yet implemented - Phase 3'",
+    "lint": "echo 'Frontend not yet implemented - Phase 3'",
+    "format": "echo 'Frontend not yet implemented - Phase 3'",
+    "typecheck": "echo 'Frontend not yet implemented - Phase 3'",
+    "clean": "rm -rf .next node_modules"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [
+    "nextjs",
+    "react",
+    "typescript",
+    "dashboard",
+    "idp"
+  ]
+}

@@ -1,6 +1,6 @@
 """Tests for Template API endpoints."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
@@ -50,8 +50,8 @@ async def sample_templates(test_session: AsyncSession) -> list[Template]:
             includes_tests=data["includes_tests"],
             is_active=data["is_active"],
             is_recommended=data["is_recommended"],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         test_session.add(template)
         templates.append(template)

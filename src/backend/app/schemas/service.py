@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.db.models.service import ServiceStatus, ServiceTier
 
@@ -15,9 +15,7 @@ class ServiceBase(BaseModel):
     description: str | None = Field(None, description="Service description")
     team_id: str = Field(..., description="Owning team ID")
     template_id: str | None = Field(None, description="Golden Path template used")
-    tier: ServiceTier = Field(
-        default=ServiceTier.STANDARD, description="Service criticality tier"
-    )
+    tier: ServiceTier = Field(default=ServiceTier.STANDARD, description="Service criticality tier")
     repository_url: str | None = Field(None, max_length=500, description="Git repository URL")
     repository_branch: str = Field(default="main", max_length=100, description="Default branch")
     namespace: str | None = Field(None, max_length=100, description="Kubernetes namespace")

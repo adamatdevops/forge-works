@@ -1,0 +1,12 @@
+# PNPM Workspace Configuration
+# Defines which directories are part of the monorepo workspace
+
+packages:
+  # Backend (Python/FastAPI) - wrapped with package.json for Turbo integration
+  - "src/backend"
+
+  # Frontend (Next.js/TypeScript) - native pnpm/turbo support
+  - "src/frontend"
+
+  # Shared utilities - can contain both TS types and Python shared code
+  - "src/shared"

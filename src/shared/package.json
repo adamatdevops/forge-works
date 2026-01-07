@@ -1,0 +1,24 @@
+{
+  "name": "@forge-works/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ForgeWorks Shared - Common types and utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "echo 'Shared package - no dev server'",
+    "build": "echo 'Shared package not yet implemented'",
+    "test": "echo 'Shared package not yet implemented'",
+    "lint": "echo 'Shared package not yet implemented'",
+    "format": "echo 'Shared package not yet implemented'",
+    "typecheck": "echo 'Shared package not yet implemented'",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [
+    "shared",
+    "types",
+    "utilities"
+  ]
+}
