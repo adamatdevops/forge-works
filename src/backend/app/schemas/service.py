@@ -107,7 +107,7 @@ class ServiceResponse(BaseModel):
     rollbacks_this_week: int
     last_deploy_at: datetime | None
     tags: list[str]
-    metadata: dict[str, Any]
+    metadata: dict[str, Any] = Field(validation_alias="extra_metadata")
     documentation_url: str | None
     dashboard_url: str | None
     runbook_url: str | None

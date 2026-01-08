@@ -140,7 +140,7 @@ class ServiceCRUD:
             repository_branch=data.repository_branch,
             namespace=data.namespace,
             tags=data.tags,
-            metadata=data.metadata,
+            extra_metadata=data.metadata,
             documentation_url=data.documentation_url,
             dashboard_url=data.dashboard_url,
             runbook_url=data.runbook_url,
@@ -165,6 +165,10 @@ class ServiceCRUD:
         # Update slug if name changes
         if "name" in update_data:
             update_data["slug"] = slugify(update_data["name"])
+
+        # Rename metadata to extra_metadata for ORM
+        if "metadata" in update_data:
+            update_data["extra_metadata"] = update_data.pop("metadata")
 
         for field, value in update_data.items():
             setattr(service, field, value)

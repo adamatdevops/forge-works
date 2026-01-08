@@ -30,7 +30,7 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 | Template API | Done |
 | ML Recommender (rule-based) | Done |
 | Seed data for demos | Done |
-| Mock adapters (GitHub, ArgoCD) | In Progress |
+| Mock adapters (GitHub, ArgoCD) | Done |
 | Frontend dashboard | Planned |
 | Anomaly detection panel | Planned |
 

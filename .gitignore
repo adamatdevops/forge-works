@@ -122,8 +122,8 @@ pytest_cache/
 *.pt
 *.pth
 *.onnx
-models/
-!models/.gitkeep
+/models/
+!/models/.gitkeep
 
 # =============================================================================
 # Logs

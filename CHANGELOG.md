@@ -13,13 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template API with ML-powered recommendations (rule-based Phase 1)
 - Database schema with Alembic migrations
 - Seed data for demo purposes
-- Health check endpoints
+- Health check endpoints with adapter status
+- Mock adapters for GitHub and ArgoCD integrations
 - Comprehensive documentation (MONOREPO_SETUP.md, LOCAL_DEV.md)
 - Project configuration files (LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md)
 
 ### Infrastructure
 - FastAPI backend structure
 - PostgreSQL database schema
+- GitHub adapter with mock mode for repositories, branches, commits, PRs, and workflows
+- ArgoCD adapter with mock mode for applications, sync operations, and deployment status
 - Docker Compose for local development
 - PNPM workspaces for frontend/backend/shared packages
 

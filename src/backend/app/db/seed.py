@@ -250,7 +250,7 @@ SERVICES = [
         "rollbacks_this_week": 0,
         "last_deploy_at": now - timedelta(days=3),  # ANOMALY: Pipeline failing 48+ hours
         "tags": ["ml", "inference", "gpu"],
-        "metadata": {"pipeline_status": "failing", "pipeline_failed_hours": 52},
+        "extra_metadata": {"pipeline_status": "failing", "pipeline_failed_hours": 52},
     },
     # Healthy services
     {
