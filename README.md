@@ -19,6 +19,21 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 - **ML-Powered Recommendations** - Intelligent template suggestions based on workload type, language, and requirements
 - **Anomaly Detection** - Surface deployment patterns that indicate potential issues (high deploy frequency, consecutive rollbacks)
 
+## Project Status
+
+| Component | Status |
+|-----------|--------|
+| Repository scaffolding | Done |
+| Monorepo setup (TurboRepo + PNPM) | Done |
+| Database schema & migrations | Done |
+| Service Catalog API (CRUD) | Done |
+| Template API | Done |
+| ML Recommender (rule-based) | Done |
+| Seed data for demos | Done |
+| Mock adapters (GitHub, ArgoCD) | In Progress |
+| Frontend dashboard | Planned |
+| Anomaly detection panel | Planned |
+
 ## Architecture
 
 ```
@@ -76,6 +91,8 @@ forge-works/
 ```
 
 ## API Endpoints
+
+The following endpoints are implemented and available in the current build.
 
 ### Services (`/api/v1/services`)
 
@@ -158,7 +175,7 @@ Pre-configured service blueprints including:
 - **Data Pipeline** - Batch processing workflows
 - **ML Service** - Model serving infrastructure
 
-Each template includes: CI/CD pipelines, monitoring, tests, documentation.
+Each template is designed to include CI/CD pipelines, monitoring, tests, and documentation as part of the Golden Path standard.
 
 ### ML Template Recommender
 Intelligent matching based on:
@@ -173,6 +190,16 @@ Surfaces potential issues:
 - Consecutive rollbacks
 - Pipeline failures
 - Health degradation patterns
+
+## For Reviewers
+
+This repository is the **implementation surface** of an Internal Developer Platform concept:
+
+- The focus is on demonstrating **platform engineering thinking**, governance-through-design, and ML-assisted guidance
+- Architecture decisions and planning artifacts guide all implementation choices
+- This is a portfolio demonstration, not a simulation of a full enterprise deployment
+
+The codebase showcases real patterns used in production IDPs while remaining appropriately scoped for evaluation.
 
 ## License
 
