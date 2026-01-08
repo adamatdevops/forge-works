@@ -1,5 +1,13 @@
 # ForgeWorks - Internal Developer Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-purple.svg)](https://github.com/astral-sh/ruff)
+[![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 > **A Golden Path Orchestrator that provides opinionated, production-ready service templates to standardize architecture, improve developer velocity, and enforce platform governance through design.**
 
 ## Overview
