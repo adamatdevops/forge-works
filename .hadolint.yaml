@@ -1,0 +1,68 @@
+# Hadolint configuration
+# https://github.com/hadolint/hadolint
+
+# Fail on warnings and errors
+failure-threshold: warning
+
+# Output format (tty, json, checkstyle, codeclimate, gitlab_codeclimate, gnu, codacy, sonarqube, sarif)
+format: tty
+
+# Treat these rules as errors
+error:
+  - DL3008  # Pin versions in apt-get install
+  - DL3013  # Pin versions in pip install
+  - DL3018  # Pin versions in apk add
+  - DL3028  # Pin versions in gem install
+
+# Treat these rules as warnings
+warning:
+  - DL3059  # Multiple consecutive RUN instructions
+
+# Treat these rules as info
+info:
+  - DL3025  # Use JSON for CMD arguments
+
+# Treat these rules as style suggestions
+style:
+  - DL3015  # Avoid additional packages in apt-get
+
+# Ignore these rules entirely
+ignored:
+  # Allow using latest tag in development (override in CI)
+  # - DL3007
+  # Allow MAINTAINER (deprecated but sometimes needed)
+  - DL4000
+  # Allow curl/wget pipe to shell in controlled scenarios
+  # - DL4006
+
+# Trusted registries for FROM instructions
+trustedRegistries:
+  - docker.io
+  - gcr.io
+  - ghcr.io
+  - quay.io
+  - public.ecr.aws
+  - registry.k8s.io
+  - mcr.microsoft.com
+
+# Override specific rules
+override:
+  # Allow apt-get without version pinning for these packages (common base packages)
+  warning:
+    - DL3008
+
+# Label schema for required labels
+label-schema:
+  maintainer: text
+  org.opencontainers.image.source: url
+  org.opencontainers.image.description: text
+  org.opencontainers.image.licenses: text
+
+# Strict mode - more stringent checks
+strict-labels: false
+
+# No fail on missing .hadolint.yaml
+no-fail: false
+
+# Disable color output
+no-color: false

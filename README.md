@@ -1,4 +1,4 @@
-# ForgeWorks - Internal Developer Platform
+# ForgeWorks - Dynamic Reliability
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -9,6 +9,9 @@
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
 [![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-purple.svg)](https://github.com/astral-sh/ruff)
+[![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Gitleaks](https://img.shields.io/badge/protected%20by-gitleaks-blue.svg)](https://github.com/gitleaks/gitleaks)
+[![Hadolint](https://img.shields.io/badge/Dockerfile%20linter-hadolint-40b5a4.svg)](https://github.com/hadolint/hadolint)
 [![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 

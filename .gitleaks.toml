@@ -1,0 +1,105 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "ForgeWorks Gitleaks Configuration"
+
+# Use the default gitleaks rules as a base
+[extend]
+useDefault = true
+
+# Paths to ignore
+[allowlist]
+paths = [
+    # Test fixtures and mock data
+    '''tests/''',
+    '''__tests__/''',
+    '''\.test\.''',
+    '''\.spec\.''',
+    # Documentation
+    '''docs/''',
+    '''\.md$''',
+    # Build artifacts
+    '''dist/''',
+    '''build/''',
+    '''\.next/''',
+    '''node_modules/''',
+    # Environment examples (not actual secrets)
+    '''\.env\.example$''',
+    '''\.env\.sample$''',
+    '''\.env\.template$''',
+    # Lock files
+    '''pnpm-lock\.yaml$''',
+    '''package-lock\.json$''',
+    '''yarn\.lock$''',
+    # Generated files
+    '''\.turbo/''',
+    # Virtual environments
+    '''venv/''',
+    '''\.venv/''',
+]
+
+# Regex patterns to ignore (false positives)
+regexes = [
+    # Example/placeholder values
+    '''(?i)example''',
+    '''(?i)placeholder''',
+    '''(?i)changeme''',
+    '''(?i)your[-_]?api[-_]?key''',
+    '''(?i)insert[-_]?here''',
+    # Common test values
+    '''(?i)test[-_]?secret''',
+    '''(?i)fake[-_]?key''',
+    '''(?i)dummy''',
+]
+
+# Specific commits to ignore (if needed)
+commits = []
+
+# Stop words - strings that indicate non-secrets
+stopwords = [
+    "example",
+    "sample",
+    "placeholder",
+    "changeme",
+    "your-api-key",
+    "insert-key-here",
+    "xxx",
+    "test",
+    "fake",
+    "dummy",
+    "mock",
+]
+
+# Custom rules for project-specific patterns
+[[rules]]
+id = "forge-internal-token"
+description = "ForgeWorks Internal Token"
+regex = '''(?i)forge[-_]?works[-_]?token\s*[:=]\s*['"]?([a-zA-Z0-9_-]{32,})['"]?'''
+tags = ["token", "internal"]
+keywords = ["forgeworks", "forge_works", "forge-works"]
+
+[[rules]]
+id = "generic-high-entropy"
+description = "High entropy string that may be a secret"
+regex = '''(?i)(?:api[-_]?key|secret|password|token|credential)s?\s*[:=]\s*['"]?([a-zA-Z0-9/+=]{40,})['"]?'''
+entropy = 4.5
+tags = ["secret", "high-entropy"]
+keywords = ["api_key", "apikey", "secret", "password", "token", "credential"]
+
+# Allowlist specific rules that tend to have false positives
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)api[-_]?key\s*[:=]\s*['"]?([a-zA-Z0-9_-]{20,})['"]?'''
+tags = ["api", "key"]
+keywords = ["api_key", "apikey"]
+[rules.allowlist]
+regexes = [
+    '''(?i)your[-_]?api[-_]?key''',
+    '''(?i)api[-_]?key[-_]?here''',
+    '''(?i)example''',
+]
+
+# Specific file patterns to always scan (override path allowlist)
+[rules.allowlist]
+paths = []
