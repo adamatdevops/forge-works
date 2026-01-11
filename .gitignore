@@ -33,8 +33,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
+# But keep frontend lib
+!src/frontend/src/lib/
 parts/
 sdist/
 var/
@@ -74,6 +76,8 @@ dist/
 # =============================================================================
 .idea/
 .vscode/
+.codex/
+.history/
 *.swp
 *.swo
 *~
