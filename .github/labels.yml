@@ -1,0 +1,124 @@
+# GitHub Labels Configuration
+# Sync with: gh label create --force OR use github-label-sync action
+
+# =============================================================================
+# Type Labels (Required on all PRs)
+# =============================================================================
+- name: "type:feature"
+  color: "1D76DB"
+  description: "New feature or enhancement"
+
+- name: "type:fix"
+  color: "D73A4A"
+  description: "Bug fix"
+
+- name: "type:docs"
+  color: "0075CA"
+  description: "Documentation only"
+
+- name: "type:chore"
+  color: "FBCA04"
+  description: "Maintenance, dependencies, CI"
+
+- name: "type:refactor"
+  color: "6F42C1"
+  description: "Code refactoring"
+
+- name: "type:test"
+  color: "BFD4F2"
+  description: "Test additions or changes"
+
+- name: "type:perf"
+  color: "5319E7"
+  description: "Performance improvement"
+
+# =============================================================================
+# Package Labels (Auto-applied by labeler)
+# =============================================================================
+- name: "pkg:frontend"
+  color: "7057FF"
+  description: "Changes to @forge-works/frontend"
+
+- name: "pkg:backend"
+  color: "008672"
+  description: "Changes to @forge-works/backend"
+
+- name: "pkg:shared"
+  color: "E99695"
+  description: "Changes to shared packages"
+
+- name: "pkg:infra"
+  color: "D4C5F9"
+  description: "Infrastructure, CI/CD, GitHub config"
+
+# =============================================================================
+# Semver Labels (For Changesets)
+# =============================================================================
+- name: "semver:major"
+  color: "B60205"
+  description: "Breaking change - major version bump"
+
+- name: "semver:minor"
+  color: "FBCA04"
+  description: "New feature - minor version bump"
+
+- name: "semver:patch"
+  color: "0E8A16"
+  description: "Bug fix - patch version bump"
+
+# =============================================================================
+# Priority Labels
+# =============================================================================
+- name: "priority:critical"
+  color: "B60205"
+  description: "Production down or security issue"
+
+- name: "priority:high"
+  color: "D93F0B"
+  description: "Important, needs attention soon"
+
+- name: "priority:medium"
+  color: "FBCA04"
+  description: "Normal priority"
+
+- name: "priority:low"
+  color: "0E8A16"
+  description: "Nice to have, can wait"
+
+# =============================================================================
+# Status Labels
+# =============================================================================
+- name: "status:wip"
+  color: "FEF2C0"
+  description: "Work in progress - do not merge"
+
+- name: "status:ready"
+  color: "0E8A16"
+  description: "Ready for review"
+
+- name: "status:blocked"
+  color: "D73A4A"
+  description: "Blocked by external dependency"
+
+- name: "status:needs-changes"
+  color: "E4E669"
+  description: "Changes requested in review"
+
+# =============================================================================
+# Special Labels
+# =============================================================================
+- name: "dependencies"
+  color: "0366D6"
+  description: "Dependency updates"
+
+- name: "breaking-change"
+  color: "B60205"
+  description: "Contains breaking changes"
+
+- name: "needs-changeset"
+  color: "FBCA04"
+  description: "PR needs a changeset file"
+
+- name: "skip-changeset"
+  color: "EEEEEE"
+  description: "No changeset required"

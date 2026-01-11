@@ -1,0 +1,53 @@
+# Auto-labeler configuration for actions/labeler
+# Labels PRs based on file paths
+
+# Package labels
+"pkg:frontend":
+  - changed-files:
+      - any-glob-to-any-file: "src/frontend/**/*"
+
+"pkg:backend":
+  - changed-files:
+      - any-glob-to-any-file: "src/backend/**/*"
+
+"pkg:shared":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/shared/**/*"
+          - "packages/**/*"
+
+"pkg:infra":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "infra/**/*"
+          - ".github/**/*"
+          - "docker-compose*.yml"
+          - "Dockerfile*"
+          - "turbo.json"
+          - "pnpm-workspace.yaml"
+
+# Type labels based on file patterns
+"type:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**/*"
+          - "*.md"
+
+"type:test":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.test.ts"
+          - "**/*.test.tsx"
+          - "**/*.spec.ts"
+          - "**/*.spec.tsx"
+          - "**/tests/**/*"
+          - "**/test/**/*"
+          - "**/__tests__/**/*"
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "pnpm-lock.yaml"
+          - "**/package.json"

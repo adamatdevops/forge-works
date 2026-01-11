@@ -66,15 +66,21 @@ pnpm test
 
 ## Making Changes
 
-### Branch Naming
+### Branch Naming (Trunk-Based Development)
 
-Use descriptive branch names:
+We use trunk-based development with short-lived feature branches.
 
-- `feat/description` - New features
-- `fix/description` - Bug fixes
-- `docs/description` - Documentation changes
-- `refactor/description` - Code refactoring
-- `test/description` - Test additions/changes
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature | `feature/<ticket>-<description>` | `feature/FW-123-add-metrics-layer` |
+| Bug Fix | `fix/<ticket>-<description>` | `fix/FW-456-button-alignment` |
+| Hotfix | `hotfix/<ticket>-<description>` | `hotfix/FW-789-security-patch` |
+| Docs | `docs/<description>` | `docs/update-api-docs` |
+
+**Rules:**
+- Keep branches short-lived (< 2 days ideal)
+- Squash merge to main
+- Delete branches after merge
 
 ### Commit Messages
 
@@ -104,6 +110,35 @@ fix(db): resolve connection pool exhaustion
 docs(readme): update installation instructions
 ```
 
+## Changesets
+
+We use [Changesets](https://github.com/changesets/changesets) for versioning and changelogs.
+
+### When to Add a Changeset
+
+- Any change that affects package functionality
+- New features, bug fixes, performance improvements
+- API changes (breaking or not)
+
+### When NOT to Add a Changeset
+
+- Documentation-only changes
+- CI/CD configuration changes
+- Test-only changes (add `skip-changeset` label to PR)
+
+### Creating a Changeset
+
+```bash
+pnpm changeset
+```
+
+Select the packages you modified and the type of change:
+- **patch**: Bug fixes, minor improvements
+- **minor**: New features (backwards compatible)
+- **major**: Breaking changes
+
+See [RELEASE.md](RELEASE.md) for the full release process.
+
 ## Pull Request Process
 
 1. **Update your branch** with the latest main:
@@ -112,27 +147,33 @@ docs(readme): update installation instructions
    git rebase origin/main
    ```
 
-2. **Run all checks** before submitting:
+2. **Add a changeset** if your PR includes code changes:
+   ```bash
+   pnpm changeset
+   ```
+
+3. **Run all checks** before submitting:
    ```bash
    pnpm lint
    pnpm test
    ```
 
-3. **Create the PR** with:
+4. **Create the PR** with:
    - Clear title following commit conventions
    - Description of changes
    - Link to related issues
    - Screenshots for UI changes
 
-4. **Address review feedback** promptly
+5. **Address review feedback** promptly
 
-5. **Squash commits** if requested
+6. **Squash commits** if requested
 
 ### PR Checklist
 
 - [ ] Code follows project style guidelines
 - [ ] Tests pass locally
 - [ ] New code has test coverage
+- [ ] Changeset added (or `skip-changeset` label applied)
 - [ ] Documentation updated if needed
 - [ ] No console.log or debug statements
 - [ ] No hardcoded secrets or credentials

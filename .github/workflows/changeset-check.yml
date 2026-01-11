@@ -1,0 +1,103 @@
+# Changeset Check Workflow
+# Ensures PRs include changesets for code changes
+
+name: Changeset Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  check:
+    name: Check for Changeset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changeset
+        id: changeset-check
+        run: |
+          # Skip check if PR has skip-changeset label
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}" == "true" ]]; then
+            echo "Skipping changeset check (skip-changeset label present)"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if any source files changed (not just docs/config)
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+
+          # Pattern for files that require changesets
+          REQUIRES_CHANGESET=false
+          for file in $CHANGED_FILES; do
+            if [[ $file == src/* ]] && [[ ! $file == *.md ]]; then
+              REQUIRES_CHANGESET=true
+              break
+            fi
+          done
+
+          if [[ "$REQUIRES_CHANGESET" == "false" ]]; then
+            echo "No source files changed, changeset not required"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if changeset exists
+          CHANGESET_FILES=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+
+          if [[ -z "$CHANGESET_FILES" ]]; then
+            echo "::error::No changeset found. Please run 'pnpm changeset' to create one."
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "Changeset found: $CHANGESET_FILES"
+          echo "skip=true" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR if missing changeset
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const message = `## Missing Changeset
+
+            This PR modifies source files but doesn't include a changeset.
+
+            **To add a changeset:**
+            \`\`\`bash
+            pnpm changeset
+            \`\`\`
+
+            Then select the packages you've changed and describe your changes.
+
+            **To skip this check**, add the \`skip-changeset\` label to this PR.
+            This is appropriate for:
+            - Documentation-only changes
+            - CI/CD configuration changes
+            - Other non-user-facing changes`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
