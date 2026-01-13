@@ -125,8 +125,9 @@ function PipelineCard({ pipeline, onSelectService, onPublishCommit }: PipelineCa
           <CardTitle className="text-sm flex items-center gap-2">
             <StatusIcon status={pipeline.status} />
             <button
-              className="font-mono text-sm hover:underline"
+              className="font-mono text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
               onClick={onPublishCommit}
+              aria-label={`View commit ${pipeline.commit_sha.slice(0, 7)}`}
             >
               {pipeline.commit_sha.slice(0, 7)}
             </button>
@@ -199,9 +200,9 @@ export function PipelineLayer() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8" role="alert" aria-live="assertive">
         <div className="text-center text-red-500">
-          <XCircle className="h-8 w-8 mx-auto mb-2" />
+          <XCircle className="h-8 w-8 mx-auto mb-2" aria-hidden="true" />
           <p className="text-sm">Failed to load pipelines</p>
           <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
             Retry
@@ -213,9 +214,9 @@ export function PipelineLayer() {
 
   if (!pipelines || pipelines.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8" role="status" aria-live="polite">
         <div className="text-center text-muted-foreground">
-          <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
           <p className="font-medium">No pipeline runs found</p>
           {selectedServiceId && (
             <p className="text-sm mt-1">for selected service</p>
@@ -238,12 +239,12 @@ export function PipelineLayer() {
     : 0;
 
   return (
-    <div className="p-4 space-y-4">
+    <section className="p-4 space-y-4" aria-label="Pipeline runs">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 text-sm" role="status" aria-live="polite">
           <span className="font-medium flex items-center gap-2">
-            <GitBranch className="h-4 w-4" />
+            <GitBranch className="h-4 w-4" aria-hidden="true" />
             {stats.total} runs
           </span>
           {stats.running > 0 && (
@@ -263,8 +264,9 @@ export function PipelineLayer() {
           className="h-8 w-8 p-0"
           onClick={() => refetch()}
           disabled={isRefetching}
+          aria-label={isRefetching ? 'Refreshing pipelines' : 'Refresh pipelines'}
         >
-          <RefreshCw className={cn('h-4 w-4', isRefetching && 'animate-spin')} />
+          <RefreshCw className={cn('h-4 w-4', isRefetching && 'animate-spin')} aria-hidden="true" />
         </Button>
       </div>
 
@@ -275,7 +277,7 @@ export function PipelineLayer() {
       )}
 
       {/* Pipeline Cards */}
-      <div className="space-y-3">
+      <div className="space-y-3" role="list" aria-label="Pipeline run list">
         {pipelines.map((pipeline) => (
           <PipelineCard
             key={pipeline.id}
@@ -285,7 +287,7 @@ export function PipelineLayer() {
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

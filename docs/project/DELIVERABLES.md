@@ -63,24 +63,35 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 | Snyk policy | ✅ Done | `.snyk` |
 | Git ignore | ✅ Done | `.gitignore` |
 
-## Phase 2: Integration 🔄
+## Phase 2: Integration ✅
 
 ### Frontend
 
 | Deliverable | Status | Location |
 |-------------|--------|----------|
-| Next.js application | 🔄 Planned | `src/frontend/` |
-| Service catalog dashboard | 🔄 Planned | `src/frontend/app/services/` |
-| Template browser | 🔄 Planned | `src/frontend/app/templates/` |
-| Service creation wizard | 🔄 Planned | `src/frontend/app/services/new/` |
-| Anomaly dashboard | 🔄 Planned | `src/frontend/app/anomalies/` |
+| Next.js application | ✅ Done | `src/frontend/` |
+| Layer architecture (GlueBus) | ✅ Done | `src/frontend/lib/glue-bus.ts` |
+| Service catalog layer | ✅ Done | `src/frontend/components/layers/ServicesLayer.tsx` |
+| Template browser layer | ✅ Done | `src/frontend/components/layers/TemplatesLayer.tsx` |
+| Anomaly detection layer | ✅ Done | `src/frontend/components/layers/AnomaliesLayer.tsx` |
+| Pipeline status layer | ✅ Done | `src/frontend/components/layers/PipelineLayer.tsx` |
+| Metrics dashboard layer | ✅ Done | `src/frontend/components/layers/MetricsLayer.tsx` |
+| Layer panel with drag reorder | ✅ Done | `src/frontend/components/LayerPanel.tsx` |
+
+### Backend Extensions
+
+| Deliverable | Status | Location |
+|-------------|--------|----------|
+| Anomaly API (CRUD + workflows) | ✅ Done | `src/backend/app/api/routes/anomalies.py` |
+| Metrics API (DORA metrics) | ✅ Done | `src/backend/app/api/routes/metrics.py` |
+| Anomaly detection logic | ✅ Done | `src/backend/app/crud/anomalies.py` |
 
 ### Real Integrations
 
 | Deliverable | Status | Location |
 |-------------|--------|----------|
-| GitHub API integration | 🔄 Planned | `src/backend/app/adapters/github.py` |
-| ArgoCD API integration | 🔄 Planned | `src/backend/app/adapters/argocd.py` |
+| GitHub API integration | ✅ Done | `src/backend/app/adapters/github.py` |
+| ArgoCD API integration | ✅ Done | `src/backend/app/adapters/argocd.py` |
 | Kubernetes client | 🔄 Planned | `src/backend/app/adapters/kubernetes.py` |
 
 ### CI/CD
@@ -91,6 +102,15 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 | Test workflow | 🔄 Planned | `.github/workflows/test.yml` |
 | Build workflow | 🔄 Planned | `.github/workflows/build.yml` |
 | Release workflow | 🔄 Planned | `.github/workflows/release.yml` |
+
+### Documentation
+
+| Deliverable | Status | Location |
+|-------------|--------|----------|
+| API documentation | ✅ Done | `docs/API.md` |
+| Architecture diagrams | ✅ Done | `docs/diagrams/` |
+| Layers architecture guide | ✅ Done | `docs/features/LAYERS_ARCHITECTURE.md` |
+| Tooling documentation | ✅ Done | `docs/TOOLING.md` |
 
 ## Phase 3: Intelligence 📋
 
@@ -117,29 +137,30 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 
 | Status | Count |
 |--------|-------|
-| ✅ Done | 28 |
-| 🔄 Planned | 12 |
-| 📋 Future | 6 |
+| ✅ Done | 49 |
+| 🔄 Planned | 5 |
+| 📋 Future | 7 |
 
 ### By Category
 
 | Category | Done | Planned | Future |
 |----------|------|---------|--------|
-| Backend | 9 | 3 | 0 |
-| Frontend | 0 | 5 | 0 |
-| Adapters | 4 | 0 | 0 |
+| Backend | 12 | 0 | 0 |
+| Frontend | 8 | 0 | 0 |
+| Adapters | 6 | 1 | 0 |
 | Infrastructure | 4 | 4 | 0 |
-| Documentation | 8 | 0 | 0 |
+| Documentation | 12 | 0 | 0 |
 | Configuration | 7 | 0 | 0 |
-| ML | 0 | 0 | 6 |
+| ML | 0 | 0 | 7 |
 
 ## Release Mapping
 
-| Version | Phase | Key Deliverables |
-|---------|-------|------------------|
-| v0.1.0 | Foundation | Backend APIs, Mock Adapters, Documentation |
-| v0.2.0 | Integration | Frontend Dashboard, CI/CD Workflows |
-| v0.3.0 | Integration | Real GitHub/ArgoCD Integration |
-| v1.0.0 | Intelligence | ML Recommendations, Production Ready |
+| Version | Phase | Status | Key Deliverables |
+|---------|-------|--------|------------------|
+| v0.1.0 | Foundation | ✅ Released | Backend APIs, Mock Adapters, Documentation |
+| v0.2.0 | Integration | ✅ Released | Frontend Dashboard, Layer Architecture |
+| v0.3.0 | Experience | ✅ Released | Real GitHub/ArgoCD Adapters, Anomaly Detection, DORA Metrics |
+| v0.4.0 | Real-time | 🔄 Next | WebSocket Updates, Kubernetes Adapter, CI/CD Workflows |
+| v1.0.0 | Intelligence | 📋 Future | ML Recommendations, Auth, Production Ready |
 
 **Legend:** ✅ Done | 🔄 Planned | 📋 Future

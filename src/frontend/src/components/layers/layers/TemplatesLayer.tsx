@@ -6,7 +6,7 @@
  * Integrates with the ML Recommender API
  */
 
-import { useState } from 'react';
+import { useState, memo, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { FileCode, Sparkles, Star, Zap, Brain, RefreshCw, ChevronDown, TrendingUp } from 'lucide-react';
 import { templatesApi } from '@/lib/api';
@@ -111,15 +111,27 @@ interface TemplateCardProps {
   recommendation?: TemplateRecommendation;
 }
 
-function TemplateCard({ template, isSelected, onSelect, recommendation }: TemplateCardProps) {
+const TemplateCard = memo(function TemplateCard({ template, isSelected, onSelect, recommendation }: TemplateCardProps) {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+  }, [onSelect]);
+
   return (
     <Card
       className={cn(
-        'cursor-pointer transition-all hover:shadow-md',
+        'cursor-pointer transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         isSelected && 'ring-2 ring-purple-500',
         recommendation && 'border-l-4 border-l-purple-500'
       )}
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-pressed={isSelected}
+      aria-label={`Select ${template.name} template, type: ${template.type}, language: ${template.language}${recommendation ? `, ${Math.round(recommendation.score * 100)}% match` : ''}`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -152,7 +164,7 @@ function TemplateCard({ template, isSelected, onSelect, recommendation }: Templa
       </CardContent>
     </Card>
   );
-}
+});
 
 function TemplatesLoading() {
   return (
@@ -180,9 +192,9 @@ function TemplatesLoading() {
 
 function TemplatesEmpty() {
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-8" role="status" aria-live="polite">
       <div className="text-center">
-        <FileCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <FileCode className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-medium">No templates found</h3>
         <p className="text-sm text-muted-foreground mt-1">
           Golden Path templates will appear here
@@ -291,13 +303,13 @@ export function TemplatesLayer() {
     },
   });
 
-  const handleSelectTemplate = (template: Template) => {
+  const handleSelectTemplate = useCallback((template: Template) => {
     publish('template_id', template.id, 'templates');
-  };
+  }, [publish]);
 
-  const handleRecommend = (workloadType: string, language: string) => {
+  const handleRecommend = useCallback((workloadType: string, language: string) => {
     recommendMutation.mutate({ workloadType, language });
-  };
+  }, [recommendMutation]);
 
   if (isLoading) {
     return <TemplatesLoading />;
@@ -317,34 +329,43 @@ export function TemplatesLayer() {
     return <TemplatesEmpty />;
   }
 
-  // If we have recommendations, show those first
-  const recommendedTemplateIds = new Set(recommendations?.map((r) => r.template.id) || []);
-  const recommendationMap = new Map(recommendations?.map((r) => [r.template.id, r]) || []);
+  // Memoize computed values
+  const { recommendedTemplateIds, recommendationMap, sortedTemplates, templatesByType } = useMemo(() => {
+    const recIds = new Set(recommendations?.map((r) => r.template.id) || []);
+    const recMap = new Map(recommendations?.map((r) => [r.template.id, r]) || []);
 
-  // Sort templates: recommended first (by score), then others by popularity
-  const sortedTemplates = [...templates].sort((a, b) => {
-    const aRec = recommendationMap.get(a.id);
-    const bRec = recommendationMap.get(b.id);
+    // Sort templates: recommended first (by score), then others by popularity
+    const sorted = [...templates].sort((a, b) => {
+      const aRec = recMap.get(a.id);
+      const bRec = recMap.get(b.id);
 
-    if (aRec && bRec) {
-      return bRec.score - aRec.score;
-    }
-    if (aRec) return -1;
-    if (bRec) return 1;
-    return b.popularity - a.popularity;
-  });
+      if (aRec && bRec) {
+        return bRec.score - aRec.score;
+      }
+      if (aRec) return -1;
+      if (bRec) return 1;
+      return b.popularity - a.popularity;
+    });
 
-  // Group templates by type
-  const templatesByType = templates.reduce((acc, template) => {
-    if (!acc[template.type]) {
-      acc[template.type] = [];
-    }
-    acc[template.type].push(template);
-    return acc;
-  }, {} as Record<string, Template[]>);
+    // Group templates by type
+    const byType = templates.reduce((acc, template) => {
+      if (!acc[template.type]) {
+        acc[template.type] = [];
+      }
+      acc[template.type].push(template);
+      return acc;
+    }, {} as Record<string, Template[]>);
+
+    return {
+      recommendedTemplateIds: recIds,
+      recommendationMap: recMap,
+      sortedTemplates: sorted,
+      templatesByType: byType,
+    };
+  }, [templates, recommendations]);
 
   return (
-    <div>
+    <section aria-label="Templates catalog">
       {/* ML Recommender Section */}
       <RecommenderForm onRecommend={handleRecommend} isLoading={recommendMutation.isPending} />
 
@@ -405,7 +426,7 @@ export function TemplatesLayer() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

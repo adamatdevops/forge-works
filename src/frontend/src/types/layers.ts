@@ -96,11 +96,31 @@ export interface RecommendationResponse {
 export interface Anomaly {
   id: string;
   service_id: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'info' | 'warning' | 'critical';
   type: string;
-  message: string;
-  detected_at: string;
+  title: string;
+  description: string;
+  suggestion?: string;
+  detected_value?: string;
+  expected_value?: string;
+  detection_rule?: string;
+  context: Record<string, unknown>;
+  is_active: boolean;
+  is_acknowledged: boolean;
+  acknowledged_by?: string;
+  acknowledged_at?: string;
+  is_resolved: boolean;
   resolved_at?: string;
+  resolution_note?: string;
+  detected_at: string;
+  created_at: string;
+  updated_at: string;
+  service?: {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  };
 }
 
 export interface PipelineRun {

@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import health, services, templates
+from app.api.routes import anomalies, health, metrics, services, templates
 from app.core.config import settings
 
 
@@ -56,6 +56,16 @@ def create_app() -> FastAPI:
         templates.router,
         prefix=f"{settings.api_v1_prefix}/templates",
         tags=["Templates"],
+    )
+    app.include_router(
+        anomalies.router,
+        prefix=f"{settings.api_v1_prefix}/anomalies",
+        tags=["Anomalies"],
+    )
+    app.include_router(
+        metrics.router,
+        prefix=f"{settings.api_v1_prefix}/metrics",
+        tags=["Metrics"],
     )
 
     return app

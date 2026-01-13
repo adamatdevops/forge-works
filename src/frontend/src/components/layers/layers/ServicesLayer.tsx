@@ -6,6 +6,7 @@
  * Publishes selected service_id to GlueBus
  */
 
+import { memo, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, AlertCircle, CheckCircle, HelpCircle, XCircle } from 'lucide-react';
 import { servicesApi } from '@/lib/api';
@@ -50,14 +51,26 @@ interface ServiceCardProps {
   onSelect: () => void;
 }
 
-function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps) {
+const ServiceCard = memo(function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps) {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+  }, [onSelect]);
+
   return (
     <Card
       className={cn(
-        'cursor-pointer transition-all hover:shadow-md',
+        'cursor-pointer transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-pressed={isSelected}
+      aria-label={`Select ${service.name} service, status: ${service.status}`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -83,7 +96,7 @@ function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
 
 function ServicesLoading() {
   return (
@@ -108,9 +121,9 @@ function ServicesLoading() {
 
 function ServicesError({ error }: { error: Error }) {
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-8" role="alert" aria-live="assertive">
       <div className="text-center">
-        <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-medium">Failed to load services</h3>
         <p className="text-sm text-muted-foreground mt-1">{error.message}</p>
       </div>
@@ -120,9 +133,9 @@ function ServicesError({ error }: { error: Error }) {
 
 function ServicesEmpty() {
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-8" role="status" aria-live="polite">
       <div className="text-center">
-        <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-medium">No services found</h3>
         <p className="text-sm text-muted-foreground mt-1">
           Create your first service to get started
@@ -141,9 +154,20 @@ export function ServicesLayer() {
     queryFn: servicesApi.getAll,
   });
 
-  const handleSelectService = (service: Service) => {
+  const handleSelectService = useCallback((service: Service) => {
     publish('service_id', service.id, 'services');
-  };
+  }, [publish]);
+
+  // Memoize stats calculations
+  const stats = useMemo(() => {
+    if (!services) return { total: 0, healthy: 0, degraded: 0, unhealthy: 0 };
+    return {
+      total: services.length,
+      healthy: services.filter((s) => s.status === 'healthy').length,
+      degraded: services.filter((s) => s.status === 'degraded').length,
+      unhealthy: services.filter((s) => s.status === 'unhealthy').length,
+    };
+  }, [services]);
 
   if (isLoading) {
     return <ServicesLoading />;
@@ -158,23 +182,17 @@ export function ServicesLayer() {
   }
 
   return (
-    <div className="p-4">
+    <section className="p-4" aria-label="Services catalog">
       {/* Stats Summary */}
-      <div className="flex items-center gap-4 mb-4 text-sm">
-        <span className="font-medium">{services.length} services</span>
-        <span className="text-green-500">
-          {services.filter((s) => s.status === 'healthy').length} healthy
-        </span>
-        <span className="text-yellow-500">
-          {services.filter((s) => s.status === 'degraded').length} degraded
-        </span>
-        <span className="text-red-500">
-          {services.filter((s) => s.status === 'unhealthy').length} unhealthy
-        </span>
+      <div className="flex items-center gap-4 mb-4 text-sm" role="status" aria-live="polite">
+        <span className="font-medium">{stats.total} services</span>
+        <span className="text-green-500">{stats.healthy} healthy</span>
+        <span className="text-yellow-500">{stats.degraded} degraded</span>
+        <span className="text-red-500">{stats.unhealthy} unhealthy</span>
       </div>
 
       {/* Service Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="group" aria-label="Service cards">
         {services.map((service) => (
           <ServiceCard
             key={service.id}
@@ -184,7 +202,7 @@ export function ServicesLayer() {
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

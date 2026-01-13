@@ -52,6 +52,8 @@ The API layer is built with FastAPI and provides RESTful endpoints for all platf
 |-----------|----------------|
 | `api/routes/services.py` | Service catalog CRUD operations |
 | `api/routes/templates.py` | Template listing and recommendations |
+| `api/routes/anomalies.py` | Anomaly detection and management |
+| `api/routes/metrics.py` | Platform metrics and DORA |
 | `api/routes/health.py` | Health checks and system status |
 
 ### Business Logic Layer
@@ -168,14 +170,16 @@ The API layer is built with FastAPI and provides RESTful endpoints for all platf
 | Alembic | 1.13+ | Migrations |
 | asyncpg | 0.29+ | PostgreSQL driver |
 
-### Frontend (Planned)
+### Frontend
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Next.js | 14+ | React framework |
 | TypeScript | 5+ | Type safety |
 | Tailwind CSS | 3+ | Styling |
-| React Query | 5+ | Data fetching |
+| TanStack Query | 5+ | Data fetching |
+| Zustand | 4+ | State management |
+| shadcn/ui | - | UI components |
 
 ### Infrastructure
 
@@ -236,12 +240,20 @@ Kubernetes Cluster
 
 ## Diagrams
 
-Additional architecture diagrams are available in [`docs/diagrams/`](./diagrams/).
+Comprehensive architecture diagrams are available in [`docs/diagrams/SYSTEM_DIAGRAMS.md`](./diagrams/SYSTEM_DIAGRAMS.md) using Mermaid format.
 
-- System Context Diagram
-- Container Diagram
-- Component Diagram
-- Deployment Diagram
+| Diagram | Description |
+|---------|-------------|
+| System Context (C4 L1) | High-level system and external actors |
+| Container (C4 L2) | Technical containers (Frontend, Backend, DB) |
+| Component - Backend (C4 L3) | Backend API, CRUD, Adapters |
+| Component - Frontend (C4 L3) | Layer architecture, state management |
+| Data Flow | How data moves through the system |
+| Deployment | Local (Docker) and Production (K8s) |
+| Sequence Diagrams | Service creation, anomaly detection, recommendations |
+| ERD | Database entity relationships |
+| Layer Architecture | ForgeWorks unique UI pattern |
+| Adapter Pattern | Mock/Live switching mechanism |
 
 ## Related Documents
 

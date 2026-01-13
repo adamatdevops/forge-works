@@ -6,7 +6,7 @@
  * Core component of the Layers Architecture
  */
 
-import { useState } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -45,7 +45,7 @@ interface SortableLayerItemProps {
   onSelect: () => void;
 }
 
-function SortableLayerItem({ layer, isActive, onToggleVisibility, onSelect }: SortableLayerItemProps) {
+const SortableLayerItem = memo(function SortableLayerItem({ layer, isActive, onToggleVisibility, onSelect }: SortableLayerItemProps) {
   const {
     attributes,
     listeners,
@@ -64,18 +64,29 @@ function SortableLayerItem({ layer, isActive, onToggleVisibility, onSelect }: So
     <div
       ref={setNodeRef}
       style={style}
+      role="listitem"
       className={cn(
         'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors',
-        'hover:bg-accent/50',
+        'hover:bg-accent/50 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1',
         isActive && 'bg-accent',
         !layer.visible && 'opacity-50',
         isDragging && 'opacity-70 bg-accent shadow-lg z-50'
       )}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      tabIndex={0}
+      aria-selected={isActive}
+      aria-label={`${layer.name} layer, ${layer.visible ? 'visible' : 'hidden'}`}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle - using inline function since useSortable provides the handlers */}
       <button
         className="touch-none"
+        aria-label={`Drag to reorder ${layer.name}`}
         {...attributes}
         {...listeners}
       >
@@ -90,6 +101,8 @@ function SortableLayerItem({ layer, isActive, onToggleVisibility, onSelect }: So
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0"
+              aria-label={layer.visible ? `Hide ${layer.name} layer` : `Show ${layer.name} layer`}
+              aria-pressed={layer.visible}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleVisibility();
@@ -129,9 +142,9 @@ function SortableLayerItem({ layer, isActive, onToggleVisibility, onSelect }: So
       )}
     </div>
   );
-}
+});
 
-function LayerIcon({ type }: { type: Layer['type'] }) {
+const LayerIcon = memo(function LayerIcon({ type }: { type: Layer['type'] }) {
   const iconClass = 'h-4 w-4';
 
   switch (type) {
@@ -172,7 +185,7 @@ function LayerIcon({ type }: { type: Layer['type'] }) {
         </div>
       );
   }
-}
+});
 
 export function LayerPanel() {
   const { layers, activeLayerId, toggleLayer, setActiveLayer, setLayerOrder } = useLayerStore();
@@ -188,7 +201,7 @@ export function LayerPanel() {
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -202,31 +215,34 @@ export function LayerPanel() {
 
       setLayerOrder(newLayers);
     }
-  };
+  }, [layers, setLayerOrder]);
 
-  const visibleCount = layers.filter((l) => l.visible).length;
+  const visibleCount = useMemo(() => layers.filter((l) => l.visible).length, [layers]);
+
+  // Memoize layer IDs for SortableContext
+  const layerIds = useMemo(() => layers.map((l) => l.id), [layers]);
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-background">
+    <nav className="flex h-full w-64 flex-col border-r bg-background" aria-label="Layer navigation">
       {/* Header */}
       <div className="flex items-center gap-2 border-b px-4 py-3">
-        <Layers className="h-5 w-5" />
-        <h2 className="font-semibold">Layers</h2>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {visibleCount}/{layers.length}
+        <Layers className="h-5 w-5" aria-hidden="true" />
+        <h2 className="font-semibold" id="layers-heading">Layers</h2>
+        <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+          {visibleCount} of {layers.length} visible
         </span>
       </div>
 
       {/* Layer List */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div className="p-2 space-y-1" role="list" aria-labelledby="layers-heading">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={layers.map((l) => l.id)}
+              items={layerIds}
               strategy={verticalListSortingStrategy}
             >
               {layers.map((layer) => (
@@ -246,11 +262,11 @@ export function LayerPanel() {
       {/* Footer */}
       <Separator />
       <div className="p-3">
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-xs text-muted-foreground text-center" aria-hidden="true">
           Drag to reorder • Toggle visibility
         </p>
       </div>
-    </div>
+    </nav>
   );
 }
 

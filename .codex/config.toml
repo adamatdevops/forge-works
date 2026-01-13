@@ -49,3 +49,18 @@ rules = [
   "Do not infer missing requirements beyond documented scope.",
   "Ask before proposing changes that impact architecture, ML posture, or platform boundaries."
 ]
+
+[mcp_servers]
+github = { command = "npx", args = ["-y", "@modelcontextprotocol/server-github"], env = {} }
+filesystem = { command = "npx", args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/adamkeinan/git/repos"], env = {} }
+memory = { command = "npx", args = ["-y", "@modelcontextprotocol/server-memory"], env = {} }
+context7 = { command = "npx", args = ["-y", "@upstash/context7-mcp"], env = {} }
+commands = { command = "npx", args = ["-y", "mcp-server-commands"], env = {} }
+ragdocs = { command = "npx", args = ["-y", "@iflow-mcp/mcp-ragdocs"], env = {} }
+code-index = { command = "npx", args = ["-y", "@hayhandsome/code-index-mcp"], env = {} }
+claude-skills = { command = "/Users/adamkeinan/.local/bin/uvx", args = ["claude-skills-mcp"], env = {} }
+llm-context = { command = "/Users/adamkeinan/.local/bin/uvx", args = ["--from", "llm-context", "lc-mcp"], env = {} }
+mcp-chrome = { url = "http://127.0.0.1:12306" }
+sentry = { command = "npx", args = ["-y", "@sentry/mcp-server", "--access-token", "REDACTED"], env = {} }
+sequentialthinking = { command = "npx", args = ["-y", "@modelcontextprotocol/server-sequential-thinking"], env = {} }
+fetch = { command = "npx", args = ["-y", "mcp-fetch-server"], env = {} }

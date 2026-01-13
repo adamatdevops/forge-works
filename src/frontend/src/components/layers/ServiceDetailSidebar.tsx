@@ -84,7 +84,7 @@ function formatTimeAgo(dateString: string): string {
 
 function ServiceDetailLoading() {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4" aria-busy="true" aria-label="Loading service details">
       <div className="flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-lg" />
         <div className="space-y-2">
@@ -121,12 +121,18 @@ export function ServiceDetailSidebar() {
   }
 
   return (
-    <div className="flex h-full w-80 flex-col border-l bg-background">
+    <aside className="flex h-full w-80 flex-col border-l bg-background" aria-label="Service details" role="complementary">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <h2 className="font-semibold">Service Details</h2>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClose}>
-          <X className="h-4 w-4" />
+        <h2 className="font-semibold" id="service-details-heading">Service Details</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={handleClose}
+          aria-label="Close service details"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
 
@@ -134,9 +140,9 @@ export function ServiceDetailSidebar() {
       {isLoading ? (
         <ServiceDetailLoading />
       ) : error ? (
-        <div className="flex items-center justify-center p-8">
+        <div className="flex items-center justify-center p-8" role="alert" aria-live="assertive">
           <div className="text-center text-red-500">
-            <XCircle className="h-8 w-8 mx-auto mb-2" />
+            <XCircle className="h-8 w-8 mx-auto mb-2" aria-hidden="true" />
             <p className="text-sm">Failed to load service</p>
           </div>
         </div>
@@ -223,7 +229,7 @@ export function ServiceDetailSidebar() {
           </div>
         </div>
       ) : null}
-    </div>
+    </aside>
   );
 }
 

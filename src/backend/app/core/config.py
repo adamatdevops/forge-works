@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "ForgeWorks"
-    app_version: str = "0.1.0"
+    app_version: str = "0.3.0"
     debug: bool = False
     environment: str = "development"
 
@@ -36,6 +36,17 @@ class Settings(BaseSettings):
     # ML Model
     ml_model_path: str = "models/template_recommender.pkl"
     ml_confidence_threshold: float = 0.7
+
+    # GitHub Integration
+    github_token: str | None = None
+    github_org: str = "forge-org"
+    github_adapter_mode: str = "mock"  # "mock" or "live"
+    github_api_url: str = "https://api.github.com"
+
+    # ArgoCD Integration
+    argocd_server: str | None = None
+    argocd_token: str | None = None
+    argocd_adapter_mode: str = "mock"  # "mock" or "live"
 
 
 @lru_cache

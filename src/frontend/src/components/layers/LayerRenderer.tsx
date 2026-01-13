@@ -16,6 +16,7 @@ const ServicesLayer = lazy(() => import('./layers/ServicesLayer'));
 const TemplatesLayer = lazy(() => import('./layers/TemplatesLayer'));
 const AnomaliesLayer = lazy(() => import('./layers/AnomaliesLayer'));
 const PipelineLayer = lazy(() => import('./layers/PipelineLayer'));
+const MetricsLayer = lazy(() => import('./layers/MetricsLayer'));
 
 // Layer component mapping
 const layerComponents: Record<LayerType, ComponentType> = {
@@ -23,7 +24,7 @@ const layerComponents: Record<LayerType, ComponentType> = {
   templates: TemplatesLayer,
   anomalies: AnomaliesLayer,
   pipeline: PipelineLayer,
-  metrics: () => <MetricsPlaceholder />, // Placeholder for now
+  metrics: MetricsLayer,
 };
 
 function LayerSkeleton() {
@@ -36,14 +37,6 @@ function LayerSkeleton() {
         <Skeleton className="h-32" />
         <Skeleton className="h-32" />
       </div>
-    </div>
-  );
-}
-
-function MetricsPlaceholder() {
-  return (
-    <div className="p-4 text-center text-muted-foreground">
-      <p>Metrics Layer - Coming Soon</p>
     </div>
   );
 }

@@ -92,23 +92,29 @@ And application status is updated
 
 ### AC-005: Frontend Dashboard
 
-**Feature:** Service Catalog UI
+**Feature:** Service Catalog UI with Layer Architecture
 
 ```gherkin
 Given the dashboard is loaded
-When a user views the service catalog
-Then all services are displayed in a table
-And filtering by status/team/tier is available
-And clicking a service shows details
+When a user views the service catalog layer
+Then all services are displayed in a grid with health indicators
+And filtering by status is available via search
+And service cards show deployment metrics and health status
 
 Given the dashboard is loaded
-When a user creates a new service
-Then a guided form is presented
-And template recommendations are shown
-And validation errors are displayed inline
+When a user interacts with the layer panel
+Then layers can be toggled visible/hidden
+And layers can be reordered via drag and drop
+And layer state persists across sessions
+
+Given the dashboard is loaded
+When a user views the templates layer
+Then ML-powered recommendations are displayed
+And templates show capabilities and stack details
+And usage counts indicate popularity
 ```
 
-**Status:** 🔄 Planned
+**Status:** ✅ Implemented (v0.3.0)
 
 ### AC-006: Anomaly Detection
 
@@ -121,9 +127,21 @@ Then high deploy frequencies are flagged
 And consecutive rollbacks are detected
 And stale pipelines are identified
 And anomalies appear in the dashboard
+
+Given an anomaly is detected
+When a user views the anomalies layer
+Then anomaly cards show severity and type
+And affected service is linked
+And acknowledge/resolve actions are available
+
+Given a user acknowledges an anomaly
+When they click the acknowledge button
+Then the anomaly status updates to acknowledged
+And the acknowledged_at timestamp is recorded
+And the anomaly moves to the acknowledged section
 ```
 
-**Status:** 🔄 Planned
+**Status:** ✅ Implemented (v0.3.0)
 
 ## Phase 3: Intelligence
 
@@ -149,8 +167,8 @@ And model performance is monitored
 | AC-002 | Templates | ✅ | ✅ | 🔄 |
 | AC-003 | Health | ✅ | ✅ | 🔄 |
 | AC-004 | Adapters | ✅ | - | - |
-| AC-005 | Dashboard | 🔄 | 🔄 | 🔄 |
-| AC-006 | Anomalies | 🔄 | 🔄 | 🔄 |
+| AC-005 | Dashboard | ✅ | ✅ | 🔄 |
+| AC-006 | Anomalies | ✅ | ✅ | 🔄 |
 | AC-007 | ML | 📋 | 📋 | 📋 |
 
 **Legend:** ✅ Complete | 🔄 In Progress/Planned | 📋 Future | - N/A

@@ -1,13 +1,18 @@
 """GitHub adapter for repository and workflow management."""
 
 import asyncio
+import logging
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
+import httpx
+
 from app.adapters.base import AdapterHealth, AdapterMode, BaseAdapter
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowStatus(str, Enum):
@@ -195,12 +200,43 @@ class GitHubAdapter(BaseAdapter):
         mode: AdapterMode = AdapterMode.MOCK,
         token: str | None = None,
         org: str = "forge-org",
+        api_url: str = "https://api.github.com",
     ) -> None:
         """Initialize GitHub adapter."""
         super().__init__(mode)
         self.token = token
         self.org = org
+        self.api_url = api_url.rstrip("/")
         self._mock_repos = self._generate_mock_repos()
+        self._client: httpx.AsyncClient | None = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create the HTTP client."""
+        if self._client is None or self._client.is_closed:
+            headers = {
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"
+
+            self._client = httpx.AsyncClient(
+                base_url=self.api_url,
+                headers=headers,
+                timeout=30.0,
+            )
+        return self._client
+
+    async def close(self) -> None:
+        """Close the HTTP client."""
+        if self._client and not self._client.is_closed:
+            await self._client.aclose()
+
+    def _parse_datetime(self, dt_str: str | None) -> datetime | None:
+        """Parse ISO datetime string from GitHub API."""
+        if not dt_str:
+            return None
+        return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
 
     @property
     def name(self) -> str:
@@ -222,23 +258,71 @@ class GitHubAdapter(BaseAdapter):
                 last_check=self._last_health_check,
             )
 
-        # Live mode - would make actual API call
-        # TODO: Implement actual GitHub API health check
-        return AdapterHealth(
-            name=self.name,
-            healthy=False,
-            mode=self.mode,
-            last_check=self._last_health_check,
-            error="Live mode not yet implemented",
-        )
+        # Live mode - make actual API call
+        try:
+            client = await self._get_client()
+            start = datetime.now(timezone.utc)
+            response = await client.get("/rate_limit")
+            latency = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+
+            if response.status_code == 200:
+                return AdapterHealth(
+                    name=self.name,
+                    healthy=True,
+                    mode=self.mode,
+                    latency_ms=latency,
+                    last_check=self._last_health_check,
+                )
+            else:
+                return AdapterHealth(
+                    name=self.name,
+                    healthy=False,
+                    mode=self.mode,
+                    latency_ms=latency,
+                    last_check=self._last_health_check,
+                    error=f"GitHub API returned {response.status_code}",
+                )
+        except httpx.HTTPError as e:
+            logger.error(f"GitHub health check failed: {e}")
+            return AdapterHealth(
+                name=self.name,
+                healthy=False,
+                mode=self.mode,
+                last_check=self._last_health_check,
+                error=str(e),
+            )
 
     async def get_repository(self, repo_name: str) -> Repository | None:
         """Get repository details by name."""
         if self.is_mock():
             return self._mock_repos.get(repo_name)
 
-        # TODO: Implement actual GitHub API call
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            response = await client.get(f"/repos/{self.org}/{repo_name}")
+
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+
+            data = response.json()
+            return Repository(
+                id=str(data["id"]),
+                name=data["name"],
+                full_name=data["full_name"],
+                description=data.get("description"),
+                default_branch=data.get("default_branch", "main"),
+                private=data.get("private", False),
+                html_url=data["html_url"],
+                clone_url=data["clone_url"],
+                created_at=self._parse_datetime(data["created_at"]) or datetime.now(timezone.utc),
+                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(timezone.utc),
+                language=data.get("language"),
+                topics=data.get("topics", []),
+            )
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get repository {repo_name}: {e}")
+            raise
 
     async def list_repositories(
         self,
@@ -252,14 +336,81 @@ class GitHubAdapter(BaseAdapter):
                 repos = [r for r in repos if r.language == language]
             return repos[:limit]
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            repos: list[Repository] = []
+            page = 1
+            per_page = min(limit, 100)
+
+            while len(repos) < limit:
+                response = await client.get(
+                    f"/orgs/{self.org}/repos",
+                    params={"page": page, "per_page": per_page, "sort": "updated"},
+                )
+                response.raise_for_status()
+                data = response.json()
+
+                if not data:
+                    break
+
+                for item in data:
+                    if language and item.get("language") != language:
+                        continue
+
+                    repos.append(
+                        Repository(
+                            id=str(item["id"]),
+                            name=item["name"],
+                            full_name=item["full_name"],
+                            description=item.get("description"),
+                            default_branch=item.get("default_branch", "main"),
+                            private=item.get("private", False),
+                            html_url=item["html_url"],
+                            clone_url=item["clone_url"],
+                            created_at=self._parse_datetime(item["created_at"]) or datetime.now(timezone.utc),
+                            updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(timezone.utc),
+                            language=item.get("language"),
+                            topics=item.get("topics", []),
+                        )
+                    )
+
+                    if len(repos) >= limit:
+                        break
+
+                page += 1
+
+            return repos[:limit]
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to list repositories: {e}")
+            raise
 
     async def get_branches(self, repo_name: str) -> list[Branch]:
         """Get branches for a repository."""
         if self.is_mock():
             return self._generate_mock_branches(repo_name)
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            response = await client.get(
+                f"/repos/{self.org}/{repo_name}/branches",
+                params={"per_page": 100},
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            branches = []
+            for item in data:
+                branches.append(
+                    Branch(
+                        name=item["name"],
+                        sha=item["commit"]["sha"],
+                        protected=item.get("protected", False),
+                    )
+                )
+            return branches
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get branches for {repo_name}: {e}")
+            raise
 
     async def get_recent_commits(
         self,
@@ -271,7 +422,33 @@ class GitHubAdapter(BaseAdapter):
         if self.is_mock():
             return self._generate_mock_commits(repo_name, branch, limit)
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            response = await client.get(
+                f"/repos/{self.org}/{repo_name}/commits",
+                params={"sha": branch, "per_page": limit},
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            commits = []
+            for item in data:
+                commit_data = item["commit"]
+                author_data = commit_data.get("author", {})
+                commits.append(
+                    Commit(
+                        sha=item["sha"],
+                        message=commit_data.get("message", "").split("\n")[0],
+                        author=author_data.get("name", "Unknown"),
+                        author_email=author_data.get("email", ""),
+                        timestamp=self._parse_datetime(author_data.get("date")) or datetime.now(timezone.utc),
+                        url=item["html_url"],
+                    )
+                )
+            return commits
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get commits for {repo_name}: {e}")
+            raise
 
     async def get_pull_requests(
         self,
@@ -283,7 +460,50 @@ class GitHubAdapter(BaseAdapter):
         if self.is_mock():
             return self._generate_mock_prs(repo_name, state, limit)
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            params: dict[str, Any] = {"per_page": limit, "sort": "updated", "direction": "desc"}
+            if state:
+                params["state"] = "all" if state == PRState.MERGED else state.value
+
+            response = await client.get(
+                f"/repos/{self.org}/{repo_name}/pulls",
+                params=params,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            prs = []
+            for item in data:
+                pr_state = PRState.OPEN
+                if item.get("merged_at"):
+                    pr_state = PRState.MERGED
+                elif item["state"] == "closed":
+                    pr_state = PRState.CLOSED
+
+                if state and pr_state != state:
+                    continue
+
+                prs.append(
+                    PullRequest(
+                        id=str(item["id"]),
+                        number=item["number"],
+                        title=item["title"],
+                        body=item.get("body"),
+                        state=pr_state,
+                        author=item["user"]["login"],
+                        source_branch=item["head"]["ref"],
+                        target_branch=item["base"]["ref"],
+                        created_at=self._parse_datetime(item["created_at"]) or datetime.now(timezone.utc),
+                        updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(timezone.utc),
+                        merged_at=self._parse_datetime(item.get("merged_at")),
+                        html_url=item["html_url"],
+                    )
+                )
+            return prs
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get pull requests for {repo_name}: {e}")
+            raise
 
     async def get_workflow_runs(
         self,
@@ -295,7 +515,65 @@ class GitHubAdapter(BaseAdapter):
         if self.is_mock():
             return self._generate_mock_workflow_runs(repo_name, workflow_name, limit)
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            params: dict[str, Any] = {"per_page": limit}
+
+            response = await client.get(
+                f"/repos/{self.org}/{repo_name}/actions/runs",
+                params=params,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            runs = []
+            for item in data.get("workflow_runs", []):
+                if workflow_name and item["name"] != workflow_name:
+                    continue
+
+                # Map GitHub status to our enum
+                status_map = {
+                    "queued": WorkflowStatus.QUEUED,
+                    "in_progress": WorkflowStatus.IN_PROGRESS,
+                    "completed": WorkflowStatus.COMPLETED,
+                }
+                conclusion_map = {
+                    "success": WorkflowConclusion.SUCCESS,
+                    "failure": WorkflowConclusion.FAILURE,
+                    "cancelled": WorkflowConclusion.CANCELLED,
+                    "skipped": WorkflowConclusion.SKIPPED,
+                    "timed_out": WorkflowConclusion.TIMED_OUT,
+                }
+
+                status = status_map.get(item["status"], WorkflowStatus.COMPLETED)
+                conclusion = conclusion_map.get(item.get("conclusion")) if item.get("conclusion") else None
+
+                # Calculate duration
+                created = self._parse_datetime(item["created_at"])
+                updated = self._parse_datetime(item["updated_at"])
+                duration = None
+                if created and updated:
+                    duration = int((updated - created).total_seconds())
+
+                runs.append(
+                    WorkflowRun(
+                        id=str(item["id"]),
+                        name=item["name"],
+                        status=status,
+                        conclusion=conclusion,
+                        head_branch=item["head_branch"],
+                        head_sha=item["head_sha"][:7],
+                        run_number=item["run_number"],
+                        created_at=created or datetime.now(timezone.utc),
+                        updated_at=updated or datetime.now(timezone.utc),
+                        html_url=item["html_url"],
+                        duration_seconds=duration,
+                    )
+                )
+            return runs
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get workflow runs for {repo_name}: {e}")
+            raise
 
     async def create_repository_from_template(
         self,
@@ -324,7 +602,38 @@ class GitHubAdapter(BaseAdapter):
             self._mock_repos[new_repo_name] = repo
             return repo
 
-        raise NotImplementedError("Live mode not yet implemented")
+        try:
+            client = await self._get_client()
+            response = await client.post(
+                f"/repos/{self.org}/{template_repo}/generate",
+                json={
+                    "owner": self.org,
+                    "name": new_repo_name,
+                    "description": description or f"Created from template {template_repo}",
+                    "private": private,
+                    "include_all_branches": False,
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            return Repository(
+                id=str(data["id"]),
+                name=data["name"],
+                full_name=data["full_name"],
+                description=data.get("description"),
+                default_branch=data.get("default_branch", "main"),
+                private=data.get("private", False),
+                html_url=data["html_url"],
+                clone_url=data["clone_url"],
+                created_at=self._parse_datetime(data["created_at"]) or datetime.now(timezone.utc),
+                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(timezone.utc),
+                language=data.get("language"),
+                topics=data.get("topics", []),
+            )
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to create repository from template: {e}")
+            raise
 
     def _generate_mock_repos(self) -> dict[str, Repository]:
         """Generate mock repository data for demonstrations."""
@@ -625,11 +934,40 @@ _github_adapter: GitHubAdapter | None = None
 
 
 def get_github_adapter(
-    mode: AdapterMode = AdapterMode.MOCK,
+    mode: AdapterMode | None = None,
     token: str | None = None,
+    org: str | None = None,
+    api_url: str | None = None,
 ) -> GitHubAdapter:
-    """Get or create the GitHub adapter instance."""
+    """Get or create the GitHub adapter instance.
+
+    If no arguments are provided, uses settings from config.
+    """
     global _github_adapter
+
     if _github_adapter is None:
-        _github_adapter = GitHubAdapter(mode=mode, token=token)
+        from app.core.config import settings
+
+        # Use provided values or fall back to settings
+        adapter_mode = mode
+        if adapter_mode is None:
+            adapter_mode = (
+                AdapterMode.LIVE
+                if settings.github_adapter_mode == "live"
+                else AdapterMode.MOCK
+            )
+
+        _github_adapter = GitHubAdapter(
+            mode=adapter_mode,
+            token=token or settings.github_token,
+            org=org or settings.github_org,
+            api_url=api_url or settings.github_api_url,
+        )
+
     return _github_adapter
+
+
+def reset_github_adapter() -> None:
+    """Reset the GitHub adapter singleton (useful for testing)."""
+    global _github_adapter
+    _github_adapter = None

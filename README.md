@@ -38,8 +38,15 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 | ML Recommender (rule-based) | Done |
 | Seed data for demos | Done |
 | Mock adapters (GitHub, ArgoCD) | Done |
-| Frontend dashboard | Planned |
-| Anomaly detection panel | Planned |
+| Frontend dashboard (Layers Architecture) | Done |
+| Versioning & Release automation (Changesets) | Done |
+| Anomaly detection panel | Done |
+| Real GitHub/ArgoCD adapters | Done |
+| Metrics dashboard (DORA metrics) | Done |
+| API documentation | Done |
+| Architecture diagrams | Done |
+| WebSocket real-time updates | Planned |
+| User authentication (JWT) | Planned |
 
 ## Architecture
 
@@ -108,6 +115,7 @@ The following endpoints are implemented and available in the current build.
 | GET | `/` | List services (pagination, filtering, search) |
 | GET | `/stats` | Service statistics for dashboard |
 | GET | `/{id}` | Get service by ID |
+| GET | `/slug/{slug}` | Get service by slug |
 | POST | `/` | Create new service |
 | PUT | `/{id}` | Update service |
 | DELETE | `/{id}` | Delete service |
@@ -118,7 +126,30 @@ The following endpoints are implemented and available in the current build.
 |--------|----------|-------------|
 | GET | `/` | List templates (filter by workload/language) |
 | GET | `/{id}` | Get template details |
+| GET | `/slug/{slug}` | Get template by slug |
 | POST | `/recommend` | Get ML-powered template recommendations |
+
+### Anomalies (`/api/v1/anomalies`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | List anomalies (filter by severity, type, status) |
+| GET | `/stats` | Anomaly statistics |
+| GET | `/{id}` | Get anomaly details |
+| POST | `/` | Create anomaly (from detection systems) |
+| PATCH | `/{id}` | Update anomaly |
+| POST | `/{id}/acknowledge` | Acknowledge anomaly |
+| POST | `/{id}/resolve` | Resolve anomaly |
+| DELETE | `/{id}` | Delete anomaly |
+
+### Metrics (`/api/v1/metrics`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Comprehensive metrics dashboard |
+| GET | `/dora` | DORA metrics only |
+| GET | `/health` | Service health metrics |
+| GET | `/deployment` | Deployment statistics |
 
 ### Health (`/health`)
 
@@ -163,9 +194,27 @@ uvicorn app.main:app --reload
 
 API documentation available at `http://localhost:8000/docs`
 
+```bash
+# Frontend setup (new terminal)
+cd src/frontend
+pnpm install
+pnpm dev
+```
+
+Frontend available at `http://localhost:3000`
+
 See [LOCAL_DEV.md](docs/LOCAL_DEV.md) for detailed setup instructions.
 
 ## Key Features
+
+### Frontend Dashboard (Layers Architecture)
+A Figma-inspired composable UI built with:
+- **Layer Panel** - Toggle visibility and reorder dashboard layers
+- **GlueBus** - Pub/sub pattern for cross-layer communication
+- **Service Catalog Layer** - Grid view with health indicators
+- **Templates Layer** - ML-powered recommendation interface
+- **Pipelines Layer** - CI/CD status with real-time updates
+- **Anomalies Layer** - Deployment pattern alerts
 
 ### Service Catalog
 Central registry showing all services with:
