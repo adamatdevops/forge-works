@@ -6,7 +6,7 @@
  * Core component of the Layers Architecture
  */
 
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -128,7 +128,7 @@ const SortableLayerItem = memo(function SortableLayerItem({ layer, isActive, onT
       <span className="flex-1 text-sm font-medium truncate">{layer.name}</span>
 
       {/* Glue Indicator */}
-      {layer.glueKeys.length > 0 && (
+      {layer.glueKeys?.length > 0 && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -190,6 +190,12 @@ const LayerIcon = memo(function LayerIcon({ type }: { type: Layer['type'] }) {
 export function LayerPanel() {
   const { layers, activeLayerId, toggleLayer, setActiveLayer, setLayerOrder } = useLayerStore();
 
+  // Prevent hydration mismatch with DndContext
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -236,26 +242,38 @@ export function LayerPanel() {
       {/* Layer List */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1" role="list" aria-labelledby="layers-heading">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={layerIds}
-              strategy={verticalListSortingStrategy}
+          {isMounted ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              {layers.map((layer) => (
-                <SortableLayerItem
-                  key={layer.id}
-                  layer={layer}
-                  isActive={activeLayerId === layer.id}
-                  onToggleVisibility={() => toggleLayer(layer.id)}
-                  onSelect={() => setActiveLayer(layer.id)}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
+              <SortableContext
+                items={layerIds}
+                strategy={verticalListSortingStrategy}
+              >
+                {layers.map((layer) => (
+                  <SortableLayerItem
+                    key={layer.id}
+                    layer={layer}
+                    isActive={activeLayerId === layer.id}
+                    onToggleVisibility={() => toggleLayer(layer.id)}
+                    onSelect={() => setActiveLayer(layer.id)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            // Server-side / initial render placeholder
+            layers.map((layer) => (
+              <div
+                key={layer.id}
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+              >
+                <span className="flex-1 truncate">{layer.name}</span>
+              </div>
+            ))
+          )}
         </div>
       </ScrollArea>
 
