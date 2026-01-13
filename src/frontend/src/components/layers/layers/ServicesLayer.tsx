@@ -4,13 +4,15 @@
  * ServicesLayer Component
  * Displays the Service Catalog from ForgeWorks API
  * Publishes selected service_id to GlueBus
+ * Supports real-time updates via WebSocket
  */
 
 import { memo, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Activity, AlertCircle, CheckCircle, HelpCircle, XCircle } from 'lucide-react';
+import { Activity, AlertCircle, CheckCircle, HelpCircle, Radio, XCircle } from 'lucide-react';
 import { servicesApi } from '@/lib/api';
 import { useGluePublish, useSelectedService } from '@/lib/store';
+import { useRealtimeServices } from '@/hooks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -149,6 +151,9 @@ export function ServicesLayer() {
   const publish = useGluePublish();
   const selectedServiceId = useSelectedService();
 
+  // Real-time updates via WebSocket
+  const { isConnected } = useRealtimeServices();
+
   const { data: services, isLoading, error } = useQuery({
     queryKey: ['services'],
     queryFn: servicesApi.getAll,
@@ -189,6 +194,17 @@ export function ServicesLayer() {
         <span className="text-green-500">{stats.healthy} healthy</span>
         <span className="text-yellow-500">{stats.degraded} degraded</span>
         <span className="text-red-500">{stats.unhealthy} unhealthy</span>
+        {/* Real-time indicator */}
+        <span
+          className={cn(
+            'flex items-center gap-1 ml-auto',
+            isConnected ? 'text-green-500' : 'text-gray-400'
+          )}
+          title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}
+        >
+          <Radio className="h-3 w-3" />
+          <span className="text-xs">{isConnected ? 'Live' : 'Offline'}</span>
+        </span>
       </div>
 
       {/* Service Grid */}

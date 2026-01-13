@@ -20,9 +20,11 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
+  Radio,
 } from 'lucide-react';
 import { anomaliesApi } from '@/lib/api';
 import { useSelectedService, useGluePublish } from '@/lib/store';
+import { useRealtimeAnomalies } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -285,6 +287,9 @@ export function AnomaliesLayer() {
   const queryClient = useQueryClient();
   const [showResolved, setShowResolved] = useState(false);
 
+  // Real-time updates via WebSocket
+  const { isConnected } = useRealtimeAnomalies();
+
   const { data: anomalies, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['anomalies', selectedServiceId, showResolved],
     queryFn: () => anomaliesApi.getAll({
@@ -395,6 +400,17 @@ export function AnomaliesLayer() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {/* Real-time indicator */}
+          <span
+            className={cn(
+              'flex items-center gap-1 text-xs',
+              isConnected ? 'text-green-500' : 'text-gray-400'
+            )}
+            title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}
+          >
+            <Radio className="h-3 w-3" aria-hidden="true" />
+            <span>{isConnected ? 'Live' : 'Offline'}</span>
+          </span>
           <Button
             variant="ghost"
             size="sm"

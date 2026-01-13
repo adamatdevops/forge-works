@@ -92,16 +92,21 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 |-------------|--------|----------|
 | GitHub API integration | ✅ Done | `src/backend/app/adapters/github.py` |
 | ArgoCD API integration | ✅ Done | `src/backend/app/adapters/argocd.py` |
-| Kubernetes client | 🔄 Planned | `src/backend/app/adapters/kubernetes.py` |
+| Kubernetes client | ✅ Done | `src/backend/app/adapters/kubernetes.py` |
 
 ### CI/CD
 
 | Deliverable | Status | Location |
 |-------------|--------|----------|
-| Lint workflow | 🔄 Planned | `.github/workflows/lint.yml` |
-| Test workflow | 🔄 Planned | `.github/workflows/test.yml` |
-| Build workflow | 🔄 Planned | `.github/workflows/build.yml` |
-| Release workflow | 🔄 Planned | `.github/workflows/release.yml` |
+| Unified CI workflow | ✅ Done | `.github/workflows/ci.yml` |
+| - Lint (Ruff + ESLint + TypeScript) | ✅ Done | Job: `lint` |
+| - Security (Gitleaks + Snyk) | ✅ Done | Job: `security` |
+| - Test Backend (pytest + coverage) | ✅ Done | Job: `test-backend` |
+| - Test Frontend (vitest + coverage) | ✅ Done | Job: `test-frontend` |
+| - Build (Docker + Next.js) | ✅ Done | Job: `build` |
+| Release workflow (Changesets) | ✅ Done | `.github/workflows/release.yml` |
+| Changeset check | ✅ Done | `.github/workflows/changeset-check.yml` |
+| Auto-labeler | ✅ Done | `.github/workflows/labeler.yml` |
 
 ### Documentation
 

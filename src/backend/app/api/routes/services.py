@@ -5,6 +5,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.events import (
+    broadcast_service_created,
+    broadcast_service_deleted,
+    broadcast_service_updated,
+)
 from app.crud.service import ServiceCRUD
 from app.crud.team import TeamCRUD
 from app.crud.template import TemplateCRUD
@@ -157,7 +162,12 @@ async def create_service(db: DbSession, data: ServiceCreate) -> ServiceResponse:
         )
 
     service = await ServiceCRUD.create(db, data)
-    return ServiceResponse.model_validate(service)
+    response = ServiceResponse.model_validate(service)
+
+    # Broadcast real-time event
+    await broadcast_service_created(response.model_dump(mode="json"))
+
+    return response
 
 
 @router.put("/{service_id}", response_model=ServiceResponse)
@@ -198,7 +208,15 @@ async def update_service(
             )
 
     updated_service = await ServiceCRUD.update(db, service, data)
-    return ServiceResponse.model_validate(updated_service)
+    response = ServiceResponse.model_validate(updated_service)
+
+    # Broadcast real-time event
+    await broadcast_service_updated(
+        response.model_dump(mode="json"),
+        changes=data.model_dump(exclude_unset=True),
+    )
+
+    return response
 
 
 @router.delete("/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -217,4 +235,8 @@ async def delete_service(db: DbSession, service_id: str) -> None:
             detail=f"Service with ID '{service_id}' not found",
         )
 
+    service_name = service.name
     await ServiceCRUD.delete(db, service)
+
+    # Broadcast real-time event
+    await broadcast_service_deleted(service_id, service_name)

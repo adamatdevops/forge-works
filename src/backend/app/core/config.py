@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "ForgeWorks"
-    app_version: str = "0.3.0"
+    app_version: str = "0.4.0"
     debug: bool = False
     environment: str = "development"
 
@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     argocd_server: str | None = None
     argocd_token: str | None = None
     argocd_adapter_mode: str = "mock"  # "mock" or "live"
+
+    # Kubernetes Integration
+    kubernetes_adapter_mode: str = "mock"  # "mock" or "live"
+    kubernetes_kubeconfig: str | None = None  # Path to kubeconfig file
+    kubernetes_context: str | None = None  # Kubernetes context to use
+    kubernetes_in_cluster: bool = False  # Whether running inside K8s cluster
 
 
 @lru_cache

@@ -17,6 +17,7 @@ const TemplatesLayer = lazy(() => import('./layers/TemplatesLayer'));
 const AnomaliesLayer = lazy(() => import('./layers/AnomaliesLayer'));
 const PipelineLayer = lazy(() => import('./layers/PipelineLayer'));
 const MetricsLayer = lazy(() => import('./layers/MetricsLayer'));
+const KubernetesLayer = lazy(() => import('./layers/KubernetesLayer'));
 
 // Layer component mapping
 const layerComponents: Record<LayerType, ComponentType> = {
@@ -25,6 +26,7 @@ const layerComponents: Record<LayerType, ComponentType> = {
   anomalies: AnomaliesLayer,
   pipeline: PipelineLayer,
   metrics: MetricsLayer,
+  kubernetes: KubernetesLayer,
 };
 
 function LayerSkeleton() {
@@ -75,6 +77,7 @@ function LayerBadge({ type }: { type: LayerType }) {
     anomalies: 'bg-red-500',
     pipeline: 'bg-blue-500',
     metrics: 'bg-yellow-500',
+    kubernetes: 'bg-cyan-500',
   };
 
   return (

@@ -9,7 +9,8 @@ export type LayerType =
   | 'templates'
   | 'anomalies'
   | 'pipeline'
-  | 'metrics';
+  | 'metrics'
+  | 'kubernetes';
 
 // Layer Definition
 export interface Layer {
@@ -134,4 +135,129 @@ export interface PipelineRun {
   completed_at?: string;
   author?: string;
   duration_seconds?: number;
+}
+
+// Kubernetes Types (Phase 4.2)
+export interface ResourceMetrics {
+  cpu_cores: number;
+  cpu_percent: number;
+  memory_bytes: number;
+  memory_mb: number;
+  memory_percent: number;
+}
+
+export interface KubernetesContainer {
+  name: string;
+  image: string;
+  state: 'waiting' | 'running' | 'terminated';
+  ready: boolean;
+  restart_count: number;
+  started_at?: string;
+  reason?: string;
+}
+
+export interface KubernetesPod {
+  name: string;
+  namespace: string;
+  phase: 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
+  node_name?: string;
+  ip?: string;
+  containers: KubernetesContainer[];
+  created_at: string;
+  labels: Record<string, string>;
+  metrics?: ResourceMetrics;
+  ready: boolean;
+  restart_count: number;
+}
+
+export interface KubernetesDeployment {
+  name: string;
+  namespace: string;
+  replicas: number;
+  ready_replicas: number;
+  available_replicas: number;
+  unavailable_replicas: number;
+  updated_replicas: number;
+  strategy: string;
+  created_at: string;
+  labels: Record<string, string>;
+  conditions: Array<{
+    type: string;
+    status: string;
+    reason?: string;
+    message?: string;
+  }>;
+  healthy: boolean;
+  progress_percent: number;
+}
+
+export interface KubernetesNamespace {
+  name: string;
+  phase: string;
+  created_at: string;
+  labels: Record<string, string>;
+  pod_count: number;
+  deployment_count: number;
+}
+
+export interface KubernetesNode {
+  name: string;
+  status: string;
+  roles: string[];
+  kubernetes_version: string;
+  os_image: string;
+  container_runtime: string;
+  created_at: string;
+  capacity: {
+    cpu?: string;
+    memory?: string;
+    pods?: string;
+  };
+  allocatable: {
+    cpu?: string;
+    memory?: string;
+    pods?: string;
+  };
+  conditions: Array<{
+    type: string;
+    status: string;
+    reason?: string;
+    message?: string;
+  }>;
+  metrics?: ResourceMetrics;
+}
+
+export interface KubernetesClusterInfo {
+  version: string;
+  platform: string;
+  node_count: number;
+  namespace_count: number;
+  pod_count: number;
+  deployment_count: number;
+  adapter_mode: string;
+}
+
+export interface KubernetesStats {
+  nodes: {
+    total: number;
+    healthy: number;
+    unhealthy: number;
+  };
+  namespaces: {
+    total: number;
+  };
+  deployments: {
+    total: number;
+    healthy: number;
+    degraded: number;
+  };
+  pods: {
+    total: number;
+    running: number;
+    pending: number;
+    failed: number;
+    total_restarts: number;
+  };
+  cluster_version: string;
+  adapter_mode: string;
 }

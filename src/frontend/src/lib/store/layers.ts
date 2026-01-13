@@ -61,6 +61,17 @@ const defaultLayers: Layer[] = [
     glueKeys: [],
     subscriptions: ['service_id'],
   },
+  {
+    id: 'kubernetes',
+    name: 'Kubernetes',
+    type: 'kubernetes',
+    visible: false,
+    collapsed: false,
+    zIndex: 0,
+    apiEndpoint: '/api/v1/kubernetes',
+    glueKeys: ['namespace', 'deployment', 'pod'],
+    subscriptions: ['service_id'],
+  },
 ];
 
 interface LayerStore {

@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import anomalies, health, metrics, services, templates
+from app.api.routes import anomalies, health, kubernetes, metrics, services, templates, websocket
 from app.core.config import settings
 
 
@@ -66,6 +66,15 @@ def create_app() -> FastAPI:
         metrics.router,
         prefix=f"{settings.api_v1_prefix}/metrics",
         tags=["Metrics"],
+    )
+    app.include_router(
+        kubernetes.router,
+        prefix=f"{settings.api_v1_prefix}",
+        tags=["Kubernetes"],
+    )
+    app.include_router(
+        websocket.router,
+        tags=["WebSocket"],
     )
 
     return app

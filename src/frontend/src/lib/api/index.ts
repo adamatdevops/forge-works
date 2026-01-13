@@ -9,3 +9,4 @@ export { templatesApi } from './templates';
 export { anomaliesApi } from './anomalies';
 export { pipelinesApi } from './pipelines';
 export { metricsApi } from './metrics';
+export { kubernetesApi } from './kubernetes';

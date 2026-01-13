@@ -17,9 +17,11 @@ import {
   RefreshCw,
   User,
   Timer,
+  Radio,
 } from 'lucide-react';
 import { pipelinesApi } from '@/lib/api';
 import { useSelectedService, useGluePublish } from '@/lib/store';
+import { useRealtimePipelines } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -178,6 +180,9 @@ export function PipelineLayer() {
   const selectedServiceId = useSelectedService();
   const publish = useGluePublish();
 
+  // Real-time updates via WebSocket
+  const { isConnected } = useRealtimePipelines();
+
   const { data: pipelines, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['pipelines', selectedServiceId],
     queryFn: () => pipelinesApi.getAll({
@@ -258,16 +263,29 @@ export function PipelineLayer() {
           )}
           <span className="text-muted-foreground">{successRate}% success</span>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={() => refetch()}
-          disabled={isRefetching}
-          aria-label={isRefetching ? 'Refreshing pipelines' : 'Refresh pipelines'}
-        >
-          <RefreshCw className={cn('h-4 w-4', isRefetching && 'animate-spin')} aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Real-time indicator */}
+          <span
+            className={cn(
+              'flex items-center gap-1 text-xs',
+              isConnected ? 'text-green-500' : 'text-gray-400'
+            )}
+            title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}
+          >
+            <Radio className="h-3 w-3" aria-hidden="true" />
+            <span>{isConnected ? 'Live' : 'Offline'}</span>
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            aria-label={isRefetching ? 'Refreshing pipelines' : 'Refresh pipelines'}
+          >
+            <RefreshCw className={cn('h-4 w-4', isRefetching && 'animate-spin')} aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
       {selectedServiceId && (
