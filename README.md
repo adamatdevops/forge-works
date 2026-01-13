@@ -4,12 +4,15 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
 [![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
+[![TypeScript 5+](https://img.shields.io/badge/TypeScript-5+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![ESLint 9+](https://img.shields.io/badge/ESLint-9+-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/)
 [![Docker](https://img.shields.io/badge/Docker-24+-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
-[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-purple.svg)](https://github.com/astral-sh/ruff)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/)
 [![Gitleaks](https://img.shields.io/badge/protected%20by-gitleaks-blue.svg)](https://github.com/gitleaks/gitleaks)
 [![Hadolint](https://img.shields.io/badge/Dockerfile%20linter-hadolint-40b5a4.svg)](https://github.com/hadolint/hadolint)
 [![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
@@ -45,7 +48,7 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 | Metrics dashboard (DORA metrics) | Done |
 | API documentation | Done |
 | Architecture diagrams | Done |
-| WebSocket real-time updates | Planned |
+| WebSocket real-time updates | Done |
 | User authentication (JWT) | Planned |
 
 ## Architecture
