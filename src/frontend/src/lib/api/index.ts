@@ -4,6 +4,7 @@
  */
 
 export { apiClient } from './client';
+export * as authApi from './auth';
 export { servicesApi } from './services';
 export { templatesApi } from './templates';
 export { anomaliesApi } from './anomalies';

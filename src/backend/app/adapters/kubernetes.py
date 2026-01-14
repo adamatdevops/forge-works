@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -308,7 +308,7 @@ class KubernetesAdapter(BaseAdapter):
 
     async def health_check(self) -> AdapterHealth:
         """Check Kubernetes API connectivity."""
-        self._last_health_check = datetime.now(timezone.utc)
+        self._last_health_check = datetime.now(UTC)
 
         if self.is_mock():
             await asyncio.sleep(0.01)
@@ -330,12 +330,12 @@ class KubernetesAdapter(BaseAdapter):
             )
 
         try:
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             # Run synchronous k8s API call in thread pool
             version_info = await asyncio.to_thread(
                 self._core_api.get_api_versions
             )
-            latency = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            latency = (datetime.now(UTC) - start).total_seconds() * 1000
 
             return AdapterHealth(
                 name=self.name,
@@ -705,7 +705,7 @@ class KubernetesAdapter(BaseAdapter):
 
     def _generate_mock_data(self) -> dict[str, Any]:
         """Generate mock Kubernetes data for demonstrations."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Cluster info
         cluster_info = ClusterInfo(
@@ -998,7 +998,7 @@ class KubernetesAdapter(BaseAdapter):
         ]
 
         lines = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for i in range(min(tail_lines, len(log_templates) * 3)):
             template = random.choice(log_templates)

@@ -1,7 +1,7 @@
 """CRUD operations for Anomaly model."""
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,7 +144,7 @@ class AnomalyCRUD:
         """Mark an anomaly as acknowledged."""
         anomaly.is_acknowledged = True
         anomaly.acknowledged_by = acknowledged_by
-        anomaly.acknowledged_at = datetime.now(timezone.utc)
+        anomaly.acknowledged_at = datetime.now(UTC)
 
         await db.commit()
         await db.refresh(anomaly)
@@ -160,7 +160,7 @@ class AnomalyCRUD:
         """Mark an anomaly as resolved."""
         anomaly.is_resolved = True
         anomaly.is_active = False
-        anomaly.resolved_at = datetime.now(timezone.utc)
+        anomaly.resolved_at = datetime.now(UTC)
         if resolution_note:
             anomaly.resolution_note = resolution_note
 

@@ -159,6 +159,30 @@ export const useLayerStore = create<LayerStore>()(
           zIndex,
         })),
       }),
+      // Merge persisted state with default layers to preserve full layer definitions
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as { layers?: Array<{ id: string; visible: boolean; collapsed: boolean; zIndex: number }> };
+        if (!persisted?.layers) {
+          return currentState;
+        }
+        // Merge persisted preferences into default layers
+        const mergedLayers = defaultLayers.map((defaultLayer) => {
+          const persistedLayer = persisted.layers?.find((p) => p.id === defaultLayer.id);
+          if (persistedLayer) {
+            return {
+              ...defaultLayer,
+              visible: persistedLayer.visible,
+              collapsed: persistedLayer.collapsed,
+              zIndex: persistedLayer.zIndex,
+            };
+          }
+          return defaultLayer;
+        });
+        return {
+          ...currentState,
+          layers: mergedLayers,
+        };
+      },
     }
   )
 );

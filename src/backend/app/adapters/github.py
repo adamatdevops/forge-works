@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -245,7 +245,7 @@ class GitHubAdapter(BaseAdapter):
 
     async def health_check(self) -> AdapterHealth:
         """Check GitHub API connectivity."""
-        self._last_health_check = datetime.now(timezone.utc)
+        self._last_health_check = datetime.now(UTC)
 
         if self.is_mock():
             # Simulate slight latency
@@ -261,9 +261,9 @@ class GitHubAdapter(BaseAdapter):
         # Live mode - make actual API call
         try:
             client = await self._get_client()
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             response = await client.get("/rate_limit")
-            latency = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            latency = (datetime.now(UTC) - start).total_seconds() * 1000
 
             if response.status_code == 200:
                 return AdapterHealth(
@@ -315,8 +315,8 @@ class GitHubAdapter(BaseAdapter):
                 private=data.get("private", False),
                 html_url=data["html_url"],
                 clone_url=data["clone_url"],
-                created_at=self._parse_datetime(data["created_at"]) or datetime.now(timezone.utc),
-                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(timezone.utc),
+                created_at=self._parse_datetime(data["created_at"]) or datetime.now(UTC),
+                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(UTC),
                 language=data.get("language"),
                 topics=data.get("topics", []),
             )
@@ -367,8 +367,8 @@ class GitHubAdapter(BaseAdapter):
                             private=item.get("private", False),
                             html_url=item["html_url"],
                             clone_url=item["clone_url"],
-                            created_at=self._parse_datetime(item["created_at"]) or datetime.now(timezone.utc),
-                            updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(timezone.utc),
+                            created_at=self._parse_datetime(item["created_at"]) or datetime.now(UTC),
+                            updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(UTC),
                             language=item.get("language"),
                             topics=item.get("topics", []),
                         )
@@ -441,7 +441,7 @@ class GitHubAdapter(BaseAdapter):
                         message=commit_data.get("message", "").split("\n")[0],
                         author=author_data.get("name", "Unknown"),
                         author_email=author_data.get("email", ""),
-                        timestamp=self._parse_datetime(author_data.get("date")) or datetime.now(timezone.utc),
+                        timestamp=self._parse_datetime(author_data.get("date")) or datetime.now(UTC),
                         url=item["html_url"],
                     )
                 )
@@ -494,8 +494,8 @@ class GitHubAdapter(BaseAdapter):
                         author=item["user"]["login"],
                         source_branch=item["head"]["ref"],
                         target_branch=item["base"]["ref"],
-                        created_at=self._parse_datetime(item["created_at"]) or datetime.now(timezone.utc),
-                        updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(timezone.utc),
+                        created_at=self._parse_datetime(item["created_at"]) or datetime.now(UTC),
+                        updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(UTC),
                         merged_at=self._parse_datetime(item.get("merged_at")),
                         html_url=item["html_url"],
                     )
@@ -564,8 +564,8 @@ class GitHubAdapter(BaseAdapter):
                         head_branch=item["head_branch"],
                         head_sha=item["head_sha"][:7],
                         run_number=item["run_number"],
-                        created_at=created or datetime.now(timezone.utc),
-                        updated_at=updated or datetime.now(timezone.utc),
+                        created_at=created or datetime.now(UTC),
+                        updated_at=updated or datetime.now(UTC),
                         html_url=item["html_url"],
                         duration_seconds=duration,
                     )
@@ -584,7 +584,7 @@ class GitHubAdapter(BaseAdapter):
     ) -> Repository:
         """Create a new repository from a template (Golden Path)."""
         if self.is_mock():
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             repo = Repository(
                 id=f"repo-{new_repo_name}",
                 name=new_repo_name,
@@ -626,8 +626,8 @@ class GitHubAdapter(BaseAdapter):
                 private=data.get("private", False),
                 html_url=data["html_url"],
                 clone_url=data["clone_url"],
-                created_at=self._parse_datetime(data["created_at"]) or datetime.now(timezone.utc),
-                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(timezone.utc),
+                created_at=self._parse_datetime(data["created_at"]) or datetime.now(UTC),
+                updated_at=self._parse_datetime(data["updated_at"]) or datetime.now(UTC),
                 language=data.get("language"),
                 topics=data.get("topics", []),
             )
@@ -637,7 +637,7 @@ class GitHubAdapter(BaseAdapter):
 
     def _generate_mock_repos(self) -> dict[str, Repository]:
         """Generate mock repository data for demonstrations."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         repos = {}
 
         mock_data = [
@@ -765,7 +765,7 @@ class GitHubAdapter(BaseAdapter):
         limit: int,
     ) -> list[Commit]:
         """Generate mock commit data."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         commits = []
 
         messages = [
@@ -812,7 +812,7 @@ class GitHubAdapter(BaseAdapter):
         limit: int,
     ) -> list[PullRequest]:
         """Generate mock pull request data."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         prs = []
 
         pr_data = [
@@ -885,7 +885,7 @@ class GitHubAdapter(BaseAdapter):
         limit: int,
     ) -> list[WorkflowRun]:
         """Generate mock workflow run data."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         runs = []
 
         workflows = ["CI", "Deploy", "Security Scan", "Release"]

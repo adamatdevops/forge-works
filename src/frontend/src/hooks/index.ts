@@ -11,3 +11,4 @@ export {
   useRealtimeAll,
   useRealtimeKubernetes,
 } from './useRealtimeServices';
+export { useEventToasts, default as useEventToastsDefault } from './useEventToasts';

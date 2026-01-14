@@ -18,6 +18,18 @@ Usage:
     argocd = get_argocd_adapter(mode=AdapterMode.LIVE, server_url="...", token="...")
 """
 
+from app.adapters.argocd import (
+    Application,
+    ApplicationSummary,
+    ArgoCDAdapter,
+    HealthStatus,
+    OperationPhase,
+    ResourceStatus,
+    SyncOperation,
+    SyncResult,
+    SyncStatus,
+    get_argocd_adapter,
+)
 from app.adapters.base import AdapterHealth, AdapterMode, BaseAdapter
 from app.adapters.github import (
     Branch,
@@ -30,18 +42,6 @@ from app.adapters.github import (
     WorkflowRun,
     WorkflowStatus,
     get_github_adapter,
-)
-from app.adapters.argocd import (
-    Application,
-    ApplicationSummary,
-    ArgoCDAdapter,
-    HealthStatus,
-    OperationPhase,
-    ResourceStatus,
-    SyncOperation,
-    SyncResult,
-    SyncStatus,
-    get_argocd_adapter,
 )
 
 __all__ = [

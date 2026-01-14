@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
+    # Security / JWT
+    secret_key: str = "change-me-in-production-use-secrets-for-real-key"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
+
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 

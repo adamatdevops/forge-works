@@ -6,7 +6,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import anomalies, health, kubernetes, metrics, services, templates, websocket
+from app.api.routes import (
+    anomalies,
+    auth,
+    demo,
+    health,
+    kubernetes,
+    metrics,
+    ml,
+    services,
+    templates,
+    websocket,
+)
 from app.core.config import settings
 
 
@@ -48,6 +59,11 @@ def create_app() -> FastAPI:
     # Include routers
     app.include_router(health.router, tags=["Health"])
     app.include_router(
+        auth.router,
+        prefix=f"{settings.api_v1_prefix}/auth",
+        tags=["Authentication"],
+    )
+    app.include_router(
         services.router,
         prefix=f"{settings.api_v1_prefix}/services",
         tags=["Services"],
@@ -75,6 +91,16 @@ def create_app() -> FastAPI:
     app.include_router(
         websocket.router,
         tags=["WebSocket"],
+    )
+    app.include_router(
+        ml.router,
+        prefix=f"{settings.api_v1_prefix}/ml",
+        tags=["ML Recommendations"],
+    )
+    app.include_router(
+        demo.router,
+        prefix=f"{settings.api_v1_prefix}/demo",
+        tags=["Demo"],
     )
 
     return app

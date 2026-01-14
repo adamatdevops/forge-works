@@ -1,7 +1,6 @@
 """Health check endpoints."""
 
 from datetime import UTC, datetime
-from typing import Any
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel

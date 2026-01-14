@@ -3,12 +3,25 @@
 /**
  * ForgeWorks Dashboard
  * Main entry point with Layers Architecture
+ * Includes real-time WebSocket integration
  */
 
 import { Hammer } from 'lucide-react';
 import { LayerPanel, LayerRenderer, ServiceDetailSidebar } from '@/components/layers';
+import { ConnectionIndicator } from '@/components/ui/ConnectionIndicator';
+import { useRealtimeAll, useEventToasts } from '@/hooks';
 
 export default function Dashboard() {
+  // Real-time updates via WebSocket (subscribes to all channels)
+  const { wsStatus, reconnectAttempts } = useRealtimeAll();
+
+  // Enable toast notifications for critical WebSocket events
+  useEventToasts({
+    showAnomalies: true,
+    showPipelines: true,
+    soundEnabled: true,
+  });
+
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
@@ -19,6 +32,10 @@ export default function Dashboard() {
           <span className="text-sm text-muted-foreground">Internal Developer Platform</span>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <ConnectionIndicator
+            status={wsStatus}
+            reconnectAttempts={reconnectAttempts}
+          />
           <span>Layers Architecture Demo</span>
         </div>
       </header>

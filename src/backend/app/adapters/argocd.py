@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -269,7 +269,7 @@ class ArgoCDAdapter(BaseAdapter):
 
     async def health_check(self) -> AdapterHealth:
         """Check ArgoCD API connectivity."""
-        self._last_health_check = datetime.now(timezone.utc)
+        self._last_health_check = datetime.now(UTC)
 
         if self.is_mock():
             await asyncio.sleep(0.015)
@@ -284,9 +284,9 @@ class ArgoCDAdapter(BaseAdapter):
         # Live mode - check ArgoCD version endpoint
         try:
             client = await self._get_client()
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             response = await client.get("/version")
-            latency = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            latency = (datetime.now(UTC) - start).total_seconds() * 1000
 
             if response.status_code == 200:
                 return AdapterHealth(
@@ -347,7 +347,7 @@ class ArgoCDAdapter(BaseAdapter):
         if sync_result:
             last_sync = SyncResult(
                 revision=sync_result.get("revision", ""),
-                started_at=self._parse_datetime(operation_state.get("startedAt")) or datetime.now(timezone.utc),
+                started_at=self._parse_datetime(operation_state.get("startedAt")) or datetime.now(UTC),
                 finished_at=self._parse_datetime(operation_state.get("finishedAt")),
                 phase=self._map_operation_phase(operation_state.get("phase")),
                 message=operation_state.get("message"),
@@ -363,7 +363,7 @@ class ArgoCDAdapter(BaseAdapter):
             path=source.get("path", ""),
             sync_status=self._map_sync_status(sync_status_data.get("status")),
             health_status=self._map_health_status(health_status_data.get("status")),
-            created_at=self._parse_datetime(metadata.get("creationTimestamp")) or datetime.now(timezone.utc),
+            created_at=self._parse_datetime(metadata.get("creationTimestamp")) or datetime.now(UTC),
             synced_at=self._parse_datetime(status.get("reconciledAt")),
             destination_server=destination.get("server", "https://kubernetes.default.svc"),
             destination_namespace=destination.get("namespace", "default"),
@@ -471,7 +471,7 @@ class ArgoCDAdapter(BaseAdapter):
             if not app:
                 raise ValueError(f"Application {name} not found")
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             target_rev = revision or app.target_revision
 
             if dry_run:
@@ -509,7 +509,7 @@ class ArgoCDAdapter(BaseAdapter):
 
         try:
             client = await self._get_client()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             payload: dict[str, Any] = {
                 "prune": prune,
@@ -576,7 +576,7 @@ class ArgoCDAdapter(BaseAdapter):
             if not app:
                 raise ValueError(f"Application {name} not found")
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             await asyncio.sleep(0.1)
 
             return SyncOperation(
@@ -590,7 +590,7 @@ class ArgoCDAdapter(BaseAdapter):
 
         try:
             client = await self._get_client()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             response = await client.post(
                 f"/applications/{name}/rollback",
@@ -632,7 +632,7 @@ class ArgoCDAdapter(BaseAdapter):
                 history.append(
                     SyncResult(
                         revision=item.get("revision", ""),
-                        started_at=self._parse_datetime(item.get("deployStartedAt")) or datetime.now(timezone.utc),
+                        started_at=self._parse_datetime(item.get("deployStartedAt")) or datetime.now(UTC),
                         finished_at=self._parse_datetime(item.get("deployedAt")),
                         phase=OperationPhase.SUCCEEDED,  # History only shows successful deployments
                         resources_synced=0,  # Not available in history
@@ -655,7 +655,7 @@ class ArgoCDAdapter(BaseAdapter):
     ) -> Application:
         """Create a new ArgoCD application."""
         if self.is_mock():
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             resources = self._generate_mock_resources(name, destination_namespace)
 
@@ -741,7 +741,7 @@ class ArgoCDAdapter(BaseAdapter):
 
     def _generate_mock_applications(self) -> dict[str, Application]:
         """Generate mock application data for demonstrations."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         apps = {}
 
         mock_data = [
@@ -941,7 +941,7 @@ class ArgoCDAdapter(BaseAdapter):
         limit: int,
     ) -> list[SyncResult]:
         """Generate mock sync history."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         history = []
 
         for i in range(limit):

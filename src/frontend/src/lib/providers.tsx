@@ -2,11 +2,14 @@
 
 /**
  * App Providers
- * React Query + Other Context Providers
+ * React Query + Auth + Toast + Other Context Providers
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+
+import { AuthProvider } from '@/lib/auth';
+import { ToastProvider } from '@/components/ui/toast';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -27,7 +30,9 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <AuthProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

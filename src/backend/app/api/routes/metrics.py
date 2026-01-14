@@ -1,6 +1,6 @@
 """Metrics API endpoints - Platform engineering dashboard metrics."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -8,20 +8,19 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import get_db
-from app.db.models.service import Service, ServiceStatus
 from app.db.models.anomaly import Anomaly, AnomalySeverity
+from app.db.models.service import Service
 from app.db.models.team import Team
 from app.db.models.template import Template
 from app.schemas.metrics import (
-    MetricsDashboard,
-    MetricsQuery,
+    AnomalyMetrics,
     DeploymentMetrics,
+    DORAMetrics,
+    MetricsDashboard,
     PipelineMetrics,
     ServiceHealthMetrics,
-    DORAMetrics,
-    TemplateMetrics,
-    AnomalyMetrics,
     TeamMetrics,
+    TemplateMetrics,
     TimeSeries,
     TimeSeriesPoint,
 )
@@ -240,7 +239,7 @@ async def get_anomaly_metrics(db: AsyncSession, service_id: str | None = None) -
     warning = warning_result.scalar_one()
 
     # Resolved today (would need resolved_at date comparison)
-    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     resolved_today_result = await db.execute(
         select(func.count(Anomaly.id)).where(
             service_filter,
@@ -297,7 +296,7 @@ async def get_team_metrics(db: AsyncSession) -> TeamMetrics:
 
 def generate_deploy_trend() -> TimeSeries:
     """Generate sample deploy trend data."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     data = []
     for i in range(7, 0, -1):
         day = now - timedelta(days=i)
@@ -341,7 +340,7 @@ async def get_metrics(
         anomaly=anomaly,
         team=team,
         deploy_trend=generate_deploy_trend() if include_trends else None,
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
     )
 
 

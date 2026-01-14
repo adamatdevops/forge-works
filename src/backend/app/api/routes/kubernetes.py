@@ -6,14 +6,8 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from app.adapters.kubernetes import (
-    ClusterInfo,
-    Deployment,
-    Namespace,
-    Node,
-    Pod,
     get_kubernetes_adapter,
 )
-from app.core.events import broadcast_kubernetes_event
 
 logger = logging.getLogger(__name__)
 
