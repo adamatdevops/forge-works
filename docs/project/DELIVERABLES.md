@@ -142,8 +142,8 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 
 | Status | Count |
 |--------|-------|
-| ✅ Done | 49 |
-| 🔄 Planned | 5 |
+| ✅ Done | 58 |
+| 🔄 Planned | 1 |
 | 📋 Future | 7 |
 
 ### By Category
@@ -165,7 +165,7 @@ This document tracks all deliverables for the ForgeWorks project, organized by p
 | v0.1.0 | Foundation | ✅ Released | Backend APIs, Mock Adapters, Documentation |
 | v0.2.0 | Integration | ✅ Released | Frontend Dashboard, Layer Architecture |
 | v0.3.0 | Experience | ✅ Released | Real GitHub/ArgoCD Adapters, Anomaly Detection, DORA Metrics |
-| v0.4.0 | Real-time | 🔄 Next | WebSocket Updates, Kubernetes Adapter, CI/CD Workflows |
-| v1.0.0 | Intelligence | 📋 Future | ML Recommendations, Auth, Production Ready |
+| v0.4.0 | Real-time | ✅ Released | WebSocket Updates, Kubernetes Adapter, CI/CD Workflows |
+| v1.0.0 | Intelligence | 🔄 Next | ML Recommendations, Auth, Production Ready |
 
 **Legend:** ✅ Done | 🔄 Planned | 📋 Future

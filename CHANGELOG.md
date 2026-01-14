@@ -10,9 +10,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Next Steps
-- Add WebSocket real-time updates
-- Kubernetes adapter integration
 - User authentication (JWT)
+- ML training pipeline
+- Real-time anomaly detection
+- Cost optimization engine
+
+---
+
+## [0.4.0] - 2025-01-14
+
+### Phase 4: Real-time - Complete
+
+#### WebSocket Infrastructure (Sprint 4.1)
+- **Connection Manager**
+  - Channel-based subscriptions (services, anomalies, pipelines, kubernetes)
+  - Automatic reconnection with exponential backoff
+  - Heartbeat/ping-pong for connection health
+  - Broadcast events to subscribed clients
+
+- **Frontend Integration**
+  - `useWebSocket` hook for real-time connections
+  - `useRealtimeServices` hook for service updates
+  - `useRealtimeAnomalies` hook for anomaly alerts
+  - `useRealtimePipelines` hook for pipeline status
+  - `useRealtimeKubernetes` hook for K8s updates
+  - TanStack Query cache invalidation on events
+  - Connection status indicator component
+
+#### Kubernetes Adapter (Sprint 4.2)
+- **Backend Adapter** (`src/backend/app/adapters/kubernetes.py`)
+  - Mock/Live mode switching via environment
+  - Cluster info and health status
+  - Namespace listing and management
+  - Node status with resource metrics (CPU/Memory)
+  - Deployment status with replica counts
+  - Pod health with container states
+  - Pod log retrieval
+
+- **API Routes** (`/api/v1/kubernetes`)
+  - `GET /cluster` - Cluster information
+  - `GET /stats` - Aggregate statistics
+  - `GET /namespaces` - List namespaces
+  - `GET /nodes` - List nodes with metrics
+  - `GET /deployments` - List deployments
+  - `GET /deployments/{ns}/{name}` - Deployment details
+  - `GET /pods` - List pods
+  - `GET /pods/{ns}/{name}/logs` - Pod logs
+
+- **KubernetesLayer Component**
+  - View modes: Overview, Deployments, Pods, Nodes
+  - Stats cards with health indicators
+  - Resource utilization progress bars
+  - Real-time status updates
+  - Collapsible deployment details
+
+#### CI/CD Workflows (Sprint 4.3)
+- **Unified CI Workflow** (`.github/workflows/ci.yml`)
+  - Lint job: Ruff (Python) + ESLint (TypeScript) + TypeCheck
+  - Security job: Gitleaks + Snyk
+  - Test Backend: pytest with coverage → Codecov
+  - Test Frontend: vitest with coverage → Codecov
+  - Build: Docker (backend) + Next.js (frontend)
+  - CI Success gate for all jobs
+
+- **Supporting Workflows**
+  - Release workflow with Changesets
+  - Changeset validation on PRs
+  - Auto-labeler for packages
+  - Labels sync from configuration
+
+#### Bug Fixes
+- Fixed hydration mismatch in LayerPanel (DndContext client-only rendering)
+- Fixed `layer.glueKeys` undefined error with optional chaining
+- Added placeholder UI for server-side rendering
+
+#### Repository Maintenance
+- Added TypeScript, ESLint, Ruff, Snyk badges to README
+- Updated .gitignore with AI/Codex directory exclusions
+- Removed tracked .codex directories from repository
 
 ---
 
@@ -157,8 +232,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Phase | Status | Date |
 |---------|-------|--------|------|
-| 0.4.0 | Phase 4: Operations | Planned | TBD |
-| 0.3.0 | Phase 3: Experience | **Complete** | 2025-01-12 |
+| 1.0.0 | Phase 5: Intelligence | Planned | TBD |
+| 0.4.0 | Phase 4: Real-time | **Complete** | 2025-01-14 |
+| 0.3.0 | Phase 3: Experience | Complete | 2025-01-12 |
 | 0.2.0 | Phase 2: Intelligence | Complete | 2025-01-08 |
 | 0.1.0 | Phase 1: Foundation | Complete | 2025-01-08 |
 | 0.0.1 | Phase 0: Planning | Complete | 2025-01-06 |
