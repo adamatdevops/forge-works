@@ -6,12 +6,16 @@
  * Includes real-time WebSocket integration
  */
 
+import { useRouter } from 'next/navigation';
 import { Hammer } from 'lucide-react';
 import { LayerPanel, LayerRenderer, ServiceDetailSidebar } from '@/components/layers';
 import { ConnectionIndicator } from '@/components/ui/ConnectionIndicator';
+import { AuthButton } from '@/components/auth';
 import { useRealtimeAll, useEventToasts } from '@/hooks';
 
 export default function Dashboard() {
+  const router = useRouter();
+
   // Real-time updates via WebSocket (subscribes to all channels)
   const { wsStatus, reconnectAttempts } = useRealtimeAll();
 
@@ -22,6 +26,10 @@ export default function Dashboard() {
     soundEnabled: true,
   });
 
+  const handleLoginClick = () => {
+    router.push('/login');
+  };
+
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
@@ -31,12 +39,13 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold">ForgeWorks</h1>
           <span className="text-sm text-muted-foreground">Internal Developer Platform</span>
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4">
           <ConnectionIndicator
             status={wsStatus}
             reconnectAttempts={reconnectAttempts}
           />
-          <span>Layers Architecture Demo</span>
+          <div className="h-6 w-px bg-border" />
+          <AuthButton onLoginClick={handleLoginClick} />
         </div>
       </header>
 

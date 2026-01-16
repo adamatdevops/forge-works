@@ -6,3 +6,4 @@
 export { LoginForm } from './LoginForm';
 export { RegisterForm } from './RegisterForm';
 export { UserMenu, AuthButton } from './UserMenu';
+export { AuthGuard } from './AuthGuard';
