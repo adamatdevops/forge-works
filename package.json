@@ -2,7 +2,7 @@
   "name": "forge-works",
   "version": "0.4.0",
   "private": true,
-  "description": "ForgeWorks - Internal Developer Platform (Golden Path Orchestrator)",
+  "description": "ForgeWorks - Internal Developer Platform (Platform Orchestrator)",
   "repository": {
     "type": "git",
     "url": "https://github.com/adamatdevops/forge-works.git"

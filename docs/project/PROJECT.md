@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-ForgeWorks is an Internal Developer Platform (IDP) that provides a Golden Path Orchestrator for standardizing service creation, deployment, and governance. The platform enables development teams to focus on business logic while automatically inheriting production-ready infrastructure patterns.
+ForgeWorks is an Internal Developer Platform (IDP) that provides a Platform Orchestrator for standardizing service creation, deployment, and governance. The platform enables development teams to focus on business logic while automatically inheriting production-ready infrastructure patterns.
 
 ## Problem Statement
 
