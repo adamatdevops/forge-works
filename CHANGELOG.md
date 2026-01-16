@@ -9,8 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Next Steps
-- User authentication (JWT)
+### Added
+- **Authentication Frontend** (Action Plan 5)
+  - Login page at `/login` with LoginForm component
+  - Register page at `/register` with RegisterForm component
+  - Next.js middleware for route protection
+  - AuthGuard component for client-side protected routes
+  - AuthButton integrated in dashboard header
+  - Redirect logic for authenticated/unauthenticated users
+
+### Pending
+- Database migration for auth tables (requires Docker)
+- End-to-end auth flow testing
 - ML training pipeline
 - Real-time anomaly detection
 - Cost optimization engine
