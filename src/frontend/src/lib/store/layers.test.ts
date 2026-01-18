@@ -11,13 +11,14 @@ describe('Layers Store', () => {
     it('should have default layers', () => {
       const { layers } = useLayerStore.getState();
 
-      expect(layers).toHaveLength(5);
+      expect(layers).toHaveLength(6);
       expect(layers.map((l) => l.id)).toEqual([
         'services',
         'templates',
         'anomalies',
         'pipeline',
         'metrics',
+        'kubernetes',
       ]);
     });
 
