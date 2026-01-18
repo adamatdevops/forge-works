@@ -1,4 +1,4 @@
-"""ForgeWorks FastAPI Application - Golden Path Orchestrator."""
+"""ForgeWorks FastAPI Application - Platform Orchestrator."""
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -40,7 +40,7 @@ def create_app() -> FastAPI:
     """Application factory for ForgeWorks."""
     app = FastAPI(
         title=settings.app_name,
-        description="Internal Developer Platform - Golden Path Orchestrator",
+        description="Internal Developer Platform - Platform Orchestrator",
         version=settings.app_version,
         lifespan=lifespan,
         docs_url="/docs",

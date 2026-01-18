@@ -1,24 +1,31 @@
 # ForgeWorks - Dynamic Reliability
 
+<!-- Quality Signals -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
-[![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
-[![TypeScript 5+](https://img.shields.io/badge/TypeScript-5+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![ESLint 9+](https://img.shields.io/badge/ESLint-9+-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/)
-[![Docker](https://img.shields.io/badge/Docker-24+-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/)
-[![Gitleaks](https://img.shields.io/badge/protected%20by-gitleaks-blue.svg)](https://github.com/gitleaks/gitleaks)
-[![Hadolint](https://img.shields.io/badge/Dockerfile%20linter-hadolint-40b5a4.svg)](https://github.com/hadolint/hadolint)
-[![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![ESLint 9+](https://img.shields.io/badge/ESLint-9+-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
 
-> **A Golden Path Orchestrator that provides opinionated, production-ready service templates to standardize architecture, improve developer velocity, and enforce platform governance through design.**
+<!-- Security -->
+[![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/)
+
+<!-- Stack -->
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![TypeScript 5+](https://img.shields.io/badge/TypeScript-5+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
+[![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
+
+> **A Platform Orchestrator that provides opinionated, production-ready service templates to standardize architecture, improve developer velocity, and enforce platform governance through design.**
+
+## What ForgeWorks is NOT
+
+Before diving in, let's clarify scope:
+
+- **NOT a deployment tool** - ForgeWorks doesn't deploy your infrastructure. It provides templates and recommendations; actual provisioning is handled by your existing CI/CD (ArgoCD, GitHub Actions).
+- **NOT a replacement for Kubernetes** - It's an orchestration layer that sits *above* your cluster, providing developer-facing workflows.
+- **NOT a full PaaS** - It's a catalog + recommendation engine, not a Heroku-style managed platform.
+
+**ForgeWorks IS:** An Internal Developer Platform (IDP) that standardizes service creation through ML-guided golden path templates and provides visibility into your service ecosystem.
 
 ## Overview
 
@@ -31,25 +38,45 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 
 ## Project Status
 
-| Component | Status |
-|-----------|--------|
-| Repository scaffolding | Done |
-| Monorepo setup (TurboRepo + PNPM) | Done |
-| Database schema & migrations | Done |
-| Service Catalog API (CRUD) | Done |
-| Template API | Done |
-| ML Recommender (rule-based) | Done |
-| Seed data for demos | Done |
-| Mock adapters (GitHub, ArgoCD) | Done |
-| Frontend dashboard (Layers Architecture) | Done |
-| Versioning & Release automation (Changesets) | Done |
-| Anomaly detection panel | Done |
-| Real GitHub/ArgoCD adapters | Done |
-| Metrics dashboard (DORA metrics) | Done |
-| API documentation | Done |
-| Architecture diagrams | Done |
-| WebSocket real-time updates | Done |
-| User authentication (JWT) | Planned |
+### Implemented (Verifiable)
+
+- [x] **Repository scaffolding** - [turbo.json](turbo.json), [pnpm-workspace.yaml](pnpm-workspace.yaml)
+- [x] **Monorepo setup** - TurboRepo + PNPM workspace ([package.json](package.json))
+- [x] **Database schema & migrations** - [Alembic migrations](src/backend/alembic/versions/)
+- [x] **Service Catalog API** - [CRUD endpoints](src/backend/app/api/routes/services.py)
+- [x] **Template API** - [Template routes](src/backend/app/api/routes/templates.py)
+- [x] **ML Recommender** - [Rule-based engine](src/backend/app/ml/recommender.py)
+- [x] **Seed data** - [Demo seeder](src/backend/app/db/seed.py)
+- [x] **Mock adapters** - [GitHub](src/backend/app/adapters/github.py), [ArgoCD](src/backend/app/adapters/argocd.py)
+- [x] **Anomaly API** - [Detection routes](src/backend/app/api/routes/anomalies.py)
+- [x] **Metrics API** - [DORA metrics](src/backend/app/api/routes/metrics.py)
+- [x] **API docs** - Auto-generated at `/docs` endpoint
+- [x] **Versioning** - [Changesets config](.changeset/config.json)
+- [x] **Unit tests** - 159 tests ([test suite](src/backend/tests/unit/))
+- [x] **Auth backend** - [JWT security](src/backend/app/core/security.py), [Auth routes](src/backend/app/api/routes/auth.py)
+
+### Demo-Ready (Run to See)
+
+```bash
+# Backend API with Swagger docs
+cd src/backend && uvicorn app.main:app --reload
+# Visit http://localhost:8000/docs
+
+# Frontend dashboard
+cd src/frontend && pnpm dev
+# Visit http://localhost:3000
+```
+
+- [x] **Frontend Layers UI** - [Layer store](src/frontend/src/store/layers.ts), [GlueBus](src/frontend/src/store/glue.ts)
+- [x] **Auth pages** - [Login](src/frontend/src/app/login/page.tsx), [Register](src/frontend/src/app/register/page.tsx)
+- [x] **WebSocket** - [Real-time endpoint](src/backend/app/api/routes/websocket.py)
+
+### Planned (Tracked)
+
+- [ ] Auth frontend integration (token storage, protected routes)
+- [ ] E2E tests with Playwright
+- [ ] Docker Compose for one-command demo
+- [ ] CI/CD pipeline (GitHub Actions)
 
 ## Architecture
 

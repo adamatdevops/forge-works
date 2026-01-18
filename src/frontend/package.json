@@ -12,6 +12,17 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:smoke": "playwright test e2e/smoke.spec.ts",
+    "test:e2e:auth": "playwright test e2e/auth.spec.ts",
+    "test:e2e:templates": "playwright test e2e/template-flow.spec.ts",
+    "test:e2e:services": "playwright test e2e/services.spec.ts",
+    "test:e2e:resilience": "playwright test e2e/resilience.spec.ts",
+    "test:e2e:websocket": "playwright test e2e/websocket.spec.ts",
+    "test:e2e:kubernetes": "playwright test e2e/kubernetes.spec.ts",
+    "test:e2e:accessibility": "playwright test e2e/accessibility.spec.ts",
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
@@ -38,6 +49,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
