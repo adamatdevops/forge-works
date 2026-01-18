@@ -22,6 +22,7 @@
     "test:e2e:resilience": "playwright test e2e/resilience.spec.ts",
     "test:e2e:websocket": "playwright test e2e/websocket.spec.ts",
     "test:e2e:kubernetes": "playwright test e2e/kubernetes.spec.ts",
+    "test:e2e:accessibility": "playwright test e2e/accessibility.spec.ts",
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
