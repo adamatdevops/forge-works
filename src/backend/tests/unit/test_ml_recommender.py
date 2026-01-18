@@ -3,8 +3,8 @@
 Tests feature conversion, scoring logic, and recommendation generation.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 from app.ml.recommender import TemplateRecommender, get_recommender
 from app.schemas.ml import (
@@ -15,7 +15,6 @@ from app.schemas.ml import (
     WorkloadFeatures,
     WorkloadType,
 )
-
 
 # =============================================================================
 # Feature Vector Conversion Tests

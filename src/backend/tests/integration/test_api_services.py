@@ -13,7 +13,6 @@ from httpx import ASGITransport, AsyncClient
 from app.db.models.service import ServiceStatus, ServiceTier
 from app.main import app
 
-
 # =============================================================================
 # Mock Helpers
 # =============================================================================

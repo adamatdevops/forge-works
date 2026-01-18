@@ -8,21 +8,19 @@ Tests cover:
 - Error handling and edge cases
 """
 
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.core.websocket import (
+    EVENT_CHANNEL_MAP,
     Channel,
     ConnectedClient,
     ConnectionManager,
     EventType,
-    EVENT_CHANNEL_MAP,
     WebSocketEvent,
     get_manager,
 )
-
 
 # =============================================================================
 # WebSocketEvent Tests

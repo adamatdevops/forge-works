@@ -3,16 +3,16 @@
 Tests pure functions and CRUD logic using mocks.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from app.crud.service import ServiceCRUD, slugify
 from app.crud.template import TemplateCRUD
 from app.db.models.service import Service, ServiceStatus, ServiceTier
 from app.db.models.template import Template
 from app.schemas.service import ServiceCreate, ServiceUpdate
-
 
 # =============================================================================
 # Slugify Function Tests
@@ -266,7 +266,7 @@ class TestServiceCRUDUpdate:
         # Mock get_by_id for the return
         with patch.object(ServiceCRUD, 'get_by_id', return_value=mock_service):
             data = ServiceUpdate(name="new-name", description="updated")
-            result = await ServiceCRUD.update(mock_db, mock_service, data)
+            await ServiceCRUD.update(mock_db, mock_service, data)
 
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once_with(mock_service)
@@ -460,7 +460,7 @@ class TestTemplateCRUDIncrementUsage:
         mock_template = MagicMock(spec=Template)
         mock_template.usage_count = 5
 
-        result = await TemplateCRUD.increment_usage(mock_db, mock_template)
+        await TemplateCRUD.increment_usage(mock_db, mock_template)
 
         assert mock_template.usage_count == 6
         mock_db.commit.assert_called_once()

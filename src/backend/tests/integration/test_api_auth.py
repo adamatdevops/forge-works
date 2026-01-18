@@ -4,22 +4,20 @@ Tests the auth endpoints using mocked database operations due to
 PostgreSQL UUID type incompatibility with SQLite test database.
 """
 
-import pytest
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
 from app.core.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     create_refresh_token,
     get_password_hash,
-    hash_refresh_token,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-
+from app.main import app
 
 # =============================================================================
 # Test Fixtures

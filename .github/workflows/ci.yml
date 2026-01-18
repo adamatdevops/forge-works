@@ -154,7 +154,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd src/backend
-          pip install -e ".[dev]" || pip install pytest pytest-asyncio pytest-cov aiosqlite fastapi uvicorn pydantic pydantic-settings sqlalchemy asyncpg alembic redis httpx python-dotenv
+          pip install -e ".[dev]" || pip install pytest pytest-asyncio pytest-cov aiosqlite fastapi uvicorn "pydantic[email]" pydantic-settings sqlalchemy asyncpg alembic redis httpx python-dotenv "python-jose[cryptography]" "passlib[bcrypt]" bcrypt
 
       - name: Run tests
         run: |

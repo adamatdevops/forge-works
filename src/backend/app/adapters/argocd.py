@@ -880,8 +880,6 @@ class ArgoCDAdapter(BaseAdapter):
         namespace: str,
     ) -> list[ResourceStatus]:
         """Generate mock Kubernetes resources for an application."""
-        base_name = app_name.replace("-staging", "").replace("-", "")
-
         resources = [
             ResourceStatus(
                 group="apps",

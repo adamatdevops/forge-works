@@ -114,9 +114,6 @@ async def get_dora_metrics(db: AsyncSession) -> DORAMetrics:
     deploy_result = await db.execute(select(func.sum(Service.deploys_today)))
     deploys_today = deploy_result.scalar_one() or 0
 
-    total_services = await db.execute(select(func.count(Service.id)))
-    num_services = total_services.scalar_one()
-
     # Categorize deployment frequency
     if deploys_today > 10:
         freq = "Multiple per day"

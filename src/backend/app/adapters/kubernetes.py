@@ -332,9 +332,7 @@ class KubernetesAdapter(BaseAdapter):
         try:
             start = datetime.now(UTC)
             # Run synchronous k8s API call in thread pool
-            version_info = await asyncio.to_thread(
-                self._core_api.get_api_versions
-            )
+            await asyncio.to_thread(self._core_api.get_api_versions)
             latency = (datetime.now(UTC) - start).total_seconds() * 1000
 
             return AdapterHealth(

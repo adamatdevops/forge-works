@@ -4,13 +4,13 @@ import pytest
 
 from app.adapters import (
     AdapterMode,
-    GitHubAdapter,
     ArgoCDAdapter,
+    GitHubAdapter,
+    HealthStatus,
     PRState,
     SyncStatus,
-    HealthStatus,
-    get_github_adapter,
     get_argocd_adapter,
+    get_github_adapter,
 )
 
 

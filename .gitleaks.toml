@@ -99,7 +99,3 @@ regexes = [
     '''(?i)api[-_]?key[-_]?here''',
     '''(?i)example''',
 ]
-
-# Specific file patterns to always scan (override path allowlist)
-[rules.allowlist]
-paths = []

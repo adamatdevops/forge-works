@@ -9,10 +9,8 @@ from pydantic import ValidationError
 from app.db.models.service import ServiceStatus, ServiceTier
 from app.schemas.auth import (
     PasswordChange,
-    TokenPayload,
     UserLogin,
     UserRegister,
-    UserResponse,
 )
 from app.schemas.ml import (
     DatabaseType,
@@ -24,8 +22,7 @@ from app.schemas.ml import (
     WorkloadFeatures,
     WorkloadType,
 )
-from app.schemas.service import ServiceBase, ServiceCreate, ServiceUpdate
-
+from app.schemas.service import ServiceCreate, ServiceUpdate
 
 # =============================================================================
 # Auth Schema Tests

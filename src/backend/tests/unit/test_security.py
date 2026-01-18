@@ -4,13 +4,10 @@ Tests password hashing, JWT tokens, and validation functions.
 """
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
-
-import pytest
 
 from app.core.security import (
-    ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
     REFRESH_TOKEN_EXPIRE_DAYS,
     create_access_token,
     create_refresh_token,
@@ -21,7 +18,6 @@ from app.core.security import (
     validate_password_strength,
     verify_password,
 )
-
 
 # =============================================================================
 # Password Hashing Tests
@@ -190,6 +186,7 @@ class TestDecodeAccessTokenType:
     def test_wrong_token_type(self):
         """Test decoding a token with wrong type returns None."""
         from jose import jwt
+
         from app.core.config import settings
 
         # Create a token with wrong type
