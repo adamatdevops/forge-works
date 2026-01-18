@@ -5,12 +5,9 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![ESLint 9+](https://img.shields.io/badge/ESLint-9+-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 <!-- Security -->
 [![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/)
-[![Gitleaks](https://img.shields.io/badge/protected%20by-gitleaks-blue.svg)](https://github.com/gitleaks/gitleaks)
-[![Hadolint](https://img.shields.io/badge/Dockerfile%20linter-hadolint-40b5a4.svg)](https://github.com/hadolint/hadolint)
 
 <!-- Stack -->
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
