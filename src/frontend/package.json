@@ -17,6 +17,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:smoke": "playwright test e2e/smoke.spec.ts",
     "test:e2e:auth": "playwright test e2e/auth.spec.ts",
+    "test:e2e:templates": "playwright test e2e/template-flow.spec.ts",
+    "test:e2e:services": "playwright test e2e/services.spec.ts",
     "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
