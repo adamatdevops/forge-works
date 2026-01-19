@@ -11,7 +11,6 @@ import {
   Activity,
   Calendar,
   CheckCircle,
-  Clock,
   ExternalLink,
   GitBranch,
   Layers,

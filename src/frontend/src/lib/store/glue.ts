@@ -46,6 +46,7 @@ export const useGlueStore = create<GlueStore>((set, get) => ({
   clear: (key) => {
     if (key) {
       set((state) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [key]: _, ...rest } = state.values;
         return { values: rest as Record<GlueKey, GlueValue> };
       });

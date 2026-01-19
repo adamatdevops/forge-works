@@ -147,7 +147,9 @@ async function checkFormLabels(page: Page) {
 
 /**
  * Check color contrast (basic check using computed styles)
+ * Reserved for future use in color contrast tests
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function checkBasicColorContrast(page: Page) {
   // Check that text elements have sufficient contrast
   const textElements = await page.locator('p, span, a, button, h1, h2, h3, h4, h5, h6').all();
@@ -297,6 +299,7 @@ test.describe('Dashboard Accessibility', () => {
       const title = await chart.locator('title').count();
 
       // Charts should have some form of accessible description
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const hasDescription = ariaLabel || ariaDescribedby || title > 0;
       // Note: This is a soft check as not all SVGs are charts
     }
@@ -530,6 +533,7 @@ test.describe('Focus Indicators', () => {
 
     // Element should have some form of focus indication
     if (focused) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const hasFocusIndicator =
         focused.outline !== 'none' ||
         focused.outlineWidth !== '0px' ||

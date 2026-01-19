@@ -5,7 +5,7 @@
  * Tests WebSocket connection management, reconnection logic, and event handling
  */
 
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useWebSocket } from './useWebSocket';
@@ -765,7 +765,7 @@ describe('useWebSocket - Edge Cases', () => {
 
   it('should handle options changes between renders', () => {
     const onEvent1 = vi.fn();
-    const { rerender } = renderHook(({ onEvent }) => useWebSocket({ onEvent }), {
+    renderHook(({ onEvent }) => useWebSocket({ onEvent }), {
       initialProps: { onEvent: onEvent1 },
     });
 

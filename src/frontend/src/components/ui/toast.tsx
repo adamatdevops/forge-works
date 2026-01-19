@@ -6,7 +6,7 @@
  */
 
 import { memo, useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle, Info, X, XCircle, Bell } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';

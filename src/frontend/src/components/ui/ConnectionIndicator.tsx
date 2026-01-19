@@ -5,7 +5,6 @@
  * Shows WebSocket connection status with visual feedback
  */
 
-import { useEffect, useState } from 'react';
 import { Radio, Wifi, WifiOff } from 'lucide-react';
 
 import {
@@ -63,18 +62,11 @@ export function ConnectionIndicator({
   reconnectAttempts = 0,
   className = '',
 }: ConnectionIndicatorProps) {
-  const [isAnimating, setIsAnimating] = useState(false);
   const config = STATUS_CONFIG[status];
   const Icon = config.icon;
 
-  // Pulse animation on reconnecting
-  useEffect(() => {
-    if (status === 'reconnecting' || status === 'connecting') {
-      setIsAnimating(true);
-    } else {
-      setIsAnimating(false);
-    }
-  }, [status]);
+  // Derive animation state directly from status (no effect needed)
+  const isAnimating = status === 'reconnecting' || status === 'connecting';
 
   const tooltipContent = (
     <div className="text-sm">

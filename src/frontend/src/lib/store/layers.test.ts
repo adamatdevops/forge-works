@@ -172,6 +172,7 @@ describe('Layers Store', () => {
     it('should return undefined for non-existent type', () => {
       const store = useLayerStore.getState();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const layer = store.getLayerByType('nonexistent' as any);
       expect(layer).toBeUndefined();
     });

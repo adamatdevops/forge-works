@@ -311,26 +311,16 @@ export function TemplatesLayer() {
     recommendMutation.mutate({ workloadType, language });
   }, [recommendMutation]);
 
-  if (isLoading) {
-    return <TemplatesLoading />;
-  }
+  // Memoize computed values - must be before early returns (React hooks rules)
+  const { recommendedTemplateIds, sortedTemplates, templatesByType } = useMemo(() => {
+    if (!templates || templates.length === 0) {
+      return {
+        recommendedTemplateIds: new Set<string>(),
+        sortedTemplates: [],
+        templatesByType: {} as Record<string, Template[]>,
+      };
+    }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center text-red-500">
-          Failed to load templates: {(error as Error).message}
-        </div>
-      </div>
-    );
-  }
-
-  if (!templates || templates.length === 0) {
-    return <TemplatesEmpty />;
-  }
-
-  // Memoize computed values
-  const { recommendedTemplateIds, recommendationMap, sortedTemplates, templatesByType } = useMemo(() => {
     const recIds = new Set(recommendations?.map((r) => r.template.id) || []);
     const recMap = new Map(recommendations?.map((r) => [r.template.id, r]) || []);
 
@@ -358,11 +348,28 @@ export function TemplatesLayer() {
 
     return {
       recommendedTemplateIds: recIds,
-      recommendationMap: recMap,
       sortedTemplates: sorted,
       templatesByType: byType,
     };
   }, [templates, recommendations]);
+
+  if (isLoading) {
+    return <TemplatesLoading />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center text-red-500">
+          Failed to load templates: {(error as Error).message}
+        </div>
+      </div>
+    );
+  }
+
+  if (!templates || templates.length === 0) {
+    return <TemplatesEmpty />;
+  }
 
   return (
     <section aria-label="Templates catalog">

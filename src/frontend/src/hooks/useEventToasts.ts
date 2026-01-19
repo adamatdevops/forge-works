@@ -41,7 +41,11 @@ const DEFAULT_CONFIG: EventToastConfig = {
 export function useEventToasts(config: Partial<EventToastConfig> = {}) {
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
   const configRef = useRef(mergedConfig);
-  configRef.current = mergedConfig;
+
+  // Sync ref with latest config - intentional pattern for stable callback
+  useEffect(() => {
+    configRef.current = mergedConfig;
+  });
 
   const handleEvent = useCallback((event: WebSocketEvent) => {
     const cfg = configRef.current;

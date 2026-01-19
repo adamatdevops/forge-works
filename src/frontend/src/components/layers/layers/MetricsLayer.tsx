@@ -6,7 +6,7 @@
  * Including DORA metrics, deployment stats, service health
  */
 
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Activity,

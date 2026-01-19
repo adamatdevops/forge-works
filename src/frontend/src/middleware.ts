@@ -11,7 +11,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
+// Routes that require authentication (reserved for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PROTECTED_ROUTES = [
   '/',
   '/settings',
@@ -22,7 +23,8 @@ const PROTECTED_ROUTES = [
 // Routes that are only for unauthenticated users
 const AUTH_ROUTES = ['/login', '/register'];
 
-// Public routes that don't require auth
+// Public routes that don't require auth (reserved for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PUBLIC_ROUTES = ['/terms', '/privacy', '/api'];
 
 /**

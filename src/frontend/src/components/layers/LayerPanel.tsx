@@ -64,7 +64,7 @@ const SortableLayerItem = memo(function SortableLayerItem({ layer, isActive, onT
     <div
       ref={setNodeRef}
       style={style}
-      role="listitem"
+      role="option"
       className={cn(
         'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors',
         'hover:bg-accent/50 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1',
@@ -191,9 +191,10 @@ export function LayerPanel() {
   const { layers, activeLayerId, toggleLayer, setActiveLayer, setLayerOrder } = useLayerStore();
 
   // Prevent hydration mismatch with DndContext
+  // This is an intentional pattern for SSR hydration
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    setIsMounted(true);
+    setIsMounted(true); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
   const sensors = useSensors(
@@ -241,7 +242,7 @@ export function LayerPanel() {
 
       {/* Layer List */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1" role="list" aria-labelledby="layers-heading">
+        <div className="p-2 space-y-1" role="listbox" aria-labelledby="layers-heading">
           {isMounted ? (
             <DndContext
               sensors={sensors}
