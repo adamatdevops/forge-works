@@ -88,11 +88,14 @@ let mockWebSocketInstances: MockWebSocket[] = [];
 beforeEach(() => {
   mockWebSocketInstances = [];
   vi.stubGlobal('WebSocket', MockWebSocket);
+  // Mock Math.random to return 0 for predictable reconnection delays
+  vi.spyOn(Math, 'random').mockReturnValue(0);
   vi.useFakeTimers();
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -139,9 +142,15 @@ describe('useWebSocket - Connection', () => {
   });
 
   it('should generate unique client_id if not provided', () => {
+    // Restore Math.random for this test to generate real client IDs
+    vi.spyOn(Math, 'random').mockRestore();
+
     renderHook(() => useWebSocket());
 
     expect(mockWebSocketInstances[0].url).toMatch(/client_id=client-[a-z0-9]+/);
+
+    // Re-mock Math.random for subsequent tests
+    vi.spyOn(Math, 'random').mockReturnValue(0);
   });
 
   it('should call onConnect callback when connected', () => {
