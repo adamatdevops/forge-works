@@ -1,6 +1,12 @@
 # ForgeWorks Backend - Python FastAPI
 FROM python:3.11-slim
 
+# OCI Image Labels
+LABEL maintainer="ForgeWorks Team <team@forgeworks.dev>" \
+      org.opencontainers.image.source="https://github.com/adamatdevops/forge-works" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.description="ForgeWorks Backend API - FastAPI application for Internal Developer Platform"
+
 # Set working directory
 WORKDIR /app
 
@@ -11,6 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
