@@ -33,12 +33,8 @@ class Template(Base):
     version: Mapped[str] = mapped_column(String(20), default="1.0.0", nullable=False)
 
     # Classification (for ML recommendation)
-    workload_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # api, batch, stream, ml
-    language: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # python, go, typescript
+    workload_type: Mapped[str] = mapped_column(String(50), nullable=False)  # api, batch, stream, ml
+    language: Mapped[str] = mapped_column(String(50), nullable=False)  # python, go, typescript
     capabilities: Mapped[list[str]] = mapped_column(
         ARRAY(String), default=list, nullable=False
     )  # e.g., ["api", "crud", "async"]
@@ -58,9 +54,7 @@ class Template(Base):
     # Included components
     includes_ci: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     includes_cd: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    includes_monitoring: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    includes_monitoring: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     includes_tests: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Usage statistics

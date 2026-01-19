@@ -81,9 +81,7 @@ class Service(Base):
 
     # Repository info
     repository_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    repository_branch: Mapped[str] = mapped_column(
-        String(100), default="main", nullable=False
-    )
+    repository_branch: Mapped[str] = mapped_column(String(100), default="main", nullable=False)
 
     # Deployment info
     namespace: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -92,9 +90,7 @@ class Service(Base):
     # Metrics (for demo/anomaly detection)
     deploys_today: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     rollbacks_this_week: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    last_deploy_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_deploy_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Tags and metadata
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, nullable=False)
@@ -120,9 +116,7 @@ class Service(Base):
 
     # Relationships
     team: Mapped["Team"] = relationship("Team", back_populates="services")
-    template: Mapped["Template | None"] = relationship(
-        "Template", back_populates="services"
-    )
+    template: Mapped["Template | None"] = relationship("Template", back_populates="services")
     anomalies: Mapped[list["Anomaly"]] = relationship(
         "Anomaly",
         back_populates="service",

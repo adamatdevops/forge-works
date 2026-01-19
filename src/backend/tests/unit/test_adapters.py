@@ -295,6 +295,7 @@ class TestAdapterSingletons:
         """Test GitHub adapter factory returns same instance."""
         # Reset singleton for test
         import app.adapters.github as gh_module
+
         gh_module._github_adapter = None
 
         adapter1 = get_github_adapter()
@@ -306,6 +307,7 @@ class TestAdapterSingletons:
         """Test ArgoCD adapter factory returns same instance."""
         # Reset singleton for test
         import app.adapters.argocd as argo_module
+
         argo_module._argocd_adapter = None
 
         adapter1 = get_argocd_adapter()

@@ -77,9 +77,7 @@ class Action(Base):
     description: Mapped[str] = mapped_column(String(500), nullable=False)
 
     # Actor
-    actor: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )  # User or system identifier
+    actor: Mapped[str] = mapped_column(String(100), nullable=False)  # User or system identifier
     actor_type: Mapped[str] = mapped_column(
         String(50), default="user", nullable=False
     )  # user, system, automation
@@ -117,9 +115,7 @@ class Action(Base):
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
         return f"<Action(id={self.id}, type={self.type}, status={self.status})>"

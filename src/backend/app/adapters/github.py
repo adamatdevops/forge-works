@@ -367,8 +367,10 @@ class GitHubAdapter(BaseAdapter):
                             private=item.get("private", False),
                             html_url=item["html_url"],
                             clone_url=item["clone_url"],
-                            created_at=self._parse_datetime(item["created_at"]) or datetime.now(UTC),
-                            updated_at=self._parse_datetime(item["updated_at"]) or datetime.now(UTC),
+                            created_at=self._parse_datetime(item["created_at"])
+                            or datetime.now(UTC),
+                            updated_at=self._parse_datetime(item["updated_at"])
+                            or datetime.now(UTC),
                             language=item.get("language"),
                             topics=item.get("topics", []),
                         )
@@ -441,7 +443,8 @@ class GitHubAdapter(BaseAdapter):
                         message=commit_data.get("message", "").split("\n")[0],
                         author=author_data.get("name", "Unknown"),
                         author_email=author_data.get("email", ""),
-                        timestamp=self._parse_datetime(author_data.get("date")) or datetime.now(UTC),
+                        timestamp=self._parse_datetime(author_data.get("date"))
+                        or datetime.now(UTC),
                         url=item["html_url"],
                     )
                 )
@@ -546,7 +549,9 @@ class GitHubAdapter(BaseAdapter):
                 }
 
                 status = status_map.get(item["status"], WorkflowStatus.COMPLETED)
-                conclusion = conclusion_map.get(item.get("conclusion")) if item.get("conclusion") else None
+                conclusion = (
+                    conclusion_map.get(item.get("conclusion")) if item.get("conclusion") else None
+                )
 
                 # Calculate duration
                 created = self._parse_datetime(item["created_at"])
@@ -952,9 +957,7 @@ def get_github_adapter(
         adapter_mode = mode
         if adapter_mode is None:
             adapter_mode = (
-                AdapterMode.LIVE
-                if settings.github_adapter_mode == "live"
-                else AdapterMode.MOCK
+                AdapterMode.LIVE if settings.github_adapter_mode == "live" else AdapterMode.MOCK
             )
 
         _github_adapter = GitHubAdapter(

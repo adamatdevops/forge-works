@@ -59,39 +59,52 @@ class TemplateRecommender:
         """
         # Language encoding (one-hot style as numeric)
         lang_map = {
-            "python": 0, "javascript": 1, "typescript": 2,
-            "go": 3, "java": 4, "rust": 5,
+            "python": 0,
+            "javascript": 1,
+            "typescript": 2,
+            "go": 3,
+            "java": 4,
+            "rust": 5,
         }
         lang_idx = lang_map.get(features.language.value, 0)
 
         # Workload type encoding
         workload_map = {
-            "api": 0, "worker": 1, "cron": 2,
-            "ml-pipeline": 3, "frontend": 4, "batch": 5,
+            "api": 0,
+            "worker": 1,
+            "cron": 2,
+            "ml-pipeline": 3,
+            "frontend": 4,
+            "batch": 5,
         }
         workload_idx = workload_map.get(features.workload_type.value, 0)
 
         # Database type encoding
         db_map = {
-            "none": 0, "postgresql": 1, "mongodb": 2,
-            "redis": 3, "mysql": 4,
+            "none": 0,
+            "postgresql": 1,
+            "mongodb": 2,
+            "redis": 3,
+            "mysql": 4,
         }
         db_idx = db_map.get(features.database_type.value, 0)
 
         # Build feature vector
-        vector = np.array([
-            lang_idx,
-            workload_idx,
-            db_idx,
-            1 if features.needs_database else 0,
-            1 if features.needs_queue else 0,
-            1 if features.needs_cache else 0,
-            1 if features.needs_gpu else 0,
-            min(features.expected_rps / 10000, 1.0),  # Normalize
-            min(features.expected_memory_mb / 8192, 1.0),  # Normalize
-            min(features.team_size / 100, 1.0),  # Normalize
-            1 if features.compliance_required else 0,
-        ])
+        vector = np.array(
+            [
+                lang_idx,
+                workload_idx,
+                db_idx,
+                1 if features.needs_database else 0,
+                1 if features.needs_queue else 0,
+                1 if features.needs_cache else 0,
+                1 if features.needs_gpu else 0,
+                min(features.expected_rps / 10000, 1.0),  # Normalize
+                min(features.expected_memory_mb / 8192, 1.0),  # Normalize
+                min(features.team_size / 100, 1.0),  # Normalize
+                1 if features.compliance_required else 0,
+            ]
+        )
 
         return vector.reshape(1, -1)
 
@@ -120,10 +133,7 @@ class TemplateRecommender:
             reverse=True,
         )
 
-        return [
-            (template, score, reasons)
-            for template, (score, reasons) in sorted_templates
-        ]
+        return [(template, score, reasons) for template, (score, reasons) in sorted_templates]
 
     def _score_template(
         self, template: TemplateType, features: WorkloadFeatures
@@ -285,14 +295,12 @@ class TemplateRecommender:
         if max_score == 0:
             max_score = 1.0
 
-        normalized = [
-            (r[0], r[1] / max_score, r[2])
-            for r in recommendations
-        ]
+        normalized = [(r[0], r[1] / max_score, r[2]) for r in recommendations]
 
         primary = normalized[0]
         alternatives = [
-            r for r in normalized[1:4]
+            r
+            for r in normalized[1:4]
             if r[1] >= 0.3  # At least 30% of max score
         ]
 

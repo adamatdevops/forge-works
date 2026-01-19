@@ -115,9 +115,7 @@ class TestGetTemplateEndpoint:
         """Test getting ML pipeline template."""
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.get(
-                f"/api/v1/ml/templates/{TemplateType.ML_PIPELINE.value}"
-            )
+            response = await client.get(f"/api/v1/ml/templates/{TemplateType.ML_PIPELINE.value}")
 
         assert response.status_code == 200
         data = response.json()

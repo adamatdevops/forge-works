@@ -398,9 +398,7 @@ class TestConnectionManagerBroadcasting:
         assert ws2.send_json.call_count == 0  # Not subscribed
 
     @pytest.mark.asyncio
-    async def test_broadcast_cleans_up_disconnected_clients(
-        self, manager: ConnectionManager
-    ):
+    async def test_broadcast_cleans_up_disconnected_clients(self, manager: ConnectionManager):
         """Test that broadcast cleans up clients that fail to receive."""
         ws1 = AsyncMock()
         ws2 = AsyncMock()

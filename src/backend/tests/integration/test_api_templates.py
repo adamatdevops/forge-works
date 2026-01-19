@@ -143,7 +143,9 @@ class TestListTemplatesEndpoint:
         """Test filtering templates by language."""
         python_templates = [
             create_mock_template(name="Python API", language="python"),
-            create_mock_template(name="Stream Processor", workload_type="stream", language="python"),
+            create_mock_template(
+                name="Stream Processor", workload_type="stream", language="python"
+            ),
         ]
 
         with patch("app.api.routes.templates.TemplateCRUD") as mock_crud:
@@ -445,10 +447,22 @@ class TestTemplateResponseStructure:
         data = response.json()
 
         required_fields = [
-            "id", "name", "slug", "description", "version",
-            "workload_type", "language", "capabilities", "ideal_for",
-            "stack", "includes_ci", "includes_cd", "includes_monitoring",
-            "includes_tests", "is_active", "is_recommended",
+            "id",
+            "name",
+            "slug",
+            "description",
+            "version",
+            "workload_type",
+            "language",
+            "capabilities",
+            "ideal_for",
+            "stack",
+            "includes_ci",
+            "includes_cd",
+            "includes_monitoring",
+            "includes_tests",
+            "is_active",
+            "is_recommended",
         ]
         for field in required_fields:
             assert field in data, f"Missing required field: {field}"

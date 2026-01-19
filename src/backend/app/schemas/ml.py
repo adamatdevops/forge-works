@@ -56,18 +56,14 @@ class WorkloadFeatures(BaseModel):
     """Input features for template recommendation."""
 
     # Language and framework
-    language: ProgrammingLanguage = Field(
-        description="Primary programming language"
-    )
+    language: ProgrammingLanguage = Field(description="Primary programming language")
     framework: str | None = Field(
         default=None,
         description="Framework if applicable (fastapi, express, nextjs, etc.)",
     )
 
     # Workload characteristics
-    workload_type: WorkloadType = Field(
-        description="Type of workload"
-    )
+    workload_type: WorkloadType = Field(description="Type of workload")
     service_name: str | None = Field(
         default=None,
         description="Name of the service being created",
@@ -149,9 +145,7 @@ class WorkloadFeatures(BaseModel):
 class TemplateRecommendation(BaseModel):
     """Single template recommendation with confidence score."""
 
-    template: TemplateType = Field(
-        description="Recommended template type"
-    )
+    template: TemplateType = Field(description="Recommended template type")
     confidence: float = Field(
         ge=0.0,
         le=1.0,
@@ -166,9 +160,7 @@ class TemplateRecommendation(BaseModel):
 class RecommendationResponse(BaseModel):
     """Response containing template recommendations."""
 
-    primary: TemplateRecommendation = Field(
-        description="Primary (best) recommendation"
-    )
+    primary: TemplateRecommendation = Field(description="Primary (best) recommendation")
     alternatives: list[TemplateRecommendation] = Field(
         default_factory=list,
         description="Alternative recommendations ranked by confidence",
@@ -238,12 +230,8 @@ class RecommendationFeedback(BaseModel):
 class TrainingExample(BaseModel):
     """Single training example for model training."""
 
-    features: WorkloadFeatures = Field(
-        description="Input features"
-    )
-    label: TemplateType = Field(
-        description="Correct template (ground truth)"
-    )
+    features: WorkloadFeatures = Field(description="Input features")
+    label: TemplateType = Field(description="Correct template (ground truth)")
     weight: float = Field(
         default=1.0,
         ge=0.0,
@@ -254,9 +242,7 @@ class TrainingExample(BaseModel):
 class TrainingDataset(BaseModel):
     """Collection of training examples."""
 
-    examples: list[TrainingExample] = Field(
-        description="List of training examples"
-    )
+    examples: list[TrainingExample] = Field(description="List of training examples")
     version: str = Field(
         default="1.0.0",
         description="Dataset version",

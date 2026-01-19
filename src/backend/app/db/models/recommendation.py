@@ -33,12 +33,8 @@ class Recommendation(Base):
     )
 
     # Input features (for ML training)
-    workload_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # api, batch, stream, ml
-    language: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # python, go, typescript
+    workload_type: Mapped[str] = mapped_column(String(50), nullable=False)  # api, batch, stream, ml
+    language: Mapped[str] = mapped_column(String(50), nullable=False)  # python, go, typescript
     requirements: Mapped[list[str]] = mapped_column(
         ARRAY(String), default=list, nullable=False
     )  # e.g., ["high_throughput", "low_latency"]
@@ -73,14 +69,10 @@ class Recommendation(Base):
     )  # Why they overrode
 
     # Warnings issued
-    warnings: Mapped[list[str]] = mapped_column(
-        ARRAY(String), default=list, nullable=False
-    )
+    warnings: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, nullable=False)
 
     # Model info
-    model_version: Mapped[str] = mapped_column(
-        String(50), default="1.0.0", nullable=False
-    )
+    model_version: Mapped[str] = mapped_column(String(50), default="1.0.0", nullable=False)
     inference_time_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Outcome tracking (for feedback loop)

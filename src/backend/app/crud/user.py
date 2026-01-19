@@ -46,9 +46,7 @@ async def create_user(
     return user
 
 
-async def authenticate_user(
-    db: AsyncSession, email: str, password: str
-) -> User | None:
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
     """Authenticate a user by email and password."""
     user = await get_user_by_email(db, email)
     if not user:
@@ -66,9 +64,7 @@ async def update_user_login(db: AsyncSession, user: User) -> User:
     return user
 
 
-async def update_user_password(
-    db: AsyncSession, user: User, new_password: str
-) -> User:
+async def update_user_password(db: AsyncSession, user: User, new_password: str) -> User:
     """Update user's password."""
     user.hashed_password = get_password_hash(new_password)
     user.updated_at = datetime.now(UTC)
@@ -77,9 +73,7 @@ async def update_user_password(
     return user
 
 
-async def update_user_profile(
-    db: AsyncSession, user: User, full_name: str | None = None
-) -> User:
+async def update_user_profile(db: AsyncSession, user: User, full_name: str | None = None) -> User:
     """Update user's profile."""
     if full_name is not None:
         user.full_name = full_name
@@ -94,9 +88,7 @@ async def update_user_profile(
 # =============================================================================
 
 
-async def create_refresh_token(
-    db: AsyncSession, user_id: str, token_hash: str
-) -> RefreshToken:
+async def create_refresh_token(db: AsyncSession, user_id: str, token_hash: str) -> RefreshToken:
     """Create a new refresh token."""
     refresh_token = RefreshToken(
         user_id=user_id,
@@ -109,13 +101,9 @@ async def create_refresh_token(
     return refresh_token
 
 
-async def get_refresh_token_by_hash(
-    db: AsyncSession, token_hash: str
-) -> RefreshToken | None:
+async def get_refresh_token_by_hash(db: AsyncSession, token_hash: str) -> RefreshToken | None:
     """Get a refresh token by its hash."""
-    result = await db.execute(
-        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-    )
+    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     return result.scalar_one_or_none()
 
 
@@ -149,9 +137,7 @@ async def revoke_all_user_tokens(db: AsyncSession, user_id: str) -> int:
 async def cleanup_expired_tokens(db: AsyncSession) -> int:
     """Delete expired refresh tokens (cleanup task)."""
     now = datetime.now(UTC)
-    result = await db.execute(
-        select(RefreshToken).where(RefreshToken.expires_at < now)
-    )
+    result = await db.execute(select(RefreshToken).where(RefreshToken.expires_at < now))
     tokens = result.scalars().all()
     for token in tokens:
         await db.delete(token)

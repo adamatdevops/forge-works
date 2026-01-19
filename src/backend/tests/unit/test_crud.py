@@ -244,7 +244,7 @@ class TestServiceCRUDCreate:
             description="A new service",
         )
 
-        with patch.object(ServiceCRUD, 'get_by_id', return_value=mock_service):
+        with patch.object(ServiceCRUD, "get_by_id", return_value=mock_service):
             result = await ServiceCRUD.create(mock_db, data)
 
         assert result is mock_service
@@ -264,7 +264,7 @@ class TestServiceCRUDUpdate:
         mock_service.name = "old-name"
 
         # Mock get_by_id for the return
-        with patch.object(ServiceCRUD, 'get_by_id', return_value=mock_service):
+        with patch.object(ServiceCRUD, "get_by_id", return_value=mock_service):
             data = ServiceUpdate(name="new-name", description="updated")
             await ServiceCRUD.update(mock_db, mock_service, data)
 
@@ -298,14 +298,22 @@ class TestServiceCRUDGetStats:
         # Mock multiple execute calls for different queries
         mock_results = [
             MagicMock(scalar_one=MagicMock(return_value=10)),  # total
-            MagicMock(all=MagicMock(return_value=[
-                (ServiceStatus.HEALTHY, 5),
-                (ServiceStatus.DEGRADED, 3),
-            ])),  # by_status
-            MagicMock(all=MagicMock(return_value=[
-                (ServiceTier.CRITICAL, 2),
-                (ServiceTier.STANDARD, 8),
-            ])),  # by_tier
+            MagicMock(
+                all=MagicMock(
+                    return_value=[
+                        (ServiceStatus.HEALTHY, 5),
+                        (ServiceStatus.DEGRADED, 3),
+                    ]
+                )
+            ),  # by_status
+            MagicMock(
+                all=MagicMock(
+                    return_value=[
+                        (ServiceTier.CRITICAL, 2),
+                        (ServiceTier.STANDARD, 8),
+                    ]
+                )
+            ),  # by_tier
             MagicMock(scalar_one=MagicMock(return_value=2)),  # active_anomalies
             MagicMock(scalar_one=MagicMock(return_value=15)),  # deploys_today
             MagicMock(scalar_one=MagicMock(return_value=3)),  # rollbacks

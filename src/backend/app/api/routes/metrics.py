@@ -31,7 +31,9 @@ router = APIRouter()
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def get_deployment_metrics(db: AsyncSession, service_id: str | None = None) -> DeploymentMetrics:
+async def get_deployment_metrics(
+    db: AsyncSession, service_id: str | None = None
+) -> DeploymentMetrics:
     """Calculate deployment metrics."""
     query = select(Service)
     if service_id:
@@ -49,7 +51,9 @@ async def get_deployment_metrics(db: AsyncSession, service_id: str | None = None
 
     # Estimate success rate (assumes rollbacks are failures)
     weekly_deploys = deploys_today * 7
-    success_rate = ((weekly_deploys - rollbacks) / weekly_deploys * 100) if weekly_deploys > 0 else 100
+    success_rate = (
+        ((weekly_deploys - rollbacks) / weekly_deploys * 100) if weekly_deploys > 0 else 100
+    )
 
     return DeploymentMetrics(
         total_deploys=total_deploys,
@@ -78,7 +82,9 @@ async def get_pipeline_metrics(db: AsyncSession) -> PipelineMetrics:
     )
 
 
-async def get_service_health_metrics(db: AsyncSession, service_id: str | None = None) -> ServiceHealthMetrics:
+async def get_service_health_metrics(
+    db: AsyncSession, service_id: str | None = None
+) -> ServiceHealthMetrics:
     """Calculate service health metrics."""
     query = select(Service.status, func.count(Service.id)).group_by(Service.status)
     if service_id:
@@ -185,7 +191,9 @@ async def get_template_metrics(db: AsyncSession) -> TemplateMetrics:
     total_services_result = await db.execute(select(func.count(Service.id)))
     total_services = total_services_result.scalar_one()
 
-    adoption_rate = ((total_services - without_template) / total_services * 100) if total_services > 0 else 0
+    adoption_rate = (
+        ((total_services - without_template) / total_services * 100) if total_services > 0 else 0
+    )
 
     return TemplateMetrics(
         total_templates=total,
@@ -202,17 +210,12 @@ async def get_anomaly_metrics(db: AsyncSession, service_id: str | None = None) -
     service_filter = Anomaly.service_id == service_id if service_id else True
 
     # Total anomalies
-    total_result = await db.execute(
-        select(func.count(Anomaly.id)).where(service_filter)
-    )
+    total_result = await db.execute(select(func.count(Anomaly.id)).where(service_filter))
     total = total_result.scalar_one()
 
     # Active anomalies
     active_result = await db.execute(
-        select(func.count(Anomaly.id)).where(
-            service_filter,
-            Anomaly.is_active.is_(True)
-        )
+        select(func.count(Anomaly.id)).where(service_filter, Anomaly.is_active.is_(True))
     )
     active = active_result.scalar_one()
 
@@ -221,16 +224,14 @@ async def get_anomaly_metrics(db: AsyncSession, service_id: str | None = None) -
         select(func.count(Anomaly.id)).where(
             service_filter,
             Anomaly.is_active.is_(True),
-            Anomaly.severity == AnomalySeverity.CRITICAL
+            Anomaly.severity == AnomalySeverity.CRITICAL,
         )
     )
     critical = critical_result.scalar_one()
 
     warning_result = await db.execute(
         select(func.count(Anomaly.id)).where(
-            service_filter,
-            Anomaly.is_active.is_(True),
-            Anomaly.severity == AnomalySeverity.WARNING
+            service_filter, Anomaly.is_active.is_(True), Anomaly.severity == AnomalySeverity.WARNING
         )
     )
     warning = warning_result.scalar_one()
@@ -239,9 +240,7 @@ async def get_anomaly_metrics(db: AsyncSession, service_id: str | None = None) -
     today = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     resolved_today_result = await db.execute(
         select(func.count(Anomaly.id)).where(
-            service_filter,
-            Anomaly.is_resolved.is_(True),
-            Anomaly.resolved_at >= today
+            service_filter, Anomaly.is_resolved.is_(True), Anomaly.resolved_at >= today
         )
     )
     resolved_today = resolved_today_result.scalar_one()
@@ -263,9 +262,7 @@ async def get_team_metrics(db: AsyncSession) -> TeamMetrics:
     total = total_result.scalar_one()
 
     # Active teams (those with services)
-    active_result = await db.execute(
-        select(func.count(func.distinct(Service.team_id)))
-    )
+    active_result = await db.execute(select(func.count(func.distinct(Service.team_id))))
     active = active_result.scalar_one()
 
     # Services per team
@@ -299,11 +296,13 @@ def generate_deploy_trend() -> TimeSeries:
         day = now - timedelta(days=i)
         # Sample values with some variation
         value = 5 + (i % 3) * 2
-        data.append(TimeSeriesPoint(
-            timestamp=day,
-            value=value,
-            label=day.strftime("%a"),
-        ))
+        data.append(
+            TimeSeriesPoint(
+                timestamp=day,
+                value=value,
+                label=day.strftime("%a"),
+            )
+        )
     return TimeSeries(name="Deployments", data=data, unit="deploys")
 
 

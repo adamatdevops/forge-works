@@ -68,7 +68,9 @@ async def list_nodes() -> list[dict]:
 @router.get("/deployments", response_model=list[dict])
 async def list_deployments(
     namespace: Annotated[str | None, Query(description="Filter by namespace")] = None,
-    label_selector: Annotated[str | None, Query(description="Label selector (e.g., app=forge-api)")] = None,
+    label_selector: Annotated[
+        str | None, Query(description="Label selector (e.g., app=forge-api)")
+    ] = None,
 ) -> list[dict]:
     """List deployments in the cluster.
 
@@ -110,7 +112,9 @@ async def get_deployment(namespace: str, name: str) -> dict:
 @router.get("/pods", response_model=list[dict])
 async def list_pods(
     namespace: Annotated[str | None, Query(description="Filter by namespace")] = None,
-    label_selector: Annotated[str | None, Query(description="Label selector (e.g., app=forge-api)")] = None,
+    label_selector: Annotated[
+        str | None, Query(description="Label selector (e.g., app=forge-api)")
+    ] = None,
 ) -> list[dict]:
     """List pods in the cluster.
 
@@ -134,7 +138,9 @@ async def list_pods(
 async def get_pod_logs(
     namespace: str,
     name: str,
-    container: Annotated[str | None, Query(description="Container name (required for multi-container pods)")] = None,
+    container: Annotated[
+        str | None, Query(description="Container name (required for multi-container pods)")
+    ] = None,
     tail_lines: Annotated[int, Query(description="Number of lines to return", ge=1, le=1000)] = 100,
 ) -> dict:
     """Get logs from a specific pod.
@@ -179,18 +185,14 @@ async def get_cluster_stats() -> dict:
         # Calculate health stats
         healthy_nodes = sum(1 for n in nodes if n.status == "Ready")
         healthy_deployments = sum(
-            1 for d in deployments
-            if d.ready_replicas == d.replicas and d.unavailable_replicas == 0
+            1 for d in deployments if d.ready_replicas == d.replicas and d.unavailable_replicas == 0
         )
         running_pods = sum(1 for p in pods if p.phase.value == "Running")
         pending_pods = sum(1 for p in pods if p.phase.value == "Pending")
         failed_pods = sum(1 for p in pods if p.phase.value == "Failed")
 
         # Calculate total restarts
-        total_restarts = sum(
-            sum(c.restart_count for c in p.containers)
-            for p in pods
-        )
+        total_restarts = sum(sum(c.restart_count for c in p.containers) for p in pods)
 
         return {
             "nodes": {

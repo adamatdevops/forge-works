@@ -157,9 +157,7 @@ class TestTemplateScoring:
             database_type=DatabaseType.POSTGRESQL,
             needs_cache=True,
         )
-        score, reasons = recommender._score_template(
-            TemplateType.MICROSERVICE_PYTHON, features
-        )
+        score, reasons = recommender._score_template(TemplateType.MICROSERVICE_PYTHON, features)
 
         assert score >= 0.9  # Should be high
         assert "Python language matches" in reasons
@@ -175,9 +173,7 @@ class TestTemplateScoring:
             database_type=DatabaseType.MONGODB,
             expected_rps=2000,
         )
-        score, reasons = recommender._score_template(
-            TemplateType.MICROSERVICE_NODE, features
-        )
+        score, reasons = recommender._score_template(TemplateType.MICROSERVICE_NODE, features)
 
         assert score >= 0.9  # Should be high
         assert "JavaScript/TypeScript matches" in reasons
@@ -192,9 +188,7 @@ class TestTemplateScoring:
             needs_queue=True,
             database_type=DatabaseType.REDIS,
         )
-        score, reasons = recommender._score_template(
-            TemplateType.WORKER_SERVICE, features
-        )
+        score, reasons = recommender._score_template(TemplateType.WORKER_SERVICE, features)
 
         assert score >= 0.9  # Should be high
         assert "Worker/background job workload" in reasons
@@ -207,9 +201,7 @@ class TestTemplateScoring:
             workload_type=WorkloadType.ML_PIPELINE,
             needs_gpu=True,
         )
-        score, reasons = recommender._score_template(
-            TemplateType.ML_PIPELINE, features
-        )
+        score, reasons = recommender._score_template(TemplateType.ML_PIPELINE, features)
 
         assert score >= 0.9  # Should be high
         assert "ML pipeline workload type" in reasons
@@ -223,9 +215,7 @@ class TestTemplateScoring:
             workload_type=WorkloadType.FRONTEND,
             needs_database=False,
         )
-        score, reasons = recommender._score_template(
-            TemplateType.FRONTEND_APP, features
-        )
+        score, reasons = recommender._score_template(TemplateType.FRONTEND_APP, features)
 
         assert score >= 0.9  # Should be high
         assert "Frontend workload type" in reasons
@@ -238,9 +228,7 @@ class TestTemplateScoring:
             workload_type=WorkloadType.API,
             needs_database=True,  # Frontend doesn't benefit from database
         )
-        score, reasons = recommender._score_template(
-            TemplateType.FRONTEND_APP, features
-        )
+        score, reasons = recommender._score_template(TemplateType.FRONTEND_APP, features)
 
         assert score < 0.3  # Should be low for frontend with database need
 

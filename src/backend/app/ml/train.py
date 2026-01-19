@@ -14,9 +14,7 @@ from app.ml.training import generate_training_data, save_training_data, train_mo
 
 def main() -> int:
     """Main training script entry point."""
-    parser = argparse.ArgumentParser(
-        description="Train the template recommendation model"
-    )
+    parser = argparse.ArgumentParser(description="Train the template recommendation model")
     parser.add_argument(
         "--samples",
         type=int,

@@ -129,9 +129,7 @@ class Application:
             "destination_namespace": self.destination_namespace,
             "auto_sync_enabled": self.auto_sync_enabled,
             "resources": [r.to_dict() for r in self.resources],
-            "last_sync_result": self.last_sync_result.to_dict()
-            if self.last_sync_result
-            else None,
+            "last_sync_result": self.last_sync_result.to_dict() if self.last_sync_result else None,
         }
 
 
@@ -347,7 +345,8 @@ class ArgoCDAdapter(BaseAdapter):
         if sync_result:
             last_sync = SyncResult(
                 revision=sync_result.get("revision", ""),
-                started_at=self._parse_datetime(operation_state.get("startedAt")) or datetime.now(UTC),
+                started_at=self._parse_datetime(operation_state.get("startedAt"))
+                or datetime.now(UTC),
                 finished_at=self._parse_datetime(operation_state.get("finishedAt")),
                 phase=self._map_operation_phase(operation_state.get("phase")),
                 message=operation_state.get("message"),
@@ -525,7 +524,8 @@ class ArgoCDAdapter(BaseAdapter):
             operation = data.get("status", {}).get("operationState", {})
             return SyncOperation(
                 app_name=name,
-                revision=revision or data.get("spec", {}).get("source", {}).get("targetRevision", "HEAD"),
+                revision=revision
+                or data.get("spec", {}).get("source", {}).get("targetRevision", "HEAD"),
                 phase=self._map_operation_phase(operation.get("phase")),
                 started_at=self._parse_datetime(operation.get("startedAt")) or now,
                 finished_at=self._parse_datetime(operation.get("finishedAt")),
@@ -632,7 +632,8 @@ class ArgoCDAdapter(BaseAdapter):
                 history.append(
                     SyncResult(
                         revision=item.get("revision", ""),
-                        started_at=self._parse_datetime(item.get("deployStartedAt")) or datetime.now(UTC),
+                        started_at=self._parse_datetime(item.get("deployStartedAt"))
+                        or datetime.now(UTC),
                         finished_at=self._parse_datetime(item.get("deployedAt")),
                         phase=OperationPhase.SUCCEEDED,  # History only shows successful deployments
                         resources_synced=0,  # Not available in history
@@ -841,9 +842,7 @@ class ArgoCDAdapter(BaseAdapter):
             created = now - timedelta(days=data["age_days"])
             synced = now - timedelta(hours=random.randint(1, 24))
 
-            resources = self._generate_mock_resources(
-                data["name"], data["namespace"]
-            )
+            resources = self._generate_mock_resources(data["name"], data["namespace"])
 
             last_sync = None
             if data["sync"] == SyncStatus.SYNCED:
@@ -991,9 +990,7 @@ def get_argocd_adapter(
         adapter_mode = mode
         if adapter_mode is None:
             adapter_mode = (
-                AdapterMode.LIVE
-                if settings.argocd_adapter_mode == "live"
-                else AdapterMode.MOCK
+                AdapterMode.LIVE if settings.argocd_adapter_mode == "live" else AdapterMode.MOCK
             )
 
         _argocd_adapter = ArgoCDAdapter(

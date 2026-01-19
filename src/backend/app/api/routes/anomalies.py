@@ -170,9 +170,7 @@ async def acknowledge_anomaly(
             detail="Anomaly is already acknowledged",
         )
 
-    acknowledged_anomaly = await AnomalyCRUD.acknowledge(
-        db, anomaly, data.acknowledged_by
-    )
+    acknowledged_anomaly = await AnomalyCRUD.acknowledge(db, anomaly, data.acknowledged_by)
     return AnomalyResponse.model_validate(acknowledged_anomaly)
 
 

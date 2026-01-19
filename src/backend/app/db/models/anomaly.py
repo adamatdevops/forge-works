@@ -89,15 +89,11 @@ class Anomaly(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_acknowledged: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     acknowledged_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    acknowledged_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Resolution
     is_resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    resolved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timestamps

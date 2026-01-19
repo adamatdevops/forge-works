@@ -158,9 +158,7 @@ async def _trigger_event(event_type: DemoEventType, data: dict[str, Any]) -> int
     """Trigger the appropriate event broadcast."""
     event_handlers = {
         DemoEventType.SERVICE_CREATED: lambda d: broadcast_service_created(d),
-        DemoEventType.SERVICE_UPDATED: lambda d: broadcast_service_updated(
-            d, d.get("changes")
-        ),
+        DemoEventType.SERVICE_UPDATED: lambda d: broadcast_service_updated(d, d.get("changes")),
         DemoEventType.SERVICE_DELETED: lambda d: broadcast_service_deleted(
             d["service_id"], d.get("name")
         ),
@@ -273,8 +271,7 @@ async def demo_status() -> dict[str, Any]:
             "active_connections": manager.active_connections,
             "client_ids": manager.client_ids,
             "channels": {
-                channel.value: len(manager.get_channel_subscribers(channel))
-                for channel in Channel
+                channel.value: len(manager.get_channel_subscribers(channel)) for channel in Channel
             },
         },
         "available_event_types": len(DemoEventType),

@@ -70,20 +70,26 @@ def _generate_python_microservice_examples(n: int) -> list[TrainingExample]:
         features = WorkloadFeatures(
             language=ProgrammingLanguage.PYTHON,
             framework=random.choice(frameworks),
-            workload_type=random.choice([
-                WorkloadType.API,
-                WorkloadType.API,
-                WorkloadType.API,  # Weight towards API
-                WorkloadType.WORKER,
-            ]),
+            workload_type=random.choice(
+                [
+                    WorkloadType.API,
+                    WorkloadType.API,
+                    WorkloadType.API,  # Weight towards API
+                    WorkloadType.WORKER,
+                ]
+            ),
             needs_database=random.random() > 0.2,
-            database_type=random.choice([
-                DatabaseType.POSTGRESQL,
-                DatabaseType.POSTGRESQL,
-                DatabaseType.POSTGRESQL,  # Weight towards PostgreSQL
-                DatabaseType.MYSQL,
-                DatabaseType.REDIS,
-            ]) if random.random() > 0.2 else DatabaseType.NONE,
+            database_type=random.choice(
+                [
+                    DatabaseType.POSTGRESQL,
+                    DatabaseType.POSTGRESQL,
+                    DatabaseType.POSTGRESQL,  # Weight towards PostgreSQL
+                    DatabaseType.MYSQL,
+                    DatabaseType.REDIS,
+                ]
+            )
+            if random.random() > 0.2
+            else DatabaseType.NONE,
             needs_queue=random.random() > 0.6,
             needs_cache=random.random() > 0.4,
             needs_gpu=False,
@@ -92,10 +98,12 @@ def _generate_python_microservice_examples(n: int) -> list[TrainingExample]:
             team_size=random.randint(2, 30),
             compliance_required=random.random() > 0.7,
         )
-        examples.append(TrainingExample(
-            features=features,
-            label=TemplateType.MICROSERVICE_PYTHON,
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=TemplateType.MICROSERVICE_PYTHON,
+            )
+        )
 
     return examples
 
@@ -106,27 +114,35 @@ def _generate_node_microservice_examples(n: int) -> list[TrainingExample]:
     frameworks = ["express", "fastify", "nestjs", "koa", None]
 
     for _ in range(n):
-        lang = random.choice([
-            ProgrammingLanguage.JAVASCRIPT,
-            ProgrammingLanguage.TYPESCRIPT,
-            ProgrammingLanguage.TYPESCRIPT,  # Weight towards TypeScript
-        ])
+        lang = random.choice(
+            [
+                ProgrammingLanguage.JAVASCRIPT,
+                ProgrammingLanguage.TYPESCRIPT,
+                ProgrammingLanguage.TYPESCRIPT,  # Weight towards TypeScript
+            ]
+        )
         features = WorkloadFeatures(
             language=lang,
             framework=random.choice(frameworks),
-            workload_type=random.choice([
-                WorkloadType.API,
-                WorkloadType.API,
-                WorkloadType.API,
-                WorkloadType.WORKER,
-            ]),
+            workload_type=random.choice(
+                [
+                    WorkloadType.API,
+                    WorkloadType.API,
+                    WorkloadType.API,
+                    WorkloadType.WORKER,
+                ]
+            ),
             needs_database=random.random() > 0.3,
-            database_type=random.choice([
-                DatabaseType.MONGODB,
-                DatabaseType.MONGODB,
-                DatabaseType.POSTGRESQL,
-                DatabaseType.REDIS,
-            ]) if random.random() > 0.3 else DatabaseType.NONE,
+            database_type=random.choice(
+                [
+                    DatabaseType.MONGODB,
+                    DatabaseType.MONGODB,
+                    DatabaseType.POSTGRESQL,
+                    DatabaseType.REDIS,
+                ]
+            )
+            if random.random() > 0.3
+            else DatabaseType.NONE,
             needs_queue=random.random() > 0.5,
             needs_cache=random.random() > 0.4,
             needs_gpu=False,
@@ -135,10 +151,12 @@ def _generate_node_microservice_examples(n: int) -> list[TrainingExample]:
             team_size=random.randint(2, 25),
             compliance_required=random.random() > 0.8,
         )
-        examples.append(TrainingExample(
-            features=features,
-            label=TemplateType.MICROSERVICE_NODE,
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=TemplateType.MICROSERVICE_NODE,
+            )
+        )
 
     return examples
 
@@ -148,28 +166,34 @@ def _generate_worker_examples(n: int) -> list[TrainingExample]:
     examples = []
 
     for _ in range(n):
-        lang = random.choice([
-            ProgrammingLanguage.PYTHON,
-            ProgrammingLanguage.PYTHON,
-            ProgrammingLanguage.GO,
-            ProgrammingLanguage.JAVA,
-        ])
+        lang = random.choice(
+            [
+                ProgrammingLanguage.PYTHON,
+                ProgrammingLanguage.PYTHON,
+                ProgrammingLanguage.GO,
+                ProgrammingLanguage.JAVA,
+            ]
+        )
         features = WorkloadFeatures(
             language=lang,
             framework=random.choice(["celery", "rq", "dramatiq", None]),
-            workload_type=random.choice([
-                WorkloadType.WORKER,
-                WorkloadType.WORKER,
-                WorkloadType.CRON,
-                WorkloadType.BATCH,
-            ]),
+            workload_type=random.choice(
+                [
+                    WorkloadType.WORKER,
+                    WorkloadType.WORKER,
+                    WorkloadType.CRON,
+                    WorkloadType.BATCH,
+                ]
+            ),
             needs_database=random.random() > 0.5,
-            database_type=random.choice([
-                DatabaseType.REDIS,
-                DatabaseType.REDIS,
-                DatabaseType.POSTGRESQL,
-                DatabaseType.NONE,
-            ]),
+            database_type=random.choice(
+                [
+                    DatabaseType.REDIS,
+                    DatabaseType.REDIS,
+                    DatabaseType.POSTGRESQL,
+                    DatabaseType.NONE,
+                ]
+            ),
             needs_queue=random.random() > 0.2,  # Usually needs queue
             needs_cache=random.random() > 0.6,
             needs_gpu=False,
@@ -178,10 +202,12 @@ def _generate_worker_examples(n: int) -> list[TrainingExample]:
             team_size=random.randint(1, 15),
             compliance_required=random.random() > 0.8,
         )
-        examples.append(TrainingExample(
-            features=features,
-            label=TemplateType.WORKER_SERVICE,
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=TemplateType.WORKER_SERVICE,
+            )
+        )
 
     return examples
 
@@ -194,18 +220,22 @@ def _generate_ml_pipeline_examples(n: int) -> list[TrainingExample]:
         features = WorkloadFeatures(
             language=ProgrammingLanguage.PYTHON,  # ML is almost always Python
             framework=random.choice(["pytorch", "tensorflow", "scikit-learn", None]),
-            workload_type=random.choice([
-                WorkloadType.ML_PIPELINE,
-                WorkloadType.ML_PIPELINE,
-                WorkloadType.BATCH,
-                WorkloadType.WORKER,
-            ]),
+            workload_type=random.choice(
+                [
+                    WorkloadType.ML_PIPELINE,
+                    WorkloadType.ML_PIPELINE,
+                    WorkloadType.BATCH,
+                    WorkloadType.WORKER,
+                ]
+            ),
             needs_database=random.random() > 0.4,
-            database_type=random.choice([
-                DatabaseType.POSTGRESQL,
-                DatabaseType.REDIS,
-                DatabaseType.NONE,
-            ]),
+            database_type=random.choice(
+                [
+                    DatabaseType.POSTGRESQL,
+                    DatabaseType.REDIS,
+                    DatabaseType.NONE,
+                ]
+            ),
             needs_queue=random.random() > 0.5,
             needs_cache=random.random() > 0.5,
             needs_gpu=random.random() > 0.3,  # Often needs GPU
@@ -214,10 +244,12 @@ def _generate_ml_pipeline_examples(n: int) -> list[TrainingExample]:
             team_size=random.randint(2, 20),
             compliance_required=random.random() > 0.6,
         )
-        examples.append(TrainingExample(
-            features=features,
-            label=TemplateType.ML_PIPELINE,
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=TemplateType.ML_PIPELINE,
+            )
+        )
 
     return examples
 
@@ -228,11 +260,13 @@ def _generate_frontend_examples(n: int) -> list[TrainingExample]:
     frameworks = ["nextjs", "react", "vue", "angular", "svelte"]
 
     for _ in range(n):
-        lang = random.choice([
-            ProgrammingLanguage.TYPESCRIPT,
-            ProgrammingLanguage.TYPESCRIPT,
-            ProgrammingLanguage.JAVASCRIPT,
-        ])
+        lang = random.choice(
+            [
+                ProgrammingLanguage.TYPESCRIPT,
+                ProgrammingLanguage.TYPESCRIPT,
+                ProgrammingLanguage.JAVASCRIPT,
+            ]
+        )
         features = WorkloadFeatures(
             language=lang,
             framework=random.choice(frameworks),
@@ -247,10 +281,12 @@ def _generate_frontend_examples(n: int) -> list[TrainingExample]:
             team_size=random.randint(2, 20),
             compliance_required=random.random() > 0.9,
         )
-        examples.append(TrainingExample(
-            features=features,
-            label=TemplateType.FRONTEND_APP,
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=TemplateType.FRONTEND_APP,
+            )
+        )
 
     return examples
 
@@ -276,10 +312,12 @@ def _generate_edge_cases(n: int) -> list[TrainingExample]:
         elif lang in (ProgrammingLanguage.JAVASCRIPT, ProgrammingLanguage.TYPESCRIPT):
             label = TemplateType.MICROSERVICE_NODE
         else:
-            label = random.choice([
-                TemplateType.MICROSERVICE_PYTHON,
-                TemplateType.WORKER_SERVICE,
-            ])
+            label = random.choice(
+                [
+                    TemplateType.MICROSERVICE_PYTHON,
+                    TemplateType.WORKER_SERVICE,
+                ]
+            )
 
         features = WorkloadFeatures(
             language=lang,
@@ -296,11 +334,13 @@ def _generate_edge_cases(n: int) -> list[TrainingExample]:
             compliance_required=random.choice([True, False]),
         )
 
-        examples.append(TrainingExample(
-            features=features,
-            label=label,
-            weight=0.5,  # Lower weight for edge cases
-        ))
+        examples.append(
+            TrainingExample(
+                features=features,
+                label=label,
+                weight=0.5,  # Lower weight for edge cases
+            )
+        )
 
     return examples
 
@@ -316,38 +356,51 @@ def features_to_vector(features: WorkloadFeatures) -> np.ndarray:
     """
     # Language encoding
     lang_map = {
-        "python": 0, "javascript": 1, "typescript": 2,
-        "go": 3, "java": 4, "rust": 5,
+        "python": 0,
+        "javascript": 1,
+        "typescript": 2,
+        "go": 3,
+        "java": 4,
+        "rust": 5,
     }
     lang_idx = lang_map.get(features.language.value, 0)
 
     # Workload type encoding
     workload_map = {
-        "api": 0, "worker": 1, "cron": 2,
-        "ml-pipeline": 3, "frontend": 4, "batch": 5,
+        "api": 0,
+        "worker": 1,
+        "cron": 2,
+        "ml-pipeline": 3,
+        "frontend": 4,
+        "batch": 5,
     }
     workload_idx = workload_map.get(features.workload_type.value, 0)
 
     # Database type encoding
     db_map = {
-        "none": 0, "postgresql": 1, "mongodb": 2,
-        "redis": 3, "mysql": 4,
+        "none": 0,
+        "postgresql": 1,
+        "mongodb": 2,
+        "redis": 3,
+        "mysql": 4,
     }
     db_idx = db_map.get(features.database_type.value, 0)
 
-    return np.array([
-        lang_idx,
-        workload_idx,
-        db_idx,
-        1 if features.needs_database else 0,
-        1 if features.needs_queue else 0,
-        1 if features.needs_cache else 0,
-        1 if features.needs_gpu else 0,
-        min(features.expected_rps / 10000, 1.0),
-        min(features.expected_memory_mb / 8192, 1.0),
-        min(features.team_size / 100, 1.0),
-        1 if features.compliance_required else 0,
-    ])
+    return np.array(
+        [
+            lang_idx,
+            workload_idx,
+            db_idx,
+            1 if features.needs_database else 0,
+            1 if features.needs_queue else 0,
+            1 if features.needs_cache else 0,
+            1 if features.needs_gpu else 0,
+            min(features.expected_rps / 10000, 1.0),
+            min(features.expected_memory_mb / 8192, 1.0),
+            min(features.team_size / 100, 1.0),
+            1 if features.compliance_required else 0,
+        ]
+    )
 
 
 def train_model(
@@ -373,16 +426,15 @@ def train_model(
     from sklearn.model_selection import train_test_split
 
     # Prepare data
-    features_array = np.array([
-        features_to_vector(ex.features)
-        for ex in dataset.examples
-    ])
+    features_array = np.array([features_to_vector(ex.features) for ex in dataset.examples])
     labels = np.array([ex.label.value for ex in dataset.examples])
     weights = np.array([ex.weight for ex in dataset.examples])
 
     # Split data
     x_train, x_test, y_train, y_test, w_train, _ = train_test_split(
-        features_array, labels, weights,
+        features_array,
+        labels,
+        weights,
         test_size=test_size,
         random_state=random_state,
         stratify=labels,
@@ -409,19 +461,29 @@ def train_model(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     feature_names = [
-        "language", "workload_type", "database_type",
-        "needs_database", "needs_queue", "needs_cache", "needs_gpu",
-        "expected_rps_norm", "expected_memory_norm", "team_size_norm",
+        "language",
+        "workload_type",
+        "database_type",
+        "needs_database",
+        "needs_queue",
+        "needs_cache",
+        "needs_gpu",
+        "expected_rps_norm",
+        "expected_memory_norm",
+        "team_size_norm",
         "compliance_required",
     ]
 
     with open(output_path, "wb") as f:
-        pickle.dump({
-            "model": model,
-            "feature_names": feature_names,
-            "accuracy": accuracy,
-            "version": "1.0.0",
-        }, f)
+        pickle.dump(
+            {
+                "model": model,
+                "feature_names": feature_names,
+                "accuracy": accuracy,
+                "version": "1.0.0",
+            },
+            f,
+        )
 
     return {
         "accuracy": accuracy,

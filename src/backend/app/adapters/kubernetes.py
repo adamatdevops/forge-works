@@ -368,12 +368,8 @@ class KubernetesAdapter(BaseAdapter):
             # Get counts
             nodes = await asyncio.to_thread(self._core_api.list_node)
             namespaces = await asyncio.to_thread(self._core_api.list_namespace)
-            pods = await asyncio.to_thread(
-                self._core_api.list_pod_for_all_namespaces
-            )
-            deployments = await asyncio.to_thread(
-                self._apps_api.list_deployment_for_all_namespaces
-            )
+            pods = await asyncio.to_thread(self._core_api.list_pod_for_all_namespaces)
+            deployments = await asyncio.to_thread(self._apps_api.list_deployment_for_all_namespaces)
 
             return ClusterInfo(
                 version=f"{version_info.major}.{version_info.minor}",
@@ -443,12 +439,14 @@ class KubernetesAdapter(BaseAdapter):
                 status = "Unknown"
                 conditions = []
                 for cond in n.status.conditions or []:
-                    conditions.append({
-                        "type": cond.type,
-                        "status": cond.status,
-                        "reason": cond.reason,
-                        "message": cond.message,
-                    })
+                    conditions.append(
+                        {
+                            "type": cond.type,
+                            "status": cond.status,
+                            "reason": cond.reason,
+                            "message": cond.message,
+                        }
+                    )
                     if cond.type == "Ready":
                         status = "Ready" if cond.status == "True" else "NotReady"
 
@@ -520,13 +518,17 @@ class KubernetesAdapter(BaseAdapter):
             for d in dep_list.items:
                 conditions = []
                 for cond in d.status.conditions or []:
-                    conditions.append({
-                        "type": cond.type,
-                        "status": cond.status,
-                        "reason": cond.reason,
-                        "message": cond.message,
-                        "last_update": cond.last_update_time.isoformat() if cond.last_update_time else None,
-                    })
+                    conditions.append(
+                        {
+                            "type": cond.type,
+                            "status": cond.status,
+                            "reason": cond.reason,
+                            "message": cond.message,
+                            "last_update": cond.last_update_time.isoformat()
+                            if cond.last_update_time
+                            else None,
+                        }
+                    )
 
                 deployments.append(
                     Deployment(
@@ -569,12 +571,14 @@ class KubernetesAdapter(BaseAdapter):
 
             conditions = []
             for cond in d.status.conditions or []:
-                conditions.append({
-                    "type": cond.type,
-                    "status": cond.status,
-                    "reason": cond.reason,
-                    "message": cond.message,
-                })
+                conditions.append(
+                    {
+                        "type": cond.type,
+                        "status": cond.status,
+                        "reason": cond.reason,
+                        "message": cond.message,
+                    }
+                )
 
             return Deployment(
                 name=d.metadata.name,
@@ -1000,7 +1004,9 @@ class KubernetesAdapter(BaseAdapter):
 
         for i in range(min(tail_lines, len(log_templates) * 3)):
             template = random.choice(log_templates)
-            timestamp = (now - timedelta(seconds=tail_lines - i)).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            timestamp = (now - timedelta(seconds=tail_lines - i)).strftime("%Y-%m-%d %H:%M:%S.%f")[
+                :-3
+            ]
             lines.append(template.format(timestamp=timestamp))
 
         return "\n".join(lines)
@@ -1038,7 +1044,9 @@ def get_kubernetes_adapter(
             mode=adapter_mode,
             kubeconfig_path=kubeconfig_path or getattr(settings, "kubernetes_kubeconfig", None),
             context=context or getattr(settings, "kubernetes_context", None),
-            in_cluster=in_cluster if in_cluster is not None else getattr(settings, "kubernetes_in_cluster", False),
+            in_cluster=in_cluster
+            if in_cluster is not None
+            else getattr(settings, "kubernetes_in_cluster", False),
         )
 
     return _kubernetes_adapter

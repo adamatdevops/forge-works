@@ -60,10 +60,14 @@ class AnomalyCRUD:
             query = query.options(selectinload(Anomaly.service))
 
         # Order by severity (critical first) then by detected_at (newest first)
-        query = query.order_by(
-            Anomaly.severity.desc(),
-            Anomaly.detected_at.desc(),
-        ).offset(skip).limit(limit)
+        query = (
+            query.order_by(
+                Anomaly.severity.desc(),
+                Anomaly.detected_at.desc(),
+            )
+            .offset(skip)
+            .limit(limit)
+        )
 
         result = await db.execute(query)
         return result.scalars().all()
