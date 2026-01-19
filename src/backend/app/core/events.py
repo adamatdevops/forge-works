@@ -362,3 +362,132 @@ async def broadcast_kubernetes_event(
         correlation_id=correlation_id,
     )
     return await manager.broadcast(event)
+
+
+# ============================================================================
+# Forge Events (Bidirectional Bridges)
+# ============================================================================
+
+
+async def broadcast_forge_webhook_received(
+    forge_name: str,
+    source: str,
+    event_type: str,
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a webhook was received by a forge."""
+    return await broadcast_event(
+        EventType.FORGE_WEBHOOK_RECEIVED,
+        Channel.FORGES,
+        {
+            "forge": forge_name,
+            "source": source,
+            "event_type": event_type,
+            "action": "webhook_received",
+        },
+        correlation_id,
+    )
+
+
+async def broadcast_forge_correlation_created(
+    correlation_data: dict[str, Any],
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a new build-to-deploy correlation was created."""
+    return await broadcast_event(
+        EventType.FORGE_CORRELATION_CREATED,
+        Channel.FORGES,
+        {"correlation": correlation_data, "action": "created"},
+        correlation_id,
+    )
+
+
+async def broadcast_forge_correlation_updated(
+    correlation_data: dict[str, Any],
+    changes: dict[str, Any] | None = None,
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a correlation was updated."""
+    return await broadcast_event(
+        EventType.FORGE_CORRELATION_UPDATED,
+        Channel.FORGES,
+        {"correlation": correlation_data, "changes": changes or {}, "action": "updated"},
+        correlation_id,
+    )
+
+
+async def broadcast_forge_state_drift(
+    drift_data: dict[str, Any],
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that state drift was detected between tools."""
+    return await broadcast_event(
+        EventType.FORGE_STATE_DRIFT,
+        Channel.FORGES,
+        {"drift": drift_data, "action": "drift_detected"},
+        correlation_id,
+    )
+
+
+async def broadcast_build_to_deploy_started(
+    build_id: str,
+    repo: str,
+    deployment_name: str | None = None,
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a build-to-deploy cycle has started."""
+    return await broadcast_event(
+        EventType.BUILD_TO_DEPLOY_STARTED,
+        Channel.FORGES,
+        {
+            "build_id": build_id,
+            "repo": repo,
+            "deployment": deployment_name,
+            "action": "started",
+        },
+        correlation_id,
+    )
+
+
+async def broadcast_build_to_deploy_completed(
+    build_id: str,
+    repo: str,
+    deployment_name: str,
+    duration_seconds: float | None = None,
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a build-to-deploy cycle completed successfully."""
+    return await broadcast_event(
+        EventType.BUILD_TO_DEPLOY_COMPLETED,
+        Channel.FORGES,
+        {
+            "build_id": build_id,
+            "repo": repo,
+            "deployment": deployment_name,
+            "duration_seconds": duration_seconds,
+            "action": "completed",
+        },
+        correlation_id,
+    )
+
+
+async def broadcast_build_to_deploy_failed(
+    build_id: str,
+    repo: str,
+    stage: str,  # "build" or "deploy"
+    error: str | None = None,
+    correlation_id: str | None = None,
+) -> int:
+    """Broadcast that a build-to-deploy cycle failed."""
+    return await broadcast_event(
+        EventType.BUILD_TO_DEPLOY_FAILED,
+        Channel.FORGES,
+        {
+            "build_id": build_id,
+            "repo": repo,
+            "failed_stage": stage,
+            "error": error,
+            "action": "failed",
+        },
+        correlation_id,
+    )

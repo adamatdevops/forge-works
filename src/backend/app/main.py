@@ -10,6 +10,7 @@ from app.api.routes import (
     anomalies,
     auth,
     demo,
+    forges,
     health,
     kubernetes,
     metrics,
@@ -26,6 +27,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager for startup/shutdown events."""
     # Startup
     print(f"Starting {settings.app_name} v{settings.app_version}")
+
+    # Initialize Forges - the bidirectional bridges
+    from app.forges.github_forge import get_github_forge
+    from app.forges.github_k8s_bridge import get_github_kubernetes_bridge
+    from app.forges.webhook_router import register_forge
+
+    github_forge = get_github_forge()
+    bridge = get_github_kubernetes_bridge()
+
+    # Register forges to receive webhooks
+    register_forge("github", github_forge)
+    register_forge("github", bridge)  # Bridge also listens to GitHub
+    register_forge("kubernetes", bridge)  # Bridge listens to K8s
+
+    print(f"  → Forges initialized: {github_forge.forge_name}, {bridge.forge_name}")
+
     # TODO: Initialize database connection pool
     # TODO: Initialize Redis connection
     # TODO: Load ML model
@@ -101,6 +118,11 @@ def create_app() -> FastAPI:
         demo.router,
         prefix=f"{settings.api_v1_prefix}/demo",
         tags=["Demo"],
+    )
+    app.include_router(
+        forges.router,
+        prefix=f"{settings.api_v1_prefix}/forges",
+        tags=["Forges"],
     )
 
     return app

@@ -62,6 +62,15 @@ class EventType(str, Enum):
     POD_DELETED = "pod.deleted"
     DEPLOYMENT_SCALED = "deployment.scaled"
 
+    # Forge events (bidirectional bridges)
+    FORGE_WEBHOOK_RECEIVED = "forge.webhook_received"
+    FORGE_CORRELATION_CREATED = "forge.correlation_created"
+    FORGE_CORRELATION_UPDATED = "forge.correlation_updated"
+    FORGE_STATE_DRIFT = "forge.state_drift"
+    BUILD_TO_DEPLOY_STARTED = "forge.build_to_deploy.started"
+    BUILD_TO_DEPLOY_COMPLETED = "forge.build_to_deploy.completed"
+    BUILD_TO_DEPLOY_FAILED = "forge.build_to_deploy.failed"
+
 
 class Channel(str, Enum):
     """WebSocket channels for event routing."""
@@ -73,6 +82,7 @@ class Channel(str, Enum):
     TEMPLATES = "templates"
     METRICS = "metrics"
     KUBERNETES = "kubernetes"
+    FORGES = "forges"  # Bidirectional bridge events
 
 
 # Map event types to their primary channel
@@ -93,6 +103,14 @@ EVENT_CHANNEL_MAP: dict[EventType, Channel] = {
     EventType.POD_CREATED: Channel.KUBERNETES,
     EventType.POD_DELETED: Channel.KUBERNETES,
     EventType.DEPLOYMENT_SCALED: Channel.KUBERNETES,
+    # Forge events
+    EventType.FORGE_WEBHOOK_RECEIVED: Channel.FORGES,
+    EventType.FORGE_CORRELATION_CREATED: Channel.FORGES,
+    EventType.FORGE_CORRELATION_UPDATED: Channel.FORGES,
+    EventType.FORGE_STATE_DRIFT: Channel.FORGES,
+    EventType.BUILD_TO_DEPLOY_STARTED: Channel.FORGES,
+    EventType.BUILD_TO_DEPLOY_COMPLETED: Channel.FORGES,
+    EventType.BUILD_TO_DEPLOY_FAILED: Channel.FORGES,
 }
 
 
