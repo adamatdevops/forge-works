@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency files
-COPY pyproject.toml ./
+# Copy dependency files (README.md required by pyproject.toml)
+COPY pyproject.toml README.md ./
 
 # Install Python dependencies
 RUN pip install -e ".[dev]"
