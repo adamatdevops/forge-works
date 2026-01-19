@@ -11,6 +11,7 @@ import {
   submitFeedback,
   checkMLHealth,
 } from './ml';
+import type { WorkloadFeatures, RecommendationFeedback } from '@/types/ml';
 
 // Mock global fetch
 const mockFetch = vi.fn();
@@ -27,10 +28,18 @@ describe('ML API', () => {
 
   describe('getRecommendation', () => {
     it('should get recommendation for workload features', async () => {
-      const features = {
-        workload_type: 'api' as const,
-        language: 'python' as const,
-        requirements: ['database', 'caching'],
+      const features: WorkloadFeatures = {
+        workload_type: 'api',
+        language: 'python',
+        needs_database: true,
+        database_type: 'postgresql',
+        needs_queue: false,
+        needs_cache: true,
+        needs_gpu: false,
+        expected_rps: 100,
+        expected_memory_mb: 512,
+        team_size: 5,
+        compliance_required: false,
       };
       const mockResponse = {
         template_id: 'python-api',
@@ -59,9 +68,18 @@ describe('ML API', () => {
     });
 
     it('should handle batch workload type', async () => {
-      const features = {
-        workload_type: 'batch' as const,
-        language: 'python' as const,
+      const features: WorkloadFeatures = {
+        workload_type: 'batch',
+        language: 'python',
+        needs_database: false,
+        database_type: 'none',
+        needs_queue: true,
+        needs_cache: false,
+        needs_gpu: false,
+        expected_rps: 10,
+        expected_memory_mb: 1024,
+        team_size: 3,
+        compliance_required: false,
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -80,25 +98,49 @@ describe('ML API', () => {
     });
 
     it('should throw error with detail from API', async () => {
+      const features: WorkloadFeatures = {
+        workload_type: 'api',
+        language: 'python',
+        needs_database: true,
+        database_type: 'postgresql',
+        needs_queue: false,
+        needs_cache: false,
+        needs_gpu: false,
+        expected_rps: 100,
+        expected_memory_mb: 512,
+        team_size: 5,
+        compliance_required: false,
+      };
+
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: () => Promise.resolve({ detail: 'Invalid workload type' }),
       });
 
-      await expect(
-        getRecommendation({ workload_type: 'api', language: 'python' })
-      ).rejects.toThrow('Invalid workload type');
+      await expect(getRecommendation(features)).rejects.toThrow('Invalid workload type');
     });
 
     it('should throw generic error when no detail', async () => {
+      const features: WorkloadFeatures = {
+        workload_type: 'api',
+        language: 'python',
+        needs_database: true,
+        database_type: 'postgresql',
+        needs_queue: false,
+        needs_cache: false,
+        needs_gpu: false,
+        expected_rps: 100,
+        expected_memory_mb: 512,
+        team_size: 5,
+        compliance_required: false,
+      };
+
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: () => Promise.reject(new Error('Parse error')),
       });
 
-      await expect(
-        getRecommendation({ workload_type: 'api', language: 'python' })
-      ).rejects.toThrow('Failed to get recommendation');
+      await expect(getRecommendation(features)).rejects.toThrow('Failed to get recommendation');
     });
   });
 
@@ -204,10 +246,10 @@ describe('ML API', () => {
 
   describe('submitFeedback', () => {
     it('should submit positive feedback', async () => {
-      const feedback = {
+      const feedback: RecommendationFeedback = {
         recommendation_id: 'rec-123',
-        accepted: true,
-        template_id: 'python-api',
+        selected_template: 'microservice-python',
+        was_primary: true,
       };
       const mockResponse = {
         status: 'success',
@@ -232,11 +274,11 @@ describe('ML API', () => {
     });
 
     it('should submit negative feedback with reason', async () => {
-      const feedback = {
+      const feedback: RecommendationFeedback = {
         recommendation_id: 'rec-456',
-        accepted: false,
-        template_id: 'go-service',
-        reason: 'Not suitable for our use case',
+        selected_template: 'worker-service',
+        was_primary: false,
+        feedback_text: 'Not suitable for our use case',
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -249,7 +291,7 @@ describe('ML API', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: expect.stringContaining('"accepted":false'),
+          body: expect.stringContaining('"was_primary":false'),
         })
       );
     });
@@ -259,9 +301,12 @@ describe('ML API', () => {
         ok: false,
       });
 
-      await expect(
-        submitFeedback({ recommendation_id: 'rec-1', accepted: true, template_id: 'test' })
-      ).rejects.toThrow('Failed to submit feedback');
+      const feedback: RecommendationFeedback = {
+        selected_template: 'microservice-node',
+        was_primary: true,
+      };
+
+      await expect(submitFeedback(feedback)).rejects.toThrow('Failed to submit feedback');
     });
   });
 

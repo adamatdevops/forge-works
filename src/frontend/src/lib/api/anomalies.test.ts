@@ -221,7 +221,7 @@ describe('Anomalies API', () => {
       const acknowledgeData = { acknowledged_by: 'user@example.com' };
       const mockResponse = {
         id: '1',
-        acknowledged: true,
+        is_acknowledged: true,
         acknowledged_by: 'user@example.com',
         acknowledged_at: '2024-01-15T11:00:00Z',
       };
@@ -234,7 +234,7 @@ describe('Anomalies API', () => {
         '/api/v1/anomalies/1/acknowledge',
         acknowledgeData
       );
-      expect(result.acknowledged).toBe(true);
+      expect(result.is_acknowledged).toBe(true);
     });
   });
 
@@ -247,7 +247,7 @@ describe('Anomalies API', () => {
       const resolveData = { resolution_note: 'Fixed by reducing deploy frequency' };
       const mockResponse = {
         id: '1',
-        resolved: true,
+        is_resolved: true,
         resolution_note: resolveData.resolution_note,
         resolved_at: '2024-01-15T12:00:00Z',
       };
@@ -260,13 +260,13 @@ describe('Anomalies API', () => {
         '/api/v1/anomalies/1/resolve',
         resolveData
       );
-      expect(result.resolved).toBe(true);
+      expect(result.is_resolved).toBe(true);
     });
 
     it('should resolve an anomaly without note', async () => {
       vi.mocked(apiClient.post).mockResolvedValueOnce({
         id: '1',
-        resolved: true,
+        is_resolved: true,
       });
 
       await anomaliesApi.resolve('1');
