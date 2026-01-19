@@ -53,6 +53,9 @@ rules:
     ignore-shebangs: true
     min-spaces-from-content: 1
 
+  # Comments indentation - disabled for commented-out code blocks
+  comments-indentation: disable
+
   # Document markers - optional
   document-start: disable
   document-end: disable
@@ -92,8 +95,5 @@ rules:
   hyphens:
     max-spaces-after: 1
 
-  # Quoted strings - prefer unquoted when possible
-  quoted-strings:
-    quote-type: any
-    required: only-when-needed
-    extra-allowed: ["{", "}"]
+  # Quoted strings - disabled to allow consistent quoting style
+  quoted-strings: disable
