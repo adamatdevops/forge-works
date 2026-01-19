@@ -235,6 +235,9 @@ class TemplateRecommender:
         Returns:
             RecommendationResponse
         """
+        # Type guard - model is guaranteed to be not None when this method is called
+        assert self.model is not None, "Model must be loaded before calling _model_recommend"
+
         vector = self._features_to_vector(features)
 
         # Get probability predictions

@@ -1,8 +1,9 @@
 """User model for authentication."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
 from enum import Enum
-from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String
@@ -10,9 +11,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
-if TYPE_CHECKING:
-    from app.db.models.user import RefreshToken
 
 
 class UserRole(str, Enum):
@@ -62,7 +60,7 @@ class User(Base):
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+    refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         "RefreshToken",
         back_populates="user",
         lazy="selectin",
@@ -113,7 +111,7 @@ class RefreshToken(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
+    user: Mapped[User] = relationship("User", back_populates="refresh_tokens")
 
     @property
     def is_valid(self) -> bool:
