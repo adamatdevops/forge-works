@@ -28,81 +28,21 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    # Create ENUM types
-    service_status = postgresql.ENUM(
-        "healthy",
-        "degraded",
-        "unhealthy",
-        "unknown",
-        "provisioning",
-        name="service_status",
-        create_type=True,
-    )
-    service_status.create(op.get_bind(), checkfirst=True)
+    # Create ENUM types using raw SQL to avoid SQLAlchemy double-creation issue
+    op.execute("CREATE TYPE service_status AS ENUM ('healthy', 'degraded', 'unhealthy', 'unknown', 'provisioning')")
+    op.execute("CREATE TYPE service_tier AS ENUM ('critical', 'standard', 'internal', 'experimental')")
+    op.execute("CREATE TYPE anomaly_type AS ENUM ('high_deploy_frequency', 'consecutive_rollbacks', 'pipeline_failing', 'health_degraded', 'unusual_error_rate', 'resource_spike', 'drift_detected')")
+    op.execute("CREATE TYPE anomaly_severity AS ENUM ('critical', 'warning', 'info')")
+    op.execute("CREATE TYPE action_type AS ENUM ('service_created', 'service_updated', 'service_deleted', 'service_deployed', 'service_rolled_back', 'template_created', 'template_updated', 'template_deprecated', 'recommendation_requested', 'recommendation_accepted', 'recommendation_overridden', 'anomaly_detected', 'anomaly_acknowledged', 'anomaly_resolved', 'team_created', 'team_updated')")
+    op.execute("CREATE TYPE action_status AS ENUM ('pending', 'in_progress', 'completed', 'failed')")
 
-    service_tier = postgresql.ENUM(
-        "critical",
-        "standard",
-        "internal",
-        "experimental",
-        name="service_tier",
-        create_type=True,
-    )
-    service_tier.create(op.get_bind(), checkfirst=True)
-
-    anomaly_type = postgresql.ENUM(
-        "high_deploy_frequency",
-        "consecutive_rollbacks",
-        "pipeline_failing",
-        "health_degraded",
-        "unusual_error_rate",
-        "resource_spike",
-        "drift_detected",
-        name="anomaly_type",
-        create_type=True,
-    )
-    anomaly_type.create(op.get_bind(), checkfirst=True)
-
-    anomaly_severity = postgresql.ENUM(
-        "critical",
-        "warning",
-        "info",
-        name="anomaly_severity",
-        create_type=True,
-    )
-    anomaly_severity.create(op.get_bind(), checkfirst=True)
-
-    action_type = postgresql.ENUM(
-        "service_created",
-        "service_updated",
-        "service_deleted",
-        "service_deployed",
-        "service_rolled_back",
-        "template_created",
-        "template_updated",
-        "template_deprecated",
-        "recommendation_requested",
-        "recommendation_accepted",
-        "recommendation_overridden",
-        "anomaly_detected",
-        "anomaly_acknowledged",
-        "anomaly_resolved",
-        "team_created",
-        "team_updated",
-        name="action_type",
-        create_type=True,
-    )
-    action_type.create(op.get_bind(), checkfirst=True)
-
-    action_status = postgresql.ENUM(
-        "pending",
-        "in_progress",
-        "completed",
-        "failed",
-        name="action_status",
-        create_type=True,
-    )
-    action_status.create(op.get_bind(), checkfirst=True)
+    # Reference existing types for table columns (create_type=False prevents re-creation)
+    service_status = postgresql.ENUM(name="service_status", create_type=False)
+    service_tier = postgresql.ENUM(name="service_tier", create_type=False)
+    anomaly_type = postgresql.ENUM(name="anomaly_type", create_type=False)
+    anomaly_severity = postgresql.ENUM(name="anomaly_severity", create_type=False)
+    action_type = postgresql.ENUM(name="action_type", create_type=False)
+    action_status = postgresql.ENUM(name="action_status", create_type=False)
 
     # Create teams table
     op.create_table(
@@ -169,7 +109,7 @@ def upgrade() -> None:
         sa.Column("rollbacks_this_week", sa.Integer, nullable=False, server_default="0"),
         sa.Column("last_deploy_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("tags", postgresql.ARRAY(sa.String), nullable=False, server_default="{}"),
-        sa.Column("metadata", postgresql.JSONB, nullable=False, server_default="{}"),
+        sa.Column("extra_metadata", postgresql.JSONB, nullable=False, server_default="{}"),
         sa.Column("documentation_url", sa.String(500), nullable=True),
         sa.Column("dashboard_url", sa.String(500), nullable=True),
         sa.Column("runbook_url", sa.String(500), nullable=True),
