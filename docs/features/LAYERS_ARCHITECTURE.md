@@ -107,11 +107,48 @@ They can:
 
 ---
 
-## The "Glue" Concept - Raw Values That Matter
+## The "Glue" Concept - Two Perspectives
 
-### What is "The Glue"?
+ForgeWorks uses "The Glue" concept at two levels: **Backend (Core Architecture)** and **Frontend (UI Layers)**.
 
-The glue represents the **connection points** between layers - the identifiers, references, and values that link disparate systems together.
+### Backend Glue: The Core Architecture
+
+The backend Glue is ForgeWorks' core value proposition—bridging gaps between DevOps tools:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ForgeWorks Core ("The Glue")                   │
+│   ┌─────────────────────────────────────────────────────────────┐  │
+│   │              Python Casting/Converting Layer                │  │
+│   │         (Extract only needed values from each tool)         │  │
+│   └─────────────────────────────────────────────────────────────┘  │
+│   ┌─────────────────────────────────────────────────────────────┐  │
+│   │                 Shared State (Smart Log)                    │  │
+│   │       (Unified events with cross-tool correlation IDs)      │  │
+│   └─────────────────────────────────────────────────────────────┘  │
+│   ┌─────────────────────────────────────────────────────────────┐  │
+│   │                    ML Analysis Layer                        │  │
+│   │    (Correlate, classify, identify root cause patterns)      │  │
+│   └─────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**What the Backend Glue Creates:**
+- **Shared Data**: Common identifiers (commit SHA, workflow ID, resource ARN) across systems
+- **Shared State**: Unified view of multi-tool workflows
+- **Shared Language**: Normalized events for ML analysis regardless of source tool
+
+**Example: Terraform State Lock Error**
+A state lock error manifests across 3 layers:
+- GitHub Actions: "Workflow failed" (generic)
+- Terragrunt: "Error acquiring state lock" (mid-level)
+- Terraform: `ConditionalCheckFailedException` (root cause)
+
+The Glue correlates these using shared identifiers to surface: "State lock contention - DynamoDB conditional check failed due to concurrent apply."
+
+### Frontend Glue: Layer Connection Points
+
+The frontend glue represents the **connection points** between UI layers—the identifiers and values that link data displayed across different layers.
 
 ### Examples of Glue Values in ForgeWorks
 
@@ -122,6 +159,8 @@ The glue represents the **connection points** between layers - the identifiers, 
 | Templates | `template_id` | Services, Recommendations |
 | Anomalies | `service_id`, `timestamp` | Services, Metrics |
 | Deployment | `release_version` | Pipeline, Services |
+
+**The frontend glue visualizes what the backend glue produces**—surfacing the correlated data from Forge Adapters in an intuitive, layer-based UI.
 
 ### How Glue Works in Layers
 

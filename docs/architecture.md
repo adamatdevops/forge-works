@@ -1,5 +1,49 @@
 # Architecture Overview
 
+## Core Philosophy: "The Glue"
+
+ForgeWorks serves as **"The Glue"** between various DevOps tools—not replacing them, but bridging the gaps where they can't communicate directly. External tools (GitHub, Kubernetes, Terraform, etc.) are "customers" that ForgeWorks serves through Forge Adapters.
+
+### The Glue Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ForgeWorks Core ("The Glue")                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │              Python Casting/Converting Layer                   │ │
+│  │      Extract ONLY needed values from each tool's format        │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │                  Shared State (Smart Log)                      │ │
+│  │    Unified data structure for cross-tool event correlation     │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │                     ML Analysis Layer                          │ │
+│  │   Correlate events, identify patterns, find root causes        │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────┬─────────────────────────────────────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            ▼                ▼                ▼
+      ┌──────────┐    ┌──────────┐    ┌──────────┐
+      │  Forge   │    │  Forge   │    │  Forge   │    ...∞ potential
+      │ Adapter  │    │ Adapter  │    │ Adapter  │     customers
+      └────┬─────┘    └────┬─────┘    └────┬─────┘
+           ▼               ▼               ▼
+      [GitHub]        [K8s/EKS]      [Terraform]
+```
+
+### What The Glue Creates
+
+| Capability | Description |
+|------------|-------------|
+| **Shared Data** | Common identifiers (commit SHA, workflow ID, resource ARN) flow across systems |
+| **Shared State** | Unified view of multi-tool workflows in a Smart Log |
+| **Shared Language** | Normalized events that ML can analyze regardless of source |
+
+---
+
 ## System Architecture
 
 ForgeWorks follows a layered architecture with clear separation of concerns between the API layer, business logic, data access, and external integrations.
@@ -72,13 +116,25 @@ The API layer is built with FastAPI and provides RESTful endpoints for all platf
 | `db/base.py` | Database session management |
 | `schemas/` | Pydantic validation schemas |
 
-### Adapter Layer
+### Adapter Layer (Simple Integrations)
 
 | Adapter | Purpose | Mode |
 |---------|---------|------|
 | `adapters/github.py` | Repository and CI/CD integration | Mock/Live |
 | `adapters/argocd.py` | GitOps deployment management | Mock/Live |
 | `adapters/base.py` | Base adapter interface | - |
+
+### Forge Layer (Bidirectional Bridges - "The Glue")
+
+Forges extend adapters with webhooks, reconciliation, and cross-tool correlation—enabling ForgeWorks to act as "The Glue" between customer tools.
+
+| Forge | Purpose | Customer Tools |
+|-------|---------|----------------|
+| `forges/github_forge.py` | GitHub PR/workflow events | GitHub Actions, GitHub PRs |
+| `forges/github_k8s_bridge.py` | Build-to-Deploy correlation | GitHub → Kubernetes |
+| `forges/base.py` | Base forge interface with shared state | - |
+
+**Key Concept:** External tools are "customers" that ForgeWorks serves. Forges extract needed values (casting), normalize them to a shared state (Smart Log), and enable ML correlation across tool boundaries.
 
 ## Data Model
 

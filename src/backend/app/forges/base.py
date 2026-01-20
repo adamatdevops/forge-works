@@ -1,30 +1,76 @@
 """Base Forge adapter interface for bidirectional tool integrations.
 
-Forges extend the basic adapter pattern to enable true collaboration
-between DevOps tools, not just one-way integration.
+ForgeWorks Core ("The Glue") Architecture
+=========================================
+
+Forges are the connectors that enable ForgeWorks to serve as "The Glue" between
+various DevOps tools. The Glue architecture has three core layers:
+
+1. **Python Casting/Converting Layer**: Extracts ONLY the needed values from
+   each tool's native format and converts them to a common language.
+
+2. **Shared State (Smart Log)**: A unified data structure where all tools'
+   events are normalized, enabling cross-tool correlation.
+
+3. **ML Analysis Layer**: Correlates events across tool boundaries to identify
+   root causes, patterns, and anomalies that span multiple systems.
+
+Key Insight:
+    External tools (GitHub, K8s, Terraform, ArgoCD, etc.) are "customers" that
+    ForgeWorks serves through Forge Adapters. The Glue doesn't replace these
+    tools—it bridges the gaps between them by creating:
+    - **Shared Data**: Common identifiers across systems
+    - **Shared State**: Unified view of multi-tool workflows
+    - **Shared Language**: Normalized events for ML analysis
+
+Example Use Case - Terraform State Lock Error:
+    A state lock error manifests across 3 layers:
+    - GitHub Actions: "Workflow failed" (generic)
+    - Terragrunt: "Error acquiring state lock" (mid-level)
+    - Terraform: "ConditionalCheckFailedException" (root cause)
+
+    The Glue correlates these events using shared identifiers (commit SHA,
+    workflow ID, resource ARN) to pinpoint the actual issue.
 
 Key Differences from BaseAdapter:
-- Adapters: Read (pull) + Write (push) operations
-- Forges: Read + Write + Listen (webhooks) + Reconcile (sync)
+    - Adapters: Read (pull) + Write (push) operations
+    - Forges: Read + Write + Listen (webhooks) + Reconcile (sync) + Cast (glue)
 
 Architecture:
-    ┌─────────────────┐                    ┌─────────────────┐
-    │   External Tool │                    │   ForgeWorks    │
-    │  (GitHub, K8s)  │                    │    Database     │
-    └────────┬────────┘                    └────────┬────────┘
-             │                                      │
-             │ ◄──── LISTEN (webhooks) ────        │
-             │                                      │
-             │ ────► FETCH (read state) ──────►    │
-             │                                      │
-             │ ◄──── PUSH (write state) ◄─────     │
-             │                                      │
-             │ ◄───► RECONCILE (sync) ◄────►       │
-             │                                      │
-    ┌────────┴────────┐                    ┌────────┴────────┐
-    │    Forge        │◄────────────────────│   Events       │
-    │  (Bridge Layer) │─────────────────────►   (WebSocket)   │
-    └─────────────────┘                    └─────────────────┘
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                      ForgeWorks Core ("The Glue")                   │
+    │   ┌─────────────────────────────────────────────────────────────┐  │
+    │   │              Python Casting/Converting Layer                │  │
+    │   │         (Extract only needed values, normalize format)      │  │
+    │   └─────────────────────────────────────────────────────────────┘  │
+    │   ┌─────────────────────────────────────────────────────────────┐  │
+    │   │                 Shared State (Smart Log)                    │  │
+    │   │       (Unified events, cross-tool correlation IDs)          │  │
+    │   └─────────────────────────────────────────────────────────────┘  │
+    │   ┌─────────────────────────────────────────────────────────────┐  │
+    │   │                    ML Analysis Layer                        │  │
+    │   │    (Correlate, classify, identify root cause patterns)      │  │
+    │   └─────────────────────────────────────────────────────────────┘  │
+    └──────────────────────────────┬──────────────────────────────────────┘
+                                   │
+                  ┌────────────────┼────────────────┐
+                  ▼                ▼                ▼
+            ┌──────────┐    ┌──────────┐    ┌──────────┐
+            │  Forge   │    │  Forge   │    │  Forge   │    ...∞
+            │ Adapter  │    │ Adapter  │    │ Adapter  │  potential
+            │ (GitHub) │    │  (K8s)   │    │(Terraform)│  customers
+            └────┬─────┘    └────┬─────┘    └────┬─────┘
+                 │               │               │
+                 ▼               ▼               ▼
+            ┌──────────┐    ┌──────────┐    ┌──────────┐
+            │ Customer │    │ Customer │    │ Customer │
+            │  Tool    │    │  Tool    │    │  Tool    │
+            └──────────┘    └──────────┘    └──────────┘
+
+MVP Focus:
+    - Functionality-oriented (not tool-oriented)
+    - Industry standard tools (few, proven)
+    - Extensible via Forge Adapter pattern
 """
 
 from abc import ABC, abstractmethod
