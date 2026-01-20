@@ -185,7 +185,7 @@ class TestDecodeAccessTokenType:
 
     def test_wrong_token_type(self):
         """Test decoding a token with wrong type returns None."""
-        from jose import jwt
+        import jwt
 
         from app.core.config import settings
 

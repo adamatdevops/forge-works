@@ -16,7 +16,7 @@ dependencies = [
     "httpx>=0.26.0",
     "python-dotenv>=1.0.0",
     # Authentication
-    "python-jose[cryptography]>=3.3.0",
+    "PyJWT>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "bcrypt>=4.0.1,<5.0.0",  # Pin bcrypt <5.0 for passlib 1.7.x compatibility
     "email-validator>=2.1.0",
@@ -34,7 +34,6 @@ dev = [
     # Type stubs
     "types-redis>=4.6.0",
     "types-passlib>=1.7.7",
-    "types-python-jose>=3.3.4",
 ]
 ml = [
     "scikit-learn>=1.4.0",

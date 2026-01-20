@@ -5,7 +5,8 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -69,7 +70,7 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
         if payload.get("type") != "access":
             return None
         return payload
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 
