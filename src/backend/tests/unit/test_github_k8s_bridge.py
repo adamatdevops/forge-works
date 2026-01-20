@@ -1,6 +1,6 @@
 """Unit tests for GitHub ↔ Kubernetes Bridge Forge."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -150,8 +150,8 @@ class TestBuildDeploymentCorrelation:
 
     def test_compute_duration_complete(self):
         """Test duration computation with complete lifecycle."""
-        start = datetime.utcnow() - timedelta(minutes=5)
-        end = datetime.utcnow()
+        start = datetime.now(UTC) - timedelta(minutes=5)
+        end = datetime.now(UTC)
 
         correlation = BuildDeploymentCorrelation(
             build_id="123",
@@ -175,17 +175,17 @@ class TestBuildDeploymentCorrelation:
             repo="user-service",
             branch="main",
             commit_sha="abc123",
-            build_started_at=datetime.utcnow(),
+            build_started_at=datetime.now(UTC),
         )
 
         assert correlation.compute_duration() is None
 
     def test_to_report(self):
         """Test report generation."""
-        start = datetime.utcnow() - timedelta(minutes=5)
-        build_end = datetime.utcnow() - timedelta(minutes=3)
-        deploy_start = datetime.utcnow() - timedelta(minutes=2)
-        deploy_end = datetime.utcnow()
+        start = datetime.now(UTC) - timedelta(minutes=5)
+        build_end = datetime.now(UTC) - timedelta(minutes=3)
+        deploy_start = datetime.now(UTC) - timedelta(minutes=2)
+        deploy_end = datetime.now(UTC)
 
         correlation = BuildDeploymentCorrelation(
             build_id="123",
@@ -323,7 +323,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="workflow_run.in_progress",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 11111,
@@ -357,7 +357,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.in_progress",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 22222,
@@ -374,7 +374,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         complete_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 22222,
@@ -402,7 +402,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.in_progress",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {"id": 33333, "name": "CI/CD", "head_sha": "xyz"},
                 "repository": {"name": "user-service"},
@@ -414,7 +414,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         fail_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 33333,
@@ -436,7 +436,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.in_progress",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {"id": 44444, "name": "CI/CD", "head_sha": "prog123"},
                 "repository": {"name": "user-service"},
@@ -448,7 +448,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         complete_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 44444,
@@ -464,7 +464,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         deploy_payload = WebhookPayload(
             source="kubernetes",
             event_type="deployment.progressing",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "deployment": {
                     "name": "user-service",
@@ -486,7 +486,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.in_progress",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {"id": 55555, "name": "CI/CD", "head_sha": "avail123"},
                 "repository": {"name": "user-service"},
@@ -497,7 +497,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         complete_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {"id": 55555, "conclusion": "success", "head_sha": "avail123"},
                 "repository": {"name": "user-service"},
@@ -509,7 +509,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
         available_payload = WebhookPayload(
             source="kubernetes",
             event_type="deployment.available",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "deployment": {
                     "name": "user-service",
@@ -536,7 +536,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
             WebhookPayload(
                 source="github",
                 event_type="workflow_run.in_progress",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 raw_payload={
                     "workflow_run": {
                         "id": build_id,
@@ -554,7 +554,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
             WebhookPayload(
                 source="github",
                 event_type="workflow_run.completed",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 raw_payload={
                     "workflow_run": {
                         "id": build_id,
@@ -571,7 +571,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
             WebhookPayload(
                 source="kubernetes",
                 event_type="deployment.progressing",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 raw_payload={
                     "deployment": {"name": "user-service", "namespace": "production"},
                     "image": "user-service:fullcyc",
@@ -584,7 +584,7 @@ class TestGitHubKubernetesBridgeWebhookHandling:
             WebhookPayload(
                 source="kubernetes",
                 event_type="deployment.available",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 raw_payload={
                     "deployment": {
                         "name": "user-service",

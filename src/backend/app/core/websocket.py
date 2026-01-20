@@ -17,7 +17,7 @@ Event Flow:
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -121,7 +121,7 @@ class WebSocketEvent:
     type: EventType
     channel: Channel
     data: dict[str, Any]
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     correlation_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -142,7 +142,7 @@ class ConnectedClient:
     websocket: WebSocket
     client_id: str
     subscriptions: set[Channel] = field(default_factory=lambda: {Channel.ALL})
-    connected_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    connected_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class ConnectionManager:

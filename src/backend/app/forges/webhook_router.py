@@ -27,7 +27,7 @@ Architecture:
 import hashlib
 import hmac
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -130,7 +130,7 @@ def parse_github_event(request: Request, body: dict[str, Any]) -> WebhookPayload
     return WebhookPayload(
         source="github",
         event_type=full_event_type,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
         raw_payload=body,
         signature=request.headers.get("X-Hub-Signature-256"),
         headers=dict(request.headers),
@@ -145,7 +145,7 @@ def parse_argocd_event(request: Request, body: dict[str, Any]) -> WebhookPayload
     return WebhookPayload(
         source="argocd",
         event_type=event_type,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
         raw_payload=body,
         signature=request.headers.get("X-Argocd-Signature"),
         headers=dict(request.headers),
@@ -164,7 +164,7 @@ def parse_kubernetes_event(request: Request, body: dict[str, Any]) -> WebhookPay
         return WebhookPayload(
             source="kubernetes",
             event_type=body["event_type"],
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload=body,
             signature=request.headers.get("Authorization"),
             headers=dict(request.headers),
@@ -177,7 +177,7 @@ def parse_kubernetes_event(request: Request, body: dict[str, Any]) -> WebhookPay
     return WebhookPayload(
         source="kubernetes",
         event_type=f"{kind}.{operation}",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
         raw_payload=body,
         signature=request.headers.get("Authorization"),
         headers=dict(request.headers),
@@ -307,7 +307,7 @@ async def generic_webhook(source: str, request: Request) -> dict[str, Any]:
     payload = WebhookPayload(
         source=source,
         event_type=body.get("event_type", body.get("type", "unknown")),
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
         raw_payload=body,
         headers=dict(request.headers),
     )

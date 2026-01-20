@@ -23,7 +23,7 @@ This Forge:
 """
 
 import random
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.core.events import (
@@ -197,7 +197,7 @@ class GitHubForge(ForgeAdapter):
 
         pr_id = f"{repo}/{pr.get('number')}"
         if pr_id in self._pr_cache:
-            self._pr_cache[pr_id]["updated_at"] = datetime.utcnow().isoformat()
+            self._pr_cache[pr_id]["updated_at"] = datetime.now(UTC).isoformat()
 
     async def _handle_workflow_started(self, payload: WebhookPayload) -> None:
         """Handle workflow run started - broadcast pipeline started."""
@@ -235,7 +235,7 @@ class GitHubForge(ForgeAdapter):
 
         if workflow_id in self._workflow_cache:
             self._workflow_cache[workflow_id]["status"] = "in_progress"
-            self._workflow_cache[workflow_id]["running_at"] = datetime.utcnow().isoformat()
+            self._workflow_cache[workflow_id]["running_at"] = datetime.now(UTC).isoformat()
 
     async def _handle_workflow_completed(self, payload: WebhookPayload) -> None:
         """Handle workflow completed - THE KEY BRIDGE EVENT.
@@ -255,7 +255,7 @@ class GitHubForge(ForgeAdapter):
         if workflow_id in self._workflow_cache:
             self._workflow_cache[workflow_id]["status"] = "completed"
             self._workflow_cache[workflow_id]["conclusion"] = conclusion
-            self._workflow_cache[workflow_id]["completed_at"] = datetime.utcnow().isoformat()
+            self._workflow_cache[workflow_id]["completed_at"] = datetime.now(UTC).isoformat()
 
         # Calculate duration if we have start time
         duration = None
@@ -264,7 +264,7 @@ class GitHubForge(ForgeAdapter):
             if started:
                 try:
                     start_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
-                    duration = (datetime.utcnow() - start_dt.replace(tzinfo=None)).total_seconds()
+                    duration = (datetime.now(UTC) - start_dt.replace(tzinfo=None)).total_seconds()
                 except ValueError:
                     pass
 
@@ -442,7 +442,7 @@ class GitHubForge(ForgeAdapter):
                 WebhookPayload(
                     source="github",
                     event_type=event_type,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     raw_payload={
                         "action": "completed",
                         "workflow_run": {
@@ -452,7 +452,7 @@ class GitHubForge(ForgeAdapter):
                             "head_sha": f"abc{random.randint(1000, 9999)}def",
                             "conclusion": conclusion,
                             "html_url": f"https://github.com/{self.github_org}/{repo}/actions/runs/{workflow_id}",
-                            "created_at": (datetime.utcnow() - timedelta(minutes=5)).isoformat(),
+                            "created_at": (datetime.now(UTC) - timedelta(minutes=5)).isoformat(),
                         },
                         "repository": {
                             "name": repo,
@@ -468,7 +468,7 @@ class GitHubForge(ForgeAdapter):
                 WebhookPayload(
                     source="github",
                     event_type=event_type,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     raw_payload={
                         "action": "opened",
                         "pull_request": {
@@ -478,7 +478,7 @@ class GitHubForge(ForgeAdapter):
                             "head": {"ref": f"feature/new-{pr_number}"},
                             "base": {"ref": "main"},
                             "html_url": f"https://github.com/{self.github_org}/{repo}/pull/{pr_number}",
-                            "created_at": datetime.utcnow().isoformat(),
+                            "created_at": datetime.now(UTC).isoformat(),
                         },
                         "repository": {
                             "name": repo,
@@ -493,7 +493,7 @@ class GitHubForge(ForgeAdapter):
                 WebhookPayload(
                     source="github",
                     event_type=event_type,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     raw_payload={
                         "ref": "refs/heads/main",
                         "commits": [

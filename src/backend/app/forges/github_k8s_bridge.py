@@ -66,7 +66,7 @@ This Forge makes it happen by:
 
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -134,7 +134,7 @@ class BuildDeploymentCorrelation:
     # End-to-End Status (THE BRIDGE)
     pipeline_status: BuildToDeploymentStatus = BuildToDeploymentStatus.UNKNOWN
     end_to_end_duration_seconds: float | None = None
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def compute_status(self) -> BuildToDeploymentStatus:
         """Compute the overall pipeline status based on both tools' states."""
@@ -353,7 +353,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
             branch=workflow.get("head_branch", "main"),
             commit_sha=workflow.get("head_sha", ""),
             build_status="pending",
-            build_started_at=datetime.utcnow(),
+            build_started_at=datetime.now(UTC),
             deployment_name=deployment_info[1] if deployment_info else None,
             namespace=deployment_info[0] if deployment_info else self.default_namespace,
         )
@@ -387,8 +387,8 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation_id and correlation_id in self._correlations:
             correlation = self._correlations[correlation_id]
             correlation.build_status = conclusion
-            correlation.build_completed_at = datetime.utcnow()
-            correlation.last_updated = datetime.utcnow()
+            correlation.build_completed_at = datetime.now(UTC)
+            correlation.last_updated = datetime.now(UTC)
 
             # Try to extract image tag from workflow outputs
             # In real implementation, this would parse workflow artifacts
@@ -405,7 +405,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                     pipeline_id=build_id,
                     status="success",
                     duration_seconds=(
-                        datetime.utcnow() - correlation.build_started_at
+                        datetime.now(UTC) - correlation.build_started_at
                     ).total_seconds()
                     if correlation.build_started_at
                     else None,
@@ -468,9 +468,9 @@ class GitHubKubernetesBridge(ForgeAdapter):
 
         if correlation:
             correlation.deployment_status = "progressing"
-            correlation.deployment_started_at = datetime.utcnow()
+            correlation.deployment_started_at = datetime.now(UTC)
             correlation.pipeline_status = correlation.compute_status()
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
             await broadcast_service_status_changed(
                 service_id=f"{correlation.repo}/{correlation.build_id}",
@@ -493,10 +493,10 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation:
             correlation.deployment_status = "available"
             correlation.current_replicas = replicas
-            correlation.deployment_completed_at = datetime.utcnow()
+            correlation.deployment_completed_at = datetime.now(UTC)
             correlation.pipeline_status = correlation.compute_status()
             correlation.end_to_end_duration_seconds = correlation.compute_duration()
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
             await broadcast_service_status_changed(
                 service_id=f"{correlation.repo}/{correlation.build_id}",
@@ -530,7 +530,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation:
             correlation.deployment_status = "failed"
             correlation.pipeline_status = correlation.compute_status()
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
             # THE KEY VALUE: Anomaly links build to deployment failure
             await broadcast_anomaly_detected(
@@ -557,7 +557,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation and "Running" not in correlation.pod_statuses:
             correlation.pod_statuses.append("Running")
             correlation.pipeline_status = correlation.compute_status()
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
     async def _handle_pod_failed(self, payload: WebhookPayload) -> None:
         """Handle pod failed - link to build for root cause."""
@@ -569,7 +569,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation:
             correlation.pod_statuses = ["Failed"]
             correlation.pipeline_status = BuildToDeploymentStatus.DEGRADED
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
             await broadcast_anomaly_detected(
                 {
@@ -595,7 +595,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
         if correlation:
             correlation.pod_statuses = ["CrashLoopBackOff"]
             correlation.pipeline_status = BuildToDeploymentStatus.DEGRADED
-            correlation.last_updated = datetime.utcnow()
+            correlation.last_updated = datetime.now(UTC)
 
             await broadcast_anomaly_detected(
                 {
@@ -716,7 +716,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                 WebhookPayload(
                     source="github",
                     event_type="workflow_run.in_progress",
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     raw_payload={
                         "workflow_run": {
                             "id": build_id,
@@ -735,7 +735,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                 WebhookPayload(
                     source="github",
                     event_type="workflow_run.completed",
-                    timestamp=datetime.utcnow() + timedelta(seconds=5),
+                    timestamp=datetime.now(UTC) + timedelta(seconds=5),
                     raw_payload={
                         "workflow_run": {
                             "id": build_id,
@@ -759,7 +759,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                         WebhookPayload(
                             source="kubernetes",
                             event_type="deployment.progressing",
-                            timestamp=datetime.utcnow() + timedelta(seconds=10),
+                            timestamp=datetime.now(UTC) + timedelta(seconds=10),
                             raw_payload={
                                 "deployment": {
                                     "name": deployment_name,
@@ -775,7 +775,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                             WebhookPayload(
                                 source="kubernetes",
                                 event_type="deployment.available",
-                                timestamp=datetime.utcnow() + timedelta(seconds=30),
+                                timestamp=datetime.now(UTC) + timedelta(seconds=30),
                                 raw_payload={
                                     "deployment": {
                                         "name": deployment_name,
@@ -790,7 +790,7 @@ class GitHubKubernetesBridge(ForgeAdapter):
                             WebhookPayload(
                                 source="kubernetes",
                                 event_type="deployment.failed",
-                                timestamp=datetime.utcnow() + timedelta(seconds=30),
+                                timestamp=datetime.now(UTC) + timedelta(seconds=30),
                                 raw_payload={
                                     "deployment": {
                                         "name": deployment_name,

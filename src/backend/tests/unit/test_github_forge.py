@@ -1,6 +1,6 @@
 """Unit tests for GitHub Forge."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -90,7 +90,7 @@ class TestGitHubForgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="pull_request.opened",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "opened",
                 "pull_request": {
@@ -121,7 +121,7 @@ class TestGitHubForgeWebhookHandling:
         open_payload = WebhookPayload(
             source="github",
             event_type="pull_request.opened",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "pull_request": {
                     "number": 124,
@@ -139,7 +139,7 @@ class TestGitHubForgeWebhookHandling:
         close_payload = WebhookPayload(
             source="github",
             event_type="pull_request.closed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "closed",
                 "pull_request": {
@@ -159,7 +159,7 @@ class TestGitHubForgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="workflow_run.requested",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "requested",
                 "workflow_run": {
@@ -188,7 +188,7 @@ class TestGitHubForgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.requested",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 12346,
@@ -205,7 +205,7 @@ class TestGitHubForgeWebhookHandling:
         complete_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "completed",
                 "workflow_run": {
@@ -233,7 +233,7 @@ class TestGitHubForgeWebhookHandling:
         start_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.requested",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "workflow_run": {
                     "id": 12347,
@@ -250,7 +250,7 @@ class TestGitHubForgeWebhookHandling:
         fail_payload = WebhookPayload(
             source="github",
             event_type="workflow_run.completed",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "completed",
                 "workflow_run": {
@@ -277,7 +277,7 @@ class TestGitHubForgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="push",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "ref": "refs/heads/main",
                 "after": "newsha123",
@@ -302,7 +302,7 @@ class TestGitHubForgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="release.published",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "action": "published",
                 "release": {
@@ -325,7 +325,7 @@ class TestGitHubForgeWebhookHandling:
         payload = WebhookPayload(
             source="github",
             event_type="unknown.event",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={"data": "test"},
         )
 
@@ -369,7 +369,7 @@ class TestGitHubForgeRepoServiceMapping:
         payload = WebhookPayload(
             source="github",
             event_type="pull_request.opened",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={
                 "pull_request": {
                     "number": 100,

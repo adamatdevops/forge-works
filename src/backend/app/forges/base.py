@@ -30,7 +30,7 @@ Architecture:
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -155,7 +155,7 @@ class ForgeAdapter(BaseAdapter, ABC):
             await forge.on_webhook(WebhookPayload(
                 source="github",
                 event_type=payload["action"],
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 raw_payload=payload,
             ))
     """
@@ -270,7 +270,7 @@ class ForgeAdapter(BaseAdapter, ABC):
             if not self._validate_signature(payload):
                 raise ValueError("Invalid webhook signature")
 
-        self._last_webhook = datetime.utcnow()
+        self._last_webhook = datetime.now(UTC)
         self._event_queue.append(payload)
 
         # Call registered handlers
@@ -314,7 +314,7 @@ class ForgeAdapter(BaseAdapter, ABC):
 
         diffs = self._compute_state_diff(external_state, local_state)
         self._drift_alerts = [d for d in diffs if d.has_drift]
-        self._last_reconciliation = datetime.utcnow()
+        self._last_reconciliation = datetime.now(UTC)
 
         for diff in diffs:
             if not diff.has_drift:
@@ -441,7 +441,7 @@ class ForgeAdapter(BaseAdapter, ABC):
                 "entity_id": diff.entity_id,
                 "severity": diff.drift_severity,
                 "differences": diff.differences,
-                "detected_at": datetime.utcnow().isoformat(),
+                "detected_at": datetime.now(UTC).isoformat(),
             }
         )
 
@@ -468,7 +468,7 @@ class ForgeAdapter(BaseAdapter, ABC):
             healthy=healthy,
             mode=self.mode,
             latency_ms=latency,
-            last_check=datetime.utcnow(),
+            last_check=datetime.now(UTC),
             error=error,
             webhook_active=self._last_webhook is not None,
             last_webhook_received=self._last_webhook,

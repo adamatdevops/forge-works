@@ -1,6 +1,6 @@
 """Unit tests for Forge base classes and utilities."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.forges.base import (
     ForgeConfig,
@@ -84,7 +84,7 @@ class TestForgeHealth:
             healthy=True,
             mode=AdapterMode.MOCK,
             latency_ms=50.0,
-            last_check=datetime.utcnow(),
+            last_check=datetime.now(UTC),
         )
 
         assert health.webhook_active is False
@@ -97,7 +97,7 @@ class TestForgeHealth:
         """Test ForgeHealth serialization."""
         from app.adapters.base import AdapterMode
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         health = ForgeHealth(
             name="test-forge",
             healthy=True,
@@ -132,7 +132,7 @@ class TestForgeHealth:
             healthy=True,
             mode=AdapterMode.MOCK,
             latency_ms=50.0,
-            last_check=datetime.utcnow(),
+            last_check=datetime.now(UTC),
         )
 
         data = health.to_dict()
@@ -149,7 +149,7 @@ class TestWebhookPayload:
         payload = WebhookPayload(
             source="github",
             event_type="push",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={"ref": "refs/heads/main"},
         )
 
@@ -164,7 +164,7 @@ class TestWebhookPayload:
         payload = WebhookPayload(
             source="github",
             event_type="push",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={"ref": "refs/heads/main"},
             signature="sha256=abc123",
             headers={"X-GitHub-Event": "push"},
@@ -179,7 +179,7 @@ class TestWebhookPayload:
         payload = WebhookPayload(
             source="",
             event_type="push",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={"data": "test"},
         )
 
@@ -190,7 +190,7 @@ class TestWebhookPayload:
         payload = WebhookPayload(
             source="github",
             event_type="",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={"data": "test"},
         )
 
@@ -201,7 +201,7 @@ class TestWebhookPayload:
         payload = WebhookPayload(
             source="github",
             event_type="push",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             raw_payload={},
         )
 
