@@ -15,7 +15,17 @@
 [![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-> **A Platform Orchestrator that provides opinionated, production-ready service templates to standardize architecture, improve developer velocity, and enforce platform governance through design.**
+> **AI-Powered Real-Time Data Intelligence Platform**
+
+<p align="center">
+  <img src="docs/diagrams/img/forgeworks-architecture.svg" alt="ForgeWorks Architecture" width="100%">
+</p>
+
+<p align="center">
+  <em>Ingest → Stream → Process → AI/ML → Insights</em>
+</p>
+
+---
 
 ## What ForgeWorks is NOT
 
@@ -80,18 +90,18 @@ cd src/frontend && pnpm dev
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  EXPERIENCE LAYER     │  Next.js Dashboard + ML Recommender    │
-├───────────────────────┼─────────────────────────────────────────┤
-│  ML ORCHESTRATION     │  Template Recommender + Anomaly Panel  │
-├───────────────────────┼─────────────────────────────────────────┤
-│  API GLUE LAYER       │  FastAPI + Adapters + State Store      │
-├───────────────────────┼─────────────────────────────────────────┤
-│  TOOL APIS            │  GitHub, ArgoCD, Prometheus, K8s       │
-└───────────────────────┴─────────────────────────────────────────┘
-              AGENTLESS - ALL API CONNECTIONS
-```
+ForgeWorks processes data through a modern streaming architecture:
+
+| Stage | Component | Purpose |
+|-------|-----------|---------|
+| **Ingest** | API Gateway, Schema Registry | Validate, enrich, normalize incoming data |
+| **Stream** | Apache Kafka | Distributed event streaming backbone |
+| **Process** | Apache Flink | Real-time stream processing |
+| **AI/ML** | Custom Models | Anomaly detection, predictions, classification |
+| **Orchestrate** | Apache Airflow | Workflow scheduling and coordination |
+| **Output** | APIs, Dashboards, Alerts | Actionable insights delivery |
+
+**Infrastructure:** Kubernetes • AWS EKS • Terraform • GitOps
 
 ### Design Principles
 
