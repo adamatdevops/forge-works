@@ -1,0 +1,257 @@
+# ForgeWorks RBAC Configuration
+# Sprint I-1: Namespaces & RBAC
+# Principle: Least privilege access
+---
+# === FORGE-ENGINE ROLES ===
+
+# Kafka role - needs to manage ConfigMaps for cluster coordination
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kafka-role
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kafka-role-binding
+  namespace: forge-engine
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kafka-role
+subjects:
+  - kind: ServiceAccount
+    name: kafka-sa
+    namespace: forge-engine
+---
+# Flink role - needs to manage pods for task execution
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: flink-role
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "configmaps", "services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: forgeworks-flink-role-binding
+  namespace: forge-engine
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: flink-role
+subjects:
+  - kind: ServiceAccount
+    name: flink-sa
+    namespace: forge-engine
+---
+# Airflow role - needs to manage pods for KubernetesExecutor
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-role
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-role-binding
+  namespace: forge-engine
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: airflow-role
+subjects:
+  - kind: ServiceAccount
+    name: airflow-sa
+    namespace: forge-engine
+---
+# === FORGE-WORKS ROLES ===
+
+# Backend role - minimal permissions (read-only for most resources)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backend-role
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backend-role-binding
+  namespace: forge-works
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backend-role
+subjects:
+  - kind: ServiceAccount
+    name: backend-sa
+    namespace: forge-works
+---
+# Frontend role - very minimal (only needs configmaps for runtime config)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: frontend-role
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: frontend-role-binding
+  namespace: forge-works
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: frontend-role
+subjects:
+  - kind: ServiceAccount
+    name: frontend-sa
+    namespace: forge-works
+---
+# === FORGE-ML ROLES ===
+
+# ML Runner role - needs to create pods for training jobs
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ml-runner-role
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ml-runner-role-binding
+  namespace: forge-ml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-runner-role
+subjects:
+  - kind: ServiceAccount
+    name: ml-runner-sa
+    namespace: forge-ml
+---
+# ML Inference role - read-only for models, minimal pod access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ml-inference-role
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ml-inference-role-binding
+  namespace: forge-ml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-inference-role
+subjects:
+  - kind: ServiceAccount
+    name: ml-inference-sa
+    namespace: forge-ml
+---
+# === CROSS-NAMESPACE ACCESS ===
+
+# Airflow needs to trigger ML jobs in forge-ml namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-ml-trigger-role
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-ml-trigger-binding
+  namespace: forge-ml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: airflow-ml-trigger-role
+subjects:
+  - kind: ServiceAccount
+    name: airflow-sa
+    namespace: forge-engine

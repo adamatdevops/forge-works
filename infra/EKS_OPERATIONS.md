@@ -1,0 +1,260 @@
+# EKS Operations Guide
+
+> **Version:** 1.0.0
+> **Created:** 2025-02-01
+> **Cluster:** forge-works-dev
+> **Region:** us-east-1
+
+---
+
+## Quick Reference
+
+| Operation | Command |
+|-----------|---------|
+| Login to SSO | `aws sso login --sso-session forgeworks` |
+| Scale up nodes | See [Scale Up](#scale-up-nodes) |
+| Scale down nodes | See [Scale Down](#scale-down-nodes-cost-saving) |
+| Delete cluster | See [Delete Cluster](#delete-cluster) |
+| Fix kubectl auth | See [Authentication](#authentication-troubleshooting) |
+
+---
+
+## Daily Operations
+
+### Start of Day
+
+```bash
+# 1. Login to SSO (tokens expire after 8-12 hours)
+aws sso login --sso-session forgeworks
+
+# 2. Verify identity
+aws sts get-caller-identity --profile fw-infra
+
+# 3. Check cluster status
+kubectl get nodes -o wide
+```
+
+---
+
+## Cost Management
+
+### Cluster Cost Breakdown
+
+| Component | Cost | Notes |
+|-----------|------|-------|
+| EKS Control Plane | ~$0.10/hr ($72/mo) | Always running |
+| 3x t3.large nodes | ~$0.25/hr ($180/mo) | Can scale to 0 |
+| **Total (running)** | **~$0.35/hr (~$8/day)** | |
+| **Total (scaled down)** | **~$0.10/hr (~$2.40/day)** | Nodes at 0 |
+
+### Scale Down Nodes (Cost Saving)
+
+Scale nodes to 0 when not working (saves ~$6/day):
+
+```bash
+aws eks update-nodegroup-config \
+  --cluster-name forge-works-dev \
+  --nodegroup-name fw-workers \
+  --scaling-config minSize=0,maxSize=5,desiredSize=0 \
+  --profile fw-infra \
+  --region us-east-1
+```
+
+### Scale Up Nodes
+
+Scale nodes back when ready to work:
+
+```bash
+aws eks update-nodegroup-config \
+  --cluster-name forge-works-dev \
+  --nodegroup-name fw-workers \
+  --scaling-config minSize=2,maxSize=5,desiredSize=3 \
+  --profile fw-infra \
+  --region us-east-1
+```
+
+### Check Scaling Status
+
+```bash
+aws eks describe-nodegroup \
+  --cluster-name forge-works-dev \
+  --nodegroup-name fw-workers \
+  --profile fw-infra \
+  --region us-east-1 \
+  --query 'nodegroup.{Status:status,Desired:scalingConfig.desiredSize,Min:scalingConfig.minSize,Max:scalingConfig.maxSize}'
+```
+
+### Delete Cluster (Full Cost Elimination)
+
+**Warning:** This deletes all resources in the cluster.
+
+```bash
+eksctl delete cluster \
+  --name forge-works-dev \
+  --region us-east-1 \
+  --profile fw-infra
+```
+
+---
+
+## Authentication Troubleshooting
+
+### Issue: "the server has asked for the client to provide credentials"
+
+**Root Cause:** The IAM principal (SSO role) is not mapped in EKS RBAC.
+
+**Solution:** Use the cluster creator profile (fw-infra) for kubectl:
+
+```bash
+# Update kubeconfig to use fw-infra
+aws eks update-kubeconfig \
+  --region us-east-1 \
+  --name forge-works-dev \
+  --profile fw-infra \
+  --alias fw-dev
+
+# Verify
+kubectl get nodes
+```
+
+### Issue: SSO Token Expired
+
+**Symptoms:**
+- `Error when retrieving token from sso: Token has expired`
+- kubectl commands fail with auth errors
+
+**Solution:**
+```bash
+aws sso login --sso-session forgeworks
+```
+
+### Granting Access to Other IAM Principals
+
+To grant `fw-deploy` or other roles access to the cluster:
+
+```bash
+# 1. Get the role ARN
+aws iam list-roles --profile fw-infra \
+  --query "Roles[?contains(RoleName, 'fw-deploy')].Arn" \
+  --output text
+
+# 2. Create access entry
+aws eks create-access-entry \
+  --cluster-name forge-works-dev \
+  --principal-arn <ROLE-ARN> \
+  --profile fw-infra \
+  --region us-east-1
+
+# 3. Associate admin policy
+aws eks associate-access-policy \
+  --cluster-name forge-works-dev \
+  --principal-arn <ROLE-ARN> \
+  --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
+  --access-scope type=cluster \
+  --profile fw-infra \
+  --region us-east-1
+```
+
+---
+
+## Profiles Reference
+
+| Profile | Purpose | Use For |
+|---------|---------|---------|
+| `fw-infra` | Infrastructure provisioning | EKS creation, scaling, IAM, kubectl (cluster creator) |
+| `fw-deploy` | Day-to-day deployments | kubectl (after RBAC mapping), S3, ECR |
+| `fw-admin` | IAM Identity Center management | Permission set changes only |
+
+---
+
+## Useful Commands
+
+### Cluster Information
+
+```bash
+# Cluster details
+aws eks describe-cluster \
+  --name forge-works-dev \
+  --profile fw-infra \
+  --region us-east-1
+
+# Node group details
+aws eks describe-nodegroup \
+  --cluster-name forge-works-dev \
+  --nodegroup-name fw-workers \
+  --profile fw-infra \
+  --region us-east-1
+
+# List all clusters
+aws eks list-clusters --profile fw-infra --region us-east-1
+```
+
+### kubectl Shortcuts
+
+```bash
+# Nodes with resource usage
+kubectl top nodes
+
+# All pods across namespaces
+kubectl get pods -A
+
+# Current context
+kubectl config current-context
+
+# Switch context
+kubectl config use-context fw-dev
+```
+
+---
+
+## Storage Configuration
+
+### EBS CSI Driver
+
+The cluster uses the AWS EBS CSI Driver for persistent volumes.
+
+**Installed Components:**
+- IAM Role: `AmazonEKS_EBS_CSI_DriverRole`
+- Service Account: `ebs-csi-controller-sa` (kube-system)
+- Add-on: `aws-ebs-csi-driver`
+
+**Storage Classes:**
+
+| Name | Provisioner | Default | Encryption | Expansion |
+|------|-------------|---------|------------|-----------|
+| gp2 | kubernetes.io/aws-ebs | No | No | No |
+| **gp3** | ebs.csi.aws.com | **Yes** | **Yes** | **Yes** |
+
+**Verify Storage:**
+```bash
+kubectl get storageclass
+kubectl get pv
+kubectl get pvc -A
+```
+
+---
+
+## Lessons Learned
+
+### 1. EKS RBAC vs IAM Permissions
+
+**Issue:** Having IAM permissions (eks:DescribeCluster) doesn't grant Kubernetes RBAC access.
+
+**Solution:** The cluster creator automatically has admin access. Other principals must be explicitly granted access via:
+- EKS Access Entries (newer method, recommended)
+- aws-auth ConfigMap (legacy method)
+
+### 2. SSO Token Expiration
+
+**Issue:** SSO tokens expire after 8-12 hours, breaking kubectl.
+
+**Solution:** Run `aws sso login --sso-session forgeworks` at the start of each session.
+
+### 3. Use fw-infra for kubectl
+
+**Best Practice:** Use `fw-infra` profile for kubectl commands since it created the cluster and has automatic admin access.
+
+---
+
+*EKS Operations Guide v1.0.0*
+*Last Updated: 2025-02-01*

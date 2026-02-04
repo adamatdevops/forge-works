@@ -1,0 +1,350 @@
+# ForgeWorks NetworkPolicies
+# Sprint I-1: Namespaces & RBAC
+# Strategy: Default deny all, then allow specific traffic
+---
+# === FORGE-ENGINE NAMESPACE ===
+
+# Default deny all ingress in forge-engine
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Kafka internal communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka-internal
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: kafka
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from other Kafka brokers (cluster communication)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: kafka
+      ports:
+        - protocol: TCP
+          port: 9092  # Client port
+        - protocol: TCP
+          port: 9093  # Inter-broker
+    # Allow from Flink (consumers/producers)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: flink
+      ports:
+        - protocol: TCP
+          port: 9092
+    # Allow from Airflow (producers)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: airflow
+      ports:
+        - protocol: TCP
+          port: 9092
+    # Allow from forge-works namespace (backend producing events)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/component: application
+      ports:
+        - protocol: TCP
+          port: 9092
+---
+# Allow Flink internal communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-flink-internal
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: flink
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from other Flink pods (JobManager <-> TaskManager)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: flink
+      ports:
+        - protocol: TCP
+          port: 6123  # RPC
+        - protocol: TCP
+          port: 6124  # Blob server
+        - protocol: TCP
+          port: 8081  # REST API
+---
+# Allow Airflow internal communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-airflow-internal
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: airflow
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from other Airflow pods
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: airflow
+      ports:
+        - protocol: TCP
+          port: 8080  # Webserver
+        - protocol: TCP
+          port: 8793  # Worker logs
+---
+# === FORGE-WORKS NAMESPACE ===
+
+# Default deny all ingress in forge-works
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Backend API traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-ingress
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from ingress controller (external traffic)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+    # Allow from frontend (internal API calls)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: frontend
+      ports:
+        - protocol: TCP
+          port: 8000
+    # Allow from webhook-gateway
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: webhook-gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# Allow Frontend traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-ingress
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from ingress controller (external traffic)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+---
+# Allow Webhook Gateway traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-webhook-gateway-ingress
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: webhook-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from ingress controller (external webhooks)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# === FORGE-ML NAMESPACE ===
+
+# Default deny all ingress in forge-ml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow ML Inference traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ml-inference-ingress
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: ml-inference
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from Flink (real-time inference)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/component: engine
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: flink
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow from Backend (inference API)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/component: application
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: backend
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# === EGRESS POLICIES ===
+
+# Allow DNS egress for all pods (required for service discovery)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

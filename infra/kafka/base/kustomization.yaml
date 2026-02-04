@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: forge-kafka-base
+
+namespace: forge-engine
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: forge-works
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Kafka Cluster
+  - kafka-cluster.yaml
+  - kafka-metrics-config.yaml
+
+  # Event Topics (High Volume)
+  - topics/forge-events-github.yaml
+  - topics/forge-events-argocd.yaml
+  - topics/forge-events-kubernetes.yaml
+
+  # Processing Topics
+  - topics/forge-insights-realtime.yaml
+  - topics/forge-jobs-pending.yaml
+  - topics/forge-jobs-results.yaml
+
+  # Learning Topics (Lower Volume)
+  - topics/forge-learning-feedback.yaml
+  - topics/forge-learning-outcomes.yaml
+
+  # MCP Library
+  - topics/forge-mcp-updates.yaml
+
+  # Dead Letter Queue
+  - topics/forge-dlq-events.yaml

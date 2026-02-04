@@ -1,0 +1,23 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: forge.learning.outcomes
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: forge-learning-outcomes
+    app.kubernetes.io/part-of: forge-works
+    forge.topic.category: learning
+    forge.topic.type: outcomes
+spec:
+  # Transformation outcomes for training
+  # Key: job_id
+  # Partitioning: 3 partitions (low volume, batch consumption)
+  partitions: 3
+  replicas: 3
+  config:
+    retention.ms: 7776000000        # 90 days (historical training data)
+    retention.bytes: -1             # No size limit
+    cleanup.policy: delete
+    min.insync.replicas: 2
+    segment.bytes: 268435456        # 256MB segments
+    max.message.bytes: 10485760     # 10MB max message (outcomes can be larger)

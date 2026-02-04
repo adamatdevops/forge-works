@@ -1,0 +1,122 @@
+# ForgeWorks Deployment Configuration
+# Version: 1.0.0
+# Created: 2025-02-01
+# Philosophy: "Bring Your Own Stack"
+
+---
+# Cluster Information
+cluster:
+  name: forge-works-dev
+  provider: eks
+  region: us-east-1
+  version: "1.31"
+
+# Network Scenario
+# A = Standard (NAT/IGW exists, public access)
+# B = Private-Only (VPC Endpoints, no NAT)
+# C = Air-Gapped (proxy required for images)
+network:
+  scenario: A
+  endpointPublicAccess: true
+  endpointPrivateAccess: false
+  # Proxy settings (for Scenario B/C)
+  proxy:
+    enabled: false
+    httpProxy: ""
+    httpsProxy: ""
+    noProxy: "10.0.0.0/8,172.16.0.0/12,.svc,.cluster.local"
+
+# Container Images
+images:
+  registry: ghcr.io/forge-works
+  pullPolicy: IfNotPresent
+  # pullSecretName: ""  # Only if private registry
+
+# Storage Configuration
+storage:
+  defaultClass: gp3
+  provisioner: ebs.csi.aws.com
+  encrypted: true
+  allowVolumeExpansion: true
+
+# Secrets Backend
+# Options: kubernetes, external-secrets, sealed-secrets
+secrets:
+  backend: kubernetes
+  # If using external-secrets:
+  # externalSecrets:
+  #   provider: vault  # or aws-secrets-manager
+  #   vault:
+  #     server: https://vault.company.com
+  #     path: secret/data/forgeworks
+  #   aws:
+  #     region: us-east-1
+  #     secretPrefix: /forgeworks/
+
+# Component Settings
+components:
+  kafka:
+    enabled: true
+    brokers: 3          # 1 for minimal dev, 3 for prod-like
+    storage: 100Gi
+    storageClass: gp3
+
+  flink:
+    enabled: true
+    taskManager:
+      replicas: 2
+
+  airflow:
+    enabled: true
+    executor: kubernetes
+
+  postgres:
+    enabled: true
+    storage: 50Gi
+    storageClass: gp3
+
+  redis:
+    enabled: true
+    storage: 10Gi
+    storageClass: gp3
+
+  monitoring:
+    enabled: true
+    prometheus: true
+    grafana: true
+
+# Namespace Configuration
+namespaces:
+  engine: forge-engine      # Kafka, Flink, Airflow
+  app: forge-works          # Backend, Frontend, Webhook Gateway
+  ml: forge-ml              # Training/inference pods
+  monitoring: monitoring    # Prometheus, Grafana (optional)
+
+# Resource Profile
+# minimal = Dev/testing (reduced resources)
+# standard = Development (balanced)
+# production = Production (full resources)
+profile: standard
+
+# S3 Configuration (for state, models, logs)
+s3:
+  enabled: true
+  region: us-east-1
+  buckets:
+    state: fw-state-dev
+    models: fw-models-dev
+    logs: fw-logs-dev
+  # Authentication: IRSA (recommended for EKS)
+  useIRSA: true
+
+# IAM/RBAC
+iam:
+  # Profiles used for AWS operations
+  infraProfile: fw-infra
+  deployProfile: fw-infra  # Using fw-infra until fw-deploy is mapped
+
+# Tags (applied to AWS resources)
+tags:
+  Project: ForgeWorks
+  Environment: dev
+  ManagedBy: eksctl

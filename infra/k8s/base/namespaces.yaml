@@ -1,0 +1,48 @@
+# ForgeWorks Namespaces
+# Sprint I-1: Namespaces & RBAC
+# Pod Security Standards: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forge-engine
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+    app.kubernetes.io/component: engine
+    # Pod Security Standards - baseline (allows privileged containers for Kafka/Flink)
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+  annotations:
+    description: "Kafka, Flink, and Airflow components"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forge-works
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+    app.kubernetes.io/component: application
+    # Pod Security Standards - restricted (most secure)
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+  annotations:
+    description: "Backend API, Frontend, and Webhook Gateway"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forge-ml
+  labels:
+    app.kubernetes.io/part-of: forgeworks
+    app.kubernetes.io/component: ml
+    # Pod Security Standards - baseline (ML workloads may need GPU access)
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+  annotations:
+    description: "ML training and inference workloads"
