@@ -50,21 +50,12 @@ data:
         topic: "$3"
         partition: "$4"
 
-    # Controller metrics
+    # Controller metrics (KRaft)
     - pattern: kafka.controller<type=(.+), name=(.+)><>Value
       name: kafka_controller_$1_$2
       type: GAUGE
 
-  zookeeper-metrics-config.yml: |
-    # ZooKeeper JMX Exporter Configuration
-    lowercaseOutputName: true
-    rules:
-    - pattern: "org.apache.ZooKeeperService<name0=(.+)><>AvgRequestLatency"
-      name: zookeeper_avg_request_latency
-      type: GAUGE
-    - pattern: "org.apache.ZooKeeperService<name0=(.+)><>NumAliveConnections"
-      name: zookeeper_alive_connections
-      type: GAUGE
-    - pattern: "org.apache.ZooKeeperService<name0=(.+)><>OutstandingRequests"
-      name: zookeeper_outstanding_requests
+    # KRaft Raft metrics
+    - pattern: kafka.server<type=raft-metrics><>(.+)
+      name: kafka_raft_$1
       type: GAUGE

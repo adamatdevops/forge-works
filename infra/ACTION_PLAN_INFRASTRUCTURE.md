@@ -914,7 +914,69 @@ helm upgrade strimzi-cluster-operator strimzi/strimzi-kafka-operator \
 
 ---
 
-## Sprint I-3: Storage & Secrets Integration (Day 2)
+## Sprint I-3: Deploy Kafka Cluster (Day 2)
+
+**Goal:** Deploy Kafka cluster using Strimzi in KRaft mode
+
+**Status:** ✅ COMPLETE (2025-02-12)
+
+### Task Checklist
+
+| ID | Task | Priority | Status | Result |
+|----|------|----------|--------|--------|
+| T-I3.1 | Update Kafka manifests to KRaft mode | CRITICAL | ✅ | Removed ZooKeeper |
+| T-I3.2 | Fix Kustomize deprecation warnings | MEDIUM | ✅ | v1beta2 → v1 |
+| T-I3.3 | Deploy Kafka cluster (dev overlay) | CRITICAL | ✅ | 1 broker, KRaft |
+| T-I3.4 | Verify Kafka cluster and topics | CRITICAL | ✅ | Produce/consume passed |
+
+### Sprint I-3 Results
+
+```
+KAFKA CLUSTER
+═══════════════════════════════════════════════════════════════
+Cluster:        forge-kafka (KRaft mode)
+Kafka Version:  4.1.1
+Metadata:       4.1-IV1
+Brokers:        1 (dev overlay)
+Storage:        10Gi gp3
+Topics:         10 (all READY)
+API Version:    kafka.strimzi.io/v1
+═══════════════════════════════════════════════════════════════
+```
+
+**Manifests:**
+```
+infra/kafka/
+├── base/
+│   ├── kustomization.yaml
+│   ├── kafka-cluster.yaml         # Kafka CR (KRaft)
+│   ├── kafka-node-pool.yaml       # KafkaNodePool CR
+│   ├── kafka-metrics-config.yaml  # JMX + KRaft metrics
+│   └── topics/                    # 10 KafkaTopic CRs
+└── overlays/
+    ├── dev/kustomization.yaml     # 1 broker, reduced resources
+    └── prod/kustomization.yaml    # 3 brokers, full resources
+```
+
+**Deploy:** `kubectl apply -k infra/kafka/overlays/dev/`
+
+---
+
+## Sprint I-4: Deploy Flink Cluster (Day 2-3)
+
+**Goal:** Deploy Flink cluster for stream processing
+
+### Task Checklist
+
+| ID | Task | Priority | Status |
+|----|------|----------|--------|
+| T-I4.1 | Create Flink cluster manifests | CRITICAL | ⬜ |
+| T-I4.2 | Deploy Flink cluster (dev overlay) | CRITICAL | ⬜ |
+| T-I4.3 | Verify Flink cluster health | CRITICAL | ⬜ |
+
+---
+
+## Sprint I-5: Storage & Secrets Integration (Day 3)
 
 **Goal:** Configure storage and connect to customer's secret management
 
@@ -922,11 +984,11 @@ helm upgrade strimzi-cluster-operator strimzi/strimzi-kafka-operator \
 
 | ID | Task | Priority | Status |
 |----|------|----------|--------|
-| T-I3.1 | Verify storage class exists | CRITICAL | ⬜ |
-| T-I3.2 | Create high-IOPS storage class (if needed) | HIGH | ⬜ |
-| T-I3.3 | Configure secret backend (Vault/K8s/ESO) | CRITICAL | ⬜ |
-| T-I3.4 | Create secrets for ForgeWorks | CRITICAL | ⬜ |
-| T-I3.5 | Configure S3 access (IRSA or credentials) | CRITICAL | ⬜ |
+| T-I5.1 | Verify storage class exists | CRITICAL | ⬜ |
+| T-I5.2 | Create high-IOPS storage class (if needed) | HIGH | ⬜ |
+| T-I5.3 | Configure secret backend (Vault/K8s/ESO) | CRITICAL | ⬜ |
+| T-I5.4 | Create secrets for ForgeWorks | CRITICAL | ⬜ |
+| T-I5.5 | Configure S3 access (IRSA or credentials) | CRITICAL | ⬜ |
 
 ### Storage Class Verification
 

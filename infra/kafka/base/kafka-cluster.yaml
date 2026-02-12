@@ -1,4 +1,6 @@
-apiVersion: kafka.strimzi.io/v1beta2
+# ForgeWorks Kafka Cluster - KRaft Mode (No ZooKeeper)
+# Strimzi 0.50.0 + KRaft
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: forge-kafka
@@ -7,10 +9,12 @@ metadata:
     app.kubernetes.io/name: forge-kafka
     app.kubernetes.io/part-of: forge-works
     app.kubernetes.io/component: event-bus
+  annotations:
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
 spec:
   kafka:
-    version: 3.6.1
-    replicas: 3
+    version: 4.1.1
     listeners:
       - name: plain
         port: 9092
@@ -33,7 +37,7 @@ spec:
       min.insync.replicas: 2
 
       # Retention settings
-      log.retention.hours: 168  # 7 days default
+      log.retention.hours: 168  # 7 days
       log.retention.bytes: -1   # No size limit
 
       # Performance tuning
@@ -44,24 +48,7 @@ spec:
       socket.request.max.bytes: 104857600
 
       # Message size
-      message.max.bytes: 10485760  # 10MB max message
-
-    storage:
-      type: jbod
-      volumes:
-        - id: 0
-          type: persistent-claim
-          size: 100Gi
-          class: gp3
-          deleteClaim: false
-
-    resources:
-      requests:
-        memory: 2Gi
-        cpu: 500m
-      limits:
-        memory: 4Gi
-        cpu: 2000m
+      message.max.bytes: 10485760  # 10MB
 
     metricsConfig:
       type: jmxPrometheusExporter
@@ -69,53 +56,6 @@ spec:
         configMapKeyRef:
           name: kafka-metrics
           key: kafka-metrics-config.yml
-
-    template:
-      pod:
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 100
-                podAffinityTerm:
-                  labelSelector:
-                    matchLabels:
-                      strimzi.io/name: forge-kafka-kafka
-                  topologyKey: kubernetes.io/hostname
-
-  zookeeper:
-    replicas: 3
-    storage:
-      type: persistent-claim
-      size: 20Gi
-      class: gp3
-      deleteClaim: false
-
-    resources:
-      requests:
-        memory: 512Mi
-        cpu: 200m
-      limits:
-        memory: 1Gi
-        cpu: 500m
-
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: zookeeper-metrics-config.yml
-
-    template:
-      pod:
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 100
-                podAffinityTerm:
-                  labelSelector:
-                    matchLabels:
-                      strimzi.io/name: forge-kafka-zookeeper
-                  topologyKey: kubernetes.io/hostname
 
   entityOperator:
     topicOperator:

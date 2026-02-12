@@ -5,6 +5,38 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-02-12
+
+### Added
+- **Sprint I-3: Deploy Kafka Cluster**
+  - Deployed Kafka in KRaft mode (no ZooKeeper) via Strimzi
+  - Created `KafkaNodePool` CR for combined broker+controller roles
+  - Deployed 10 ForgeWorks topics (events, jobs, insights, learning, DLQ)
+  - Added KRaft-specific Prometheus metrics
+  - Dev overlay: 1 broker, 10Gi storage, reduced resources
+
+### Changed
+- Upgraded Kafka version from 3.9.0 to **4.1.1** (Strimzi 0.50.0 requirement)
+- Migrated all Strimzi CRs from `v1beta2` to **`v1`** API
+- Updated `commonLabels` to `labels` in Kafka kustomization files
+- Removed ZooKeeper configuration and metrics
+- Added `strimzi.io/cluster` label to all KafkaTopic CRs
+
+### Fixed
+- Kafka version incompatibility: Strimzi 0.50.0 only supports Kafka 4.x
+- Topics not reconciling due to missing cluster label
+- Removed unused `namespace.yaml` from Kafka kustomization
+
+### Infrastructure Components
+| Component | Version | Namespace |
+|-----------|---------|-----------|
+| Kafka (KRaft) | 4.1.1 | forge-engine |
+| Strimzi Operator | 0.50.0 | forge-engine |
+| Flink Operator | 1.10.0 | forge-engine |
+| Cert-Manager | 1.16.2 | cert-manager |
+
+---
+
 ## [0.2.0] - 2025-02-04
 
 ### Added
@@ -73,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Sprint I-3: Deploy Kafka Cluster (KRaft mode, 3 brokers)
 - Sprint I-4: Deploy Flink Cluster
-- Sprint I-5: ForgeWorks Engine Deployment
-- Sprint I-6: Validation & Testing
+- Sprint I-5: Storage & Secrets Integration
+- Sprint I-6: ForgeWorks Engine Deployment
+- Sprint I-7: Validation & Testing

@@ -1,0 +1,42 @@
+# ForgeWorks Kafka Node Pool - KRaft Mode
+# Combined broker + controller roles
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: forge-kafka-pool
+  namespace: forge-engine
+  labels:
+    strimzi.io/cluster: forge-kafka
+    app.kubernetes.io/name: forge-kafka
+    app.kubernetes.io/part-of: forge-works
+spec:
+  replicas: 3
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        class: gp3
+        deleteClaim: false
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 500m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  template:
+    pod:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    strimzi.io/cluster: forge-kafka
+                topologyKey: kubernetes.io/hostname

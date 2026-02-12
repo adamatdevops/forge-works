@@ -1,4 +1,4 @@
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: forge.mcp.updates
@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: forge-works
     forge.topic.category: mcp
     forge.topic.type: updates
+    strimzi.io/cluster: forge-kafka
 spec:
   # Template/pattern updates from MCP library
   # Key: template_name

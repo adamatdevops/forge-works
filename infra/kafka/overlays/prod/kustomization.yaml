@@ -42,6 +42,6 @@ patches:
         value: 2Gi
     target:
       group: kafka.strimzi.io
-      version: v1beta2
+      version: v1
       kind: Kafka
       name: forge-kafka

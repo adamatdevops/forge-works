@@ -9,36 +9,61 @@ namespace: forge-engine
 resources:
   - ../../base
 
-commonLabels:
-  environment: dev
+labels:
+  - pairs:
+      environment: dev
+    includeSelectors: false
 
-# Development overrides
+# Dev overrides - reduce resources for t3.large nodes
 patches:
-  # Reduce Kafka brokers to 1 for dev
+  # Reduce Kafka config for single broker
   - patch: |-
       - op: replace
-        path: /spec/kafka/replicas
+        path: /spec/kafka/config/offsets.topic.replication.factor
         value: 1
       - op: replace
-        path: /spec/kafka/storage/volumes/0/size
-        value: 10Gi
-      - op: replace
-        path: /spec/kafka/resources/requests/memory
-        value: 1Gi
-      - op: replace
-        path: /spec/kafka/resources/limits/memory
-        value: 2Gi
-      - op: replace
-        path: /spec/zookeeper/replicas
+        path: /spec/kafka/config/transaction.state.log.replication.factor
         value: 1
       - op: replace
-        path: /spec/zookeeper/storage/size
-        value: 5Gi
+        path: /spec/kafka/config/transaction.state.log.min.isr
+        value: 1
+      - op: replace
+        path: /spec/kafka/config/default.replication.factor
+        value: 1
+      - op: replace
+        path: /spec/kafka/config/min.insync.replicas
+        value: 1
     target:
       group: kafka.strimzi.io
-      version: v1beta2
+      version: v1
       kind: Kafka
       name: forge-kafka
+
+  # Reduce node pool to 1 replica with less resources
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/storage/volumes/0/size
+        value: 10Gi
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/resources/limits/memory
+        value: 2Gi
+      - op: replace
+        path: /spec/resources/requests/cpu
+        value: 250m
+      - op: replace
+        path: /spec/resources/limits/cpu
+        value: 1000m
+    target:
+      group: kafka.strimzi.io
+      version: v1
+      kind: KafkaNodePool
+      name: forge-kafka-pool
 
   # Reduce topic replicas to 1 for dev
   - patch: |-
@@ -53,5 +78,5 @@ patches:
         value: 1
     target:
       group: kafka.strimzi.io
-      version: v1beta2
+      version: v1
       kind: KafkaTopic

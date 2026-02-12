@@ -1,7 +1,7 @@
 # ForgeWorks Infrastructure - Progress Tracker
 
-> **Last Updated:** 2025-02-04
-> **Current Phase:** Sprint I-3 (Deploy Kafka Cluster)
+> **Last Updated:** 2025-02-12
+> **Current Phase:** Sprint I-4 (Deploy Flink Cluster)
 
 ---
 
@@ -23,12 +23,15 @@ INFRASTRUCTURE DEPLOYMENT PROGRESS
 ✅ Sprint I-2: Operators                      COMPLETE
    └── Strimzi, Flink Operator, Cert-Manager installed
 
-➡️ Sprint I-3: Deploy Kafka Cluster           NEXT
-   └── Kafka brokers, KRaft mode, topics
+✅ Sprint I-3: Deploy Kafka Cluster           COMPLETE
+   └── KRaft 4.1.1, 1 broker (dev), 10 topics, produce/consume ✓
 
-⬜ Sprint I-4: Deploy Flink Cluster            PENDING
-⬜ Sprint I-5: ForgeWorks Engine Deploy        PENDING
-⬜ Sprint I-6: Validation                      PENDING
+➡️ Sprint I-4: Deploy Flink Cluster           NEXT
+   └── Flink JobManager, TaskManagers
+
+⬜ Sprint I-5: Storage & Secrets              PENDING
+⬜ Sprint I-6: ForgeWorks Engine Deploy       PENDING
+⬜ Sprint I-7: Validation                     PENDING
 
 ═══════════════════════════════════════════════════════════════
 ```
@@ -142,17 +145,46 @@ cert-manager   cert-manager-webhook-564f647c66-2dzjh       1/1     Running
 
 ---
 
-### Sprint I-3: Deploy Kafka Cluster (Next)
+### Sprint I-3: Deploy Kafka Cluster ✅
+
+**Completed:** 2025-02-12
+
+| Task | Status | Result |
+|------|--------|--------|
+| Update manifests to KRaft mode | ✅ | Removed ZooKeeper |
+| Fix API deprecation (v1beta2 → v1) | ✅ | All CRs on v1 |
+| Deploy Kafka cluster (dev overlay) | ✅ | 1 broker, 10Gi gp3 |
+| Add cluster labels to topics | ✅ | All 10 topics READY |
+| Produce/consume test | ✅ | `hello-forgeworks` passed |
+
+**Kafka Cluster:**
+```
+Name:           forge-kafka
+Mode:           KRaft (no ZooKeeper)
+Version:        4.1.1
+Metadata:       4.1-IV1
+Brokers:        1 (dev)
+Storage:        10Gi gp3
+Topics:         10 (all READY, RF=1, 2 partitions)
+```
+
+**Issues Resolved:**
+- Kafka 3.9.0 unsupported → updated to 4.1.1
+- Missing `strimzi.io/cluster` label on topics → added
+- `v1beta2` API deprecated → migrated to `v1`
+- `kubectl exec <<<` stdin issue → used `sh -c` with pipe
+
+---
+
+### Sprint I-4: Deploy Flink Cluster (Next)
 
 **Status:** PENDING
 
 | Task | Status |
 |------|--------|
-| Create Kafka cluster CR | ⬜ |
-| Configure KRaft mode | ⬜ |
-| Set up persistent storage | ⬜ |
-| Create ForgeWorks topics | ⬜ |
-| Verify Kafka connectivity | ⬜ |
+| Create Flink cluster manifests | ⬜ |
+| Deploy Flink cluster (dev) | ⬜ |
+| Verify Flink cluster health | ⬜ |
 
 ---
 
@@ -221,5 +253,5 @@ aws eks update-nodegroup-config \
 
 ---
 
-*Progress Tracker v1.1.0*
-*Updated: 2025-02-04*
+*Progress Tracker v1.2.0*
+*Updated: 2025-02-12*

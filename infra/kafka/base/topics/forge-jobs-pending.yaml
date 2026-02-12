@@ -1,4 +1,4 @@
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: forge.jobs.pending
@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: forge-works
     forge.topic.category: jobs
     forge.topic.stage: pending
+    strimzi.io/cluster: forge-kafka
 spec:
   # Job specs waiting for execution
   # Key: job_id

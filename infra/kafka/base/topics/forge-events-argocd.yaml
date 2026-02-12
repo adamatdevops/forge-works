@@ -1,4 +1,4 @@
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: forge.events.argocd
@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: forge-works
     forge.topic.category: events
     forge.topic.source: argocd
+    strimzi.io/cluster: forge-kafka
 spec:
   # ArgoCD events (sync, health)
   # Key: application.name

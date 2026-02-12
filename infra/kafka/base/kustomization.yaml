@@ -6,15 +6,15 @@ metadata:
 
 namespace: forge-engine
 
-commonLabels:
-  app.kubernetes.io/managed-by: kustomize
-  app.kubernetes.io/part-of: forge-works
+labels:
+  - pairs:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/part-of: forge-works
+    includeSelectors: false
 
 resources:
-  # Namespace
-  - namespace.yaml
-
-  # Kafka Cluster
+  # Kafka Cluster (KRaft)
+  - kafka-node-pool.yaml
   - kafka-cluster.yaml
   - kafka-metrics-config.yaml
 

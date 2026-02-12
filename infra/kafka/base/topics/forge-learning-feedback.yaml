@@ -1,4 +1,4 @@
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: forge.learning.feedback
@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: forge-works
     forge.topic.category: learning
     forge.topic.type: feedback
+    strimzi.io/cluster: forge-kafka
 spec:
   # User feedback for model improvement
   # Key: correlation_id
