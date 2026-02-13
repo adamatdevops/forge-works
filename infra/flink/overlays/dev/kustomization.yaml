@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: forge-flink-dev
+
+namespace: forge-engine
+
+resources:
+  - ../../base
+
+labels:
+  - pairs:
+      environment: dev
+    includeSelectors: false
+
+# Dev overrides - reduce resources for t3.large nodes
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/jobManager/resource/memory
+        value: "1g"
+      - op: replace
+        path: /spec/jobManager/resource/cpu
+        value: 0.5
+      - op: replace
+        path: /spec/taskManager/resource/memory
+        value: "1g"
+      - op: replace
+        path: /spec/taskManager/resource/cpu
+        value: 0.5
+      - op: replace
+        path: /spec/taskManager/replicas
+        value: 1
+    target:
+      group: flink.apache.org
+      version: v1beta1
+      kind: FlinkDeployment
+      name: forge-flink

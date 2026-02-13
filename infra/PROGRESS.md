@@ -1,7 +1,7 @@
 # ForgeWorks Infrastructure - Progress Tracker
 
-> **Last Updated:** 2025-02-12
-> **Current Phase:** Sprint I-4 (Deploy Flink Cluster)
+> **Last Updated:** 2025-02-13
+> **Current Phase:** Sprint I-5 (Storage & Secrets)
 
 ---
 
@@ -26,10 +26,10 @@ INFRASTRUCTURE DEPLOYMENT PROGRESS
 ✅ Sprint I-3: Deploy Kafka Cluster           COMPLETE
    └── KRaft 4.1.1, 1 broker (dev), 10 topics, produce/consume ✓
 
-➡️ Sprint I-4: Deploy Flink Cluster           NEXT
-   └── Flink JobManager, TaskManagers
+✅ Sprint I-4: Deploy Flink Cluster           COMPLETE
+   └── Flink 1.20.3, session cluster, STABLE
 
-⬜ Sprint I-5: Storage & Secrets              PENDING
+➡️ Sprint I-5: Storage & Secrets              NEXT
 ⬜ Sprint I-6: ForgeWorks Engine Deploy       PENDING
 ⬜ Sprint I-7: Validation                     PENDING
 
@@ -176,15 +176,39 @@ Topics:         10 (all READY, RF=1, 2 partitions)
 
 ---
 
-### Sprint I-4: Deploy Flink Cluster (Next)
+### Sprint I-4: Deploy Flink Cluster ✅
+
+**Completed:** 2025-02-13
+
+| Task | Status | Result |
+|------|--------|--------|
+| Create Flink session cluster manifests | ✅ | Base + dev/prod overlays |
+| Deploy Flink cluster (dev overlay) | ✅ | 1 JM, 1 TM (on-demand) |
+| Verify Flink cluster health | ✅ | STABLE, REST API responding |
+
+**Flink Cluster:**
+```
+Name:           forge-flink
+Mode:           Session Cluster
+Version:        1.20.3
+Lifecycle:      STABLE
+JobManager:     1 (1g mem, 0.5 cpu)
+TaskManagers:   On-demand (1g mem, 0.5 cpu)
+Kafka:          forge-kafka-kafka-bootstrap:9092
+Dashboard:      port-forward svc/forge-flink-rest 8081
+```
+
+---
+
+### Sprint I-5: Storage & Secrets (Next)
 
 **Status:** PENDING
 
 | Task | Status |
 |------|--------|
-| Create Flink cluster manifests | ⬜ |
-| Deploy Flink cluster (dev) | ⬜ |
-| Verify Flink cluster health | ⬜ |
+| Configure S3 access (IRSA) | ⬜ |
+| Create ForgeWorks secrets | ⬜ |
+| Verify secret access | ⬜ |
 
 ---
 
@@ -253,5 +277,5 @@ aws eks update-nodegroup-config \
 
 ---
 
-*Progress Tracker v1.2.0*
-*Updated: 2025-02-12*
+*Progress Tracker v1.3.0*
+*Updated: 2025-02-13*

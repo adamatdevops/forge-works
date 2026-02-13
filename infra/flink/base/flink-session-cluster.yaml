@@ -1,0 +1,64 @@
+# ForgeWorks Flink Session Cluster
+# Flink Kubernetes Operator 1.10.0
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: forge-flink
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: forge-flink
+    app.kubernetes.io/part-of: forge-works
+    app.kubernetes.io/component: stream-processor
+spec:
+  image: flink:1.20
+  flinkVersion: v1_20
+  flinkConfiguration:
+    # Checkpointing
+    execution.checkpointing.interval: "60000"
+    execution.checkpointing.mode: EXACTLY_ONCE
+    state.checkpoints.num-retained: "3"
+
+    # State backend
+    state.backend.type: hashmap
+    state.checkpoints.dir: file:///flink-data/checkpoints
+    state.savepoints.dir: file:///flink-data/savepoints
+
+    # High availability
+    high-availability.type: kubernetes
+    high-availability.storageDir: file:///flink-data/ha
+
+    # Restart strategy
+    restart-strategy.type: exponential-delay
+    restart-strategy.exponential-delay.initial-backoff: "1s"
+    restart-strategy.exponential-delay.max-backoff: "60s"
+
+    # Web UI
+    web.cancel.enable: "true"
+
+    # Kafka connector defaults
+    kafka.bootstrap.servers: forge-kafka-kafka-bootstrap.forge-engine.svc:9092
+
+  serviceAccount: flink-sa
+
+  jobManager:
+    resource:
+      memory: "2g"
+      cpu: 1
+    replicas: 1
+
+  taskManager:
+    resource:
+      memory: "2g"
+      cpu: 1
+    replicas: 2
+
+  podTemplate:
+    spec:
+      containers:
+        - name: flink-main-container
+          volumeMounts:
+            - name: flink-data
+              mountPath: /flink-data
+      volumes:
+        - name: flink-data
+          emptyDir: {}

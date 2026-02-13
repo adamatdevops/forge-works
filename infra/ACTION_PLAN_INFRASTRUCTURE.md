@@ -966,13 +966,26 @@ infra/kafka/
 
 **Goal:** Deploy Flink cluster for stream processing
 
+**Status:** ✅ COMPLETE (2025-02-13)
+
 ### Task Checklist
 
-| ID | Task | Priority | Status |
-|----|------|----------|--------|
-| T-I4.1 | Create Flink cluster manifests | CRITICAL | ⬜ |
-| T-I4.2 | Deploy Flink cluster (dev overlay) | CRITICAL | ⬜ |
-| T-I4.3 | Verify Flink cluster health | CRITICAL | ⬜ |
+| ID | Task | Priority | Status | Result |
+|----|------|----------|--------|--------|
+| T-I4.1 | Create Flink session cluster manifests | CRITICAL | ✅ | Base + overlays |
+| T-I4.2 | Deploy Flink cluster (dev overlay) | CRITICAL | ✅ | STABLE |
+| T-I4.3 | Verify Flink cluster health | CRITICAL | ✅ | Flink 1.20.3, REST API |
+
+### Sprint I-4 Results
+
+**Deploy:** `kubectl apply -k infra/flink/overlays/dev/`
+
+**Manifests:**
+```
+infra/flink/
+├── base/flink-session-cluster.yaml
+└── overlays/dev/kustomization.yaml   # 1g mem, 0.5 cpu
+```
 
 ---
 

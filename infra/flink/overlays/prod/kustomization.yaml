@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: forge-flink-prod
+
+namespace: forge-engine
+
+resources:
+  - ../../base
+
+labels:
+  - pairs:
+      environment: prod
+    includeSelectors: false
+
+# Prod uses base values (2g memory, 2 TaskManagers)

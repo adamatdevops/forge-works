@@ -5,6 +5,26 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-02-13
+
+### Added
+- **Sprint I-4: Deploy Flink Cluster**
+  - Created FlinkDeployment CR for session cluster mode
+  - Configured checkpointing, HA, restart strategy, Kafka integration
+  - Dev overlay: 1 JobManager (1g), TaskManagers on-demand (1g)
+  - Prod overlay: 1 JobManager (2g), 2 TaskManagers (2g)
+
+### Infrastructure Components
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| Kafka (KRaft) | 4.1.1 | forge-engine | READY |
+| Flink (Session) | 1.20.3 | forge-engine | STABLE |
+| Strimzi Operator | 0.50.0 | forge-engine | Running |
+| Flink Operator | 1.10.0 | forge-engine | Running |
+| Cert-Manager | 1.16.2 | cert-manager | Running |
+
+---
+
 ## [0.3.0] - 2025-02-12
 
 ### Added
@@ -105,7 +125,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Sprint I-4: Deploy Flink Cluster
 - Sprint I-5: Storage & Secrets Integration
 - Sprint I-6: ForgeWorks Engine Deployment
 - Sprint I-7: Validation & Testing
