@@ -5,6 +5,40 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-14
+
+### Added
+- **Sprint I-5: Storage & Secrets**
+  - Created 6 K8s secrets across 3 namespaces (postgres, redis, app-config, ml-config)
+  - Created 3 S3 buckets: fw-state-dev (versioned), fw-models-dev, fw-logs-dev
+  - Configured OIDC provider for EKS IRSA
+  - Created 3 IAM policies (fw-engine-s3-access, fw-ml-s3-access, fw-ml-inference-s3-access)
+  - Created 4 IAM roles with OIDC trust policies for IRSA
+  - Annotated 4 service accounts with IAM role ARNs
+  - Created `create-secrets.sh` script with dry-run support
+  - Created `setup-irsa.sh` script with split-profile approach (fw-admin + fw-infra)
+  - Verified full IRSA chain: Pod → SA → OIDC → IAM Role → S3 (write/read round-trip)
+
+### Fixed
+- AWS CLI v2 pager blocking script output → added `export AWS_PAGER=""`
+- `fw-infra` lacks IAM permissions → split-profile approach for IRSA setup
+- `eksctl create iamserviceaccount` unauthorized → manual IAM roles + kubectl annotate
+- `amazon/aws-cli` entrypoint blocks `sh -c` → container command override in pod spec
+
+### Infrastructure Components
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| Kafka (KRaft) | 4.1.1 | forge-engine | READY |
+| Flink (Session) | 1.20.3 | forge-engine | STABLE |
+| Strimzi Operator | 0.50.0 | forge-engine | Running |
+| Flink Operator | 1.10.0 | forge-engine | Running |
+| Cert-Manager | 1.16.2 | cert-manager | Running |
+| IRSA | 4 roles | forge-engine, forge-ml | Active |
+| S3 Buckets | 3 | us-east-1 | Created |
+| K8s Secrets | 6 | all namespaces | Created |
+
+---
+
 ## [0.4.0] - 2025-02-13
 
 ### Added
@@ -125,6 +159,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Sprint I-5: Storage & Secrets Integration
 - Sprint I-6: ForgeWorks Engine Deployment
 - Sprint I-7: Validation & Testing

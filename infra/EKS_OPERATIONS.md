@@ -234,6 +234,51 @@ kubectl get pvc -A
 
 ---
 
+## IRSA (IAM Roles for Service Accounts)
+
+Pods access S3 via IRSA — no stored credentials needed.
+
+**IAM Policies:**
+| Policy | Buckets | Access |
+|--------|---------|--------|
+| fw-engine-s3-access | fw-state-dev, fw-logs-dev | Read/Write |
+| fw-ml-s3-access | fw-models-dev, fw-logs-dev | Read/Write |
+| fw-ml-inference-s3-access | fw-models-dev | Read-Only |
+
+**Service Account → IAM Role Mapping:**
+| Service Account | Namespace | IAM Role |
+|----------------|-----------|----------|
+| flink-sa | forge-engine | fw-forge-engine-flink-sa |
+| airflow-sa | forge-engine | fw-forge-engine-airflow-sa |
+| ml-runner-sa | forge-ml | fw-forge-ml-ml-runner-sa |
+| ml-inference-sa | forge-ml | fw-forge-ml-ml-inference-sa |
+
+**OIDC Provider:** `oidc.eks.us-east-1.amazonaws.com/id/39DA4641683A2882E9AE71BFEA689869`
+
+**Setup Script:** `infra/k8s/base/irsa/setup-irsa.sh`
+- Uses `fw-admin` for IAM operations, `fw-infra` for kubectl
+- Supports `--dry-run` flag
+
+**Test IRSA:**
+```bash
+kubectl run s3-test --rm -it \
+  --image=amazon/aws-cli \
+  --overrides='{"spec":{"serviceAccountName":"flink-sa","containers":[{"name":"s3-test","image":"amazon/aws-cli","command":["sh","-c","aws s3 ls s3://fw-state-dev/"]}]}}' \
+  -n forge-engine
+```
+
+---
+
+## S3 Buckets
+
+| Bucket | Purpose | Versioning |
+|--------|---------|------------|
+| fw-state-dev | Flink checkpoints, savepoints, HA state | Enabled |
+| fw-models-dev | ML model artifacts | - |
+| fw-logs-dev | Application and pipeline logs | - |
+
+---
+
 ## Lessons Learned
 
 ### 1. EKS RBAC vs IAM Permissions
@@ -254,7 +299,25 @@ kubectl get pvc -A
 
 **Best Practice:** Use `fw-infra` profile for kubectl commands since it created the cluster and has automatic admin access.
 
+### 4. Split-Profile for IRSA
+
+**Issue:** `fw-infra` has EKS access but not IAM permissions. `fw-admin` has IAM access but not K8s RBAC.
+
+**Solution:** Split operations: `fw-admin` for IAM roles/policies, `fw-infra` (kubectl) for SA annotations. See `setup-irsa.sh`.
+
+### 5. AWS CLI v2 Pager
+
+**Issue:** AWS CLI v2 pipes long output through `less`, blocking scripts.
+
+**Solution:** Add `export AWS_PAGER=""` to scripts or `~/.aws/config`.
+
+### 6. amazon/aws-cli Image Entrypoint
+
+**Issue:** The `amazon/aws-cli` Docker image uses `aws` as entrypoint, so `sh -c` is treated as aws arguments.
+
+**Solution:** Override the container command via `--overrides` with `"command":["sh","-c","..."]`.
+
 ---
 
-*EKS Operations Guide v1.0.0*
-*Last Updated: 2025-02-01*
+*EKS Operations Guide v1.1.0*
+*Last Updated: 2026-02-14*

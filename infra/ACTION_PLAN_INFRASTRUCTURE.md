@@ -991,17 +991,19 @@ infra/flink/
 
 ## Sprint I-5: Storage & Secrets Integration (Day 3)
 
-**Goal:** Configure storage and connect to customer's secret management
+**Goal:** Configure storage, secrets, S3 buckets, and IRSA for S3 access
+
+**Status:** ✅ COMPLETE (2026-02-14)
 
 ### Task Checklist
 
-| ID | Task | Priority | Status |
-|----|------|----------|--------|
-| T-I5.1 | Verify storage class exists | CRITICAL | ⬜ |
-| T-I5.2 | Create high-IOPS storage class (if needed) | HIGH | ⬜ |
-| T-I5.3 | Configure secret backend (Vault/K8s/ESO) | CRITICAL | ⬜ |
-| T-I5.4 | Create secrets for ForgeWorks | CRITICAL | ⬜ |
-| T-I5.5 | Configure S3 access (IRSA or credentials) | CRITICAL | ⬜ |
+| ID | Task | Priority | Status | Result |
+|----|------|----------|--------|--------|
+| T-I5.1 | Verify storage class exists | CRITICAL | ✅ | gp3 default (Sprint I-0) |
+| T-I5.2 | Create K8s secrets | CRITICAL | ✅ | 6 secrets, 3 namespaces |
+| T-I5.3 | Create S3 buckets | CRITICAL | ✅ | fw-state-dev, fw-models-dev, fw-logs-dev |
+| T-I5.4 | Configure IRSA for S3 access | CRITICAL | ✅ | 3 policies, 4 roles, 4 SA annotations |
+| T-I5.5 | Verify secrets and S3 access | CRITICAL | ✅ | S3 write/read round-trip passed |
 
 ### Storage Class Verification
 

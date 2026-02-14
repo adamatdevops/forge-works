@@ -1,7 +1,7 @@
 # ForgeWorks Infrastructure - Progress Tracker
 
-> **Last Updated:** 2025-02-13
-> **Current Phase:** Sprint I-5 (Storage & Secrets)
+> **Last Updated:** 2026-02-14
+> **Current Phase:** Sprint I-6 (ForgeWorks Engine Deploy)
 
 ---
 
@@ -29,8 +29,10 @@ INFRASTRUCTURE DEPLOYMENT PROGRESS
 ✅ Sprint I-4: Deploy Flink Cluster           COMPLETE
    └── Flink 1.20.3, session cluster, STABLE
 
-➡️ Sprint I-5: Storage & Secrets              NEXT
-⬜ Sprint I-6: ForgeWorks Engine Deploy       PENDING
+✅ Sprint I-5: Storage & Secrets              COMPLETE
+   └── 6 secrets, 3 S3 buckets, IRSA (4 roles), verified
+
+➡️ Sprint I-6: ForgeWorks Engine Deploy       NEXT
 ⬜ Sprint I-7: Validation                     PENDING
 
 ═══════════════════════════════════════════════════════════════
@@ -200,15 +202,70 @@ Dashboard:      port-forward svc/forge-flink-rest 8081
 
 ---
 
-### Sprint I-5: Storage & Secrets (Next)
+### Sprint I-5: Storage & Secrets ✅
 
-**Status:** PENDING
+**Completed:** 2026-02-14
 
-| Task | Status |
-|------|--------|
-| Configure S3 access (IRSA) | ⬜ |
-| Create ForgeWorks secrets | ⬜ |
-| Verify secret access | ⬜ |
+| Task | Status | Result |
+|------|--------|--------|
+| Verify storage class | ✅ | gp3 default (done in Sprint I-0) |
+| Create K8s secrets | ✅ | 6 secrets across 3 namespaces |
+| Create S3 buckets | ✅ | fw-state-dev, fw-models-dev, fw-logs-dev |
+| Configure IRSA | ✅ | 3 IAM policies, 4 IAM roles, 4 SA annotations |
+| Verify S3 access | ✅ | Write/read round-trip via flink-sa passed |
+
+**Secrets Created:**
+| Secret | Namespace | Keys |
+|--------|-----------|------|
+| forge-postgres-credentials | forge-engine | 5 (host, port, db, user, pass) |
+| forge-redis-credentials | forge-engine | 3 (host, port, pass) |
+| forge-postgres-credentials | forge-works | 5 |
+| forge-redis-credentials | forge-works | 3 |
+| forge-app-config | forge-works | 2 (jwt-secret, secret-key) |
+| forge-ml-config | forge-ml | 1 (model-registry-url) |
+
+**S3 Buckets:**
+| Bucket | Purpose | Versioning |
+|--------|---------|------------|
+| fw-state-dev | Flink checkpoints, savepoints, HA | Enabled |
+| fw-models-dev | ML model artifacts | - |
+| fw-logs-dev | Application logs | - |
+
+**IRSA Configuration:**
+| Service Account | Namespace | IAM Role | S3 Access |
+|----------------|-----------|----------|-----------|
+| flink-sa | forge-engine | fw-forge-engine-flink-sa | State + Logs (RW) |
+| airflow-sa | forge-engine | fw-forge-engine-airflow-sa | State + Logs (RW) |
+| ml-runner-sa | forge-ml | fw-forge-ml-ml-runner-sa | Models + Logs (RW) |
+| ml-inference-sa | forge-ml | fw-forge-ml-ml-inference-sa | Models (RO) |
+
+**Issues Resolved:**
+- `fw-infra` lacks IAM permissions → split-profile approach (fw-admin for IAM, fw-infra for kubectl)
+- AWS CLI v2 pager blocks scripts → `export AWS_PAGER=""`
+- `eksctl create iamserviceaccount` needs both IAM + EKS access → manual IAM roles + kubectl annotate
+- `amazon/aws-cli` entrypoint overrides `sh -c` → use container command override in pod spec
+
+**Manifests Created:**
+```
+infra/k8s/base/secrets/
+├── create-secrets.sh          # Secret creation script
+└── README.md                  # Secret documentation
+
+infra/k8s/base/irsa/
+├── setup-irsa.sh              # IRSA setup script (split-profile)
+└── README.md                  # IRSA documentation
+
+infra/iam/
+├── policies/
+│   ├── fw-engine-s3-policy.json
+│   ├── fw-ml-s3-policy.json
+│   └── fw-ml-inference-s3-policy.json
+└── trust-policies/
+    ├── fw-forge-engine-flink-sa-trust.json
+    ├── fw-forge-engine-airflow-sa-trust.json
+    ├── fw-forge-ml-ml-runner-sa-trust.json
+    └── fw-forge-ml-ml-inference-sa-trust.json
+```
 
 ---
 
@@ -277,5 +334,5 @@ aws eks update-nodegroup-config \
 
 ---
 
-*Progress Tracker v1.3.0*
-*Updated: 2025-02-13*
+*Progress Tracker v1.4.0*
+*Updated: 2026-02-14*
