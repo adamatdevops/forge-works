@@ -63,7 +63,13 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Get cached settings instance."""
-    return Settings()
+    s = Settings()
+    if s.environment != "development" and s.secret_key == "change-me-in-production-use-secrets-for-real-key":
+        raise ValueError(
+            "SECRET_KEY must be set via environment variable in non-development environments. "
+            "Do not use the default value in production."
+        )
+    return s
 
 
 settings = get_settings()

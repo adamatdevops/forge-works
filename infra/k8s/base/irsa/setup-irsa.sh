@@ -8,12 +8,26 @@ set -euo pipefail
 # Disable AWS CLI pager to prevent blocking on output
 export AWS_PAGER=""
 
-CLUSTER_NAME="forge-works-dev"
-REGION="us-east-1"
-IAM_PROFILE="fw-admin"    # IAM policy/role creation
-K8S_PROFILE="fw-infra"    # kubectl / EKS cluster access
-ACCOUNT_ID="525320085763"
-OIDC_ID="39DA4641683A2882E9AE71BFEA689869"
+CLUSTER_NAME="${CLUSTER_NAME:-forge-works-dev}"
+REGION="${REGION:-us-east-1}"
+IAM_PROFILE="${IAM_PROFILE:-fw-admin}"      # IAM policy/role creation
+K8S_PROFILE="${K8S_PROFILE:-fw-infra}"      # kubectl / EKS cluster access
+
+# Auto-detect Account ID and OIDC ID from AWS (no hardcoded secrets)
+echo "Detecting AWS Account ID..."
+ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --profile "${IAM_PROFILE}" --query 'Account' --output text)}"
+if [[ -z "${ACCOUNT_ID}" || "${ACCOUNT_ID}" == "None" ]]; then
+  echo "ERROR: Could not detect AWS Account ID. Ensure '${IAM_PROFILE}' profile is authenticated."
+  exit 1
+fi
+
+echo "Detecting OIDC provider for cluster ${CLUSTER_NAME}..."
+OIDC_URL="${OIDC_URL:-$(aws eks describe-cluster --name "${CLUSTER_NAME}" --region "${REGION}" --profile "${K8S_PROFILE}" --query 'cluster.identity.oidc.issuer' --output text)}"
+if [[ -z "${OIDC_URL}" || "${OIDC_URL}" == "None" ]]; then
+  echo "ERROR: Could not detect OIDC URL. Ensure cluster '${CLUSTER_NAME}' exists and '${K8S_PROFILE}' is authenticated."
+  exit 1
+fi
+OIDC_ID="${OIDC_URL##*/}"
 OIDC_PROVIDER="oidc.eks.${REGION}.amazonaws.com/id/${OIDC_ID}"
 POLICY_DIR="$(cd "$(dirname "$0")/../../.." && pwd)/iam/policies"
 TRUST_DIR="$(cd "$(dirname "$0")/../../.." && pwd)/iam/trust-policies"
