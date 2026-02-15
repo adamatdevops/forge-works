@@ -5,6 +5,37 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-15
+
+### Added
+- **Sprint I-6: Data Layer Deploy**
+  - Deployed Redis via Bitnami Helm chart (forge-redis, standalone mode, v8.6.0)
+  - Deployed PostgreSQL via Bitnami Helm chart (forge-postgres, v18.2)
+  - Both using existing K8s secrets from Sprint I-5 (existingSecret pattern)
+  - Full infrastructure validation: all 7 sprints complete
+
+### Fixed
+- Wrong Helm release name for Redis (`forge-engine` → `forge-redis`) — uninstall/reinstall
+- Missing `architecture=standalone` flag caused replication mode with no master pod
+- Bitnami chart `master.serviceAccount` doesn't control pod SA — use top-level `serviceAccount.create=true`
+- Strimzi operator pod label mismatch: uses `strimzi.io/kind=cluster-operator` not `app.kubernetes.io/name`
+
+### Infrastructure Components
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| Kafka (KRaft) | 4.1.1 | forge-engine | READY |
+| Flink (Session) | 1.20.3 | forge-engine | STABLE |
+| Redis (Standalone) | 8.6.0 | forge-engine | Running |
+| PostgreSQL | 18.2 | forge-engine | Running |
+| Strimzi Operator | 0.50.0 | forge-engine | Running |
+| Flink Operator | 1.10.0 | forge-engine | Running |
+| Cert-Manager | 1.16.2 | cert-manager | Running |
+| IRSA | 4 roles | forge-engine, forge-ml | Active |
+| S3 Buckets | 3 | us-east-1 | Created |
+| K8s Secrets | 6 | all namespaces | Created |
+
+---
+
 ## [0.5.0] - 2026-02-14
 
 ### Added

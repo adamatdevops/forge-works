@@ -1,7 +1,7 @@
 # ForgeWorks Infrastructure - Progress Tracker
 
-> **Last Updated:** 2026-02-14
-> **Current Phase:** Sprint I-6 (ForgeWorks Engine Deploy)
+> **Last Updated:** 2026-02-15
+> **Current Phase:** Sprint I-7 (Validation)
 
 ---
 
@@ -32,8 +32,10 @@ INFRASTRUCTURE DEPLOYMENT PROGRESS
 ✅ Sprint I-5: Storage & Secrets              COMPLETE
    └── 6 secrets, 3 S3 buckets, IRSA (4 roles), verified
 
-➡️ Sprint I-6: ForgeWorks Engine Deploy       NEXT
-⬜ Sprint I-7: Validation                     PENDING
+✅ Sprint I-6: Data Layer Deploy              COMPLETE
+   └── Redis 8.6.0 (standalone), PostgreSQL 18.2, all verified
+
+➡️ Sprint I-7: Validation                     NEXT
 
 ═══════════════════════════════════════════════════════════════
 ```
@@ -267,6 +269,62 @@ infra/iam/
     └── fw-forge-ml-ml-inference-sa-trust.json
 ```
 
+### Sprint I-6: Data Layer Deploy ✅
+
+**Completed:** 2026-02-15
+
+| Task | Status | Result |
+|------|--------|--------|
+| Deploy Redis (model cache) | ✅ | Bitnami Helm, standalone, v8.6.0 |
+| Deploy PostgreSQL (metadata DB) | ✅ | Bitnami Helm, v18.2 |
+| Verify all components | ✅ | Full infrastructure validation passed |
+
+**Redis:**
+```
+Release:        forge-redis (Helm)
+Chart:          redis-25.2.0
+App Version:    8.6.0
+Mode:           Standalone
+Service:        forge-redis-master.forge-engine.svc.cluster.local:6379
+Storage:        2Gi gp3
+Auth:           forge-redis-credentials (existingSecret)
+Verified:       PING/SET/GET/DEL round-trip passed
+```
+
+**PostgreSQL:**
+```
+Release:        forge-postgres (Helm)
+Chart:          postgresql-18.3.0
+App Version:    18.2
+Service:        forge-postgres-postgresql.forge-engine.svc.cluster.local:5432
+Database:       forgeworks
+User:           forgeworks
+Storage:        2Gi gp3
+Auth:           forge-postgres-credentials (existingSecret)
+Verified:       SELECT version() passed
+```
+
+**Helm Releases (forge-engine):**
+| Release | Chart | Version |
+|---------|-------|---------|
+| strimzi-kafka-operator | strimzi-kafka-operator-0.50.0 | 0.50.0 |
+| flink-kubernetes-operator | flink-kubernetes-operator-1.10.0 | 1.10.0 |
+| forge-redis | redis-25.2.0 | 8.6.0 |
+| forge-postgres | postgresql-18.3.0 | 18.2 |
+
+**PVCs (forge-engine):**
+| PVC | Size | StorageClass | Status |
+|-----|------|--------------|--------|
+| data-0-forge-kafka-forge-kafka-pool-0 | 10Gi | gp3 | Bound |
+| redis-data-forge-redis-master-0 | 2Gi | gp3 | Bound |
+| data-forge-postgres-postgresql-0 | 2Gi | gp3 | Bound |
+
+**Issues Resolved:**
+- Wrong Helm release name (`forge-engine` → `forge-redis`) — uninstall and reinstall
+- Missing `architecture=standalone` flag → deployed replication mode with no master
+- Bitnami chart `master.serviceAccount` vs top-level `serviceAccount` → let chart create its own SA
+- `redis-test` pod PSS violations and hangs → test via `kubectl exec` on running pod
+
 ---
 
 ## Cluster Information
@@ -334,5 +392,5 @@ aws eks update-nodegroup-config \
 
 ---
 
-*Progress Tracker v1.4.0*
-*Updated: 2026-02-14*
+*Progress Tracker v1.5.0*
+*Updated: 2026-02-15*

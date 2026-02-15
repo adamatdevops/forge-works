@@ -1148,15 +1148,17 @@ kubectl create secret generic forge-s3-credentials \
 
 **Goal:** Deploy Kafka, Flink, Redis, and PostgreSQL
 
+**Status:** ✅ COMPLETE (2026-02-15)
+
 ### Task Checklist
 
-| ID | Task | Priority | Status |
-|----|------|----------|--------|
-| T-I4.1 | Deploy Kafka cluster (Strimzi) | CRITICAL | ⬜ |
-| T-I4.2 | Create Kafka topics | CRITICAL | ⬜ |
-| T-I4.3 | Deploy Redis (model cache) | HIGH | ⬜ |
-| T-I4.4 | Deploy PostgreSQL (or connect to external) | HIGH | ⬜ |
-| T-I4.5 | Verify all components healthy | CRITICAL | ⬜ |
+| ID | Task | Priority | Status | Result |
+|----|------|----------|--------|--------|
+| T-I4.1 | Deploy Kafka cluster (Strimzi) | CRITICAL | ✅ | KRaft 4.1.1 (Sprint I-3) |
+| T-I4.2 | Create Kafka topics | CRITICAL | ✅ | 10 topics (Sprint I-3) |
+| T-I4.3 | Deploy Redis (model cache) | HIGH | ✅ | Bitnami Helm, standalone, v8.6.0 |
+| T-I4.4 | Deploy PostgreSQL (or connect to external) | HIGH | ✅ | Bitnami Helm, v18.2 |
+| T-I4.5 | Verify all components healthy | CRITICAL | ✅ | Full validation passed |
 
 ### Deploy Kafka
 

@@ -1,6 +1,6 @@
 # EKS Operations Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.2.0
 > **Created:** 2025-02-01
 > **Cluster:** forge-works-dev
 > **Region:** us-east-1
@@ -279,6 +279,52 @@ kubectl run s3-test --rm -it \
 
 ---
 
+## Redis
+
+**Release:** forge-redis (Helm)
+**Chart:** bitnami/redis 25.2.0 (App: 8.6.0)
+**Mode:** Standalone
+**Service:** `forge-redis-master.forge-engine.svc.cluster.local:6379`
+**Auth:** `forge-redis-credentials` secret (key: `password`)
+
+```bash
+# Check status
+kubectl get pods -n forge-engine -l app.kubernetes.io/name=redis
+
+# PING test
+kubectl exec -n forge-engine forge-redis-master-0 -- \
+  redis-cli -a "$(kubectl get secret forge-redis-credentials -n forge-engine -o jsonpath='{.data.password}' | base64 -d)" PING
+
+# Helm values used
+helm get values forge-redis -n forge-engine
+```
+
+---
+
+## PostgreSQL
+
+**Release:** forge-postgres (Helm)
+**Chart:** bitnami/postgresql 18.3.0 (App: 18.2)
+**Service:** `forge-postgres-postgresql.forge-engine.svc.cluster.local:5432`
+**Database:** forgeworks
+**User:** forgeworks
+**Auth:** `forge-postgres-credentials` secret (key: `password`)
+
+```bash
+# Check status
+kubectl get pods -n forge-engine -l app.kubernetes.io/name=postgresql
+
+# Connection test
+kubectl exec -n forge-engine forge-postgres-postgresql-0 -- \
+  env PGPASSWORD="$(kubectl get secret forge-postgres-credentials -n forge-engine -o jsonpath='{.data.password}' | base64 -d)" \
+  psql -U forgeworks -d forgeworks -c "SELECT version();"
+
+# Helm values used
+helm get values forge-postgres -n forge-engine
+```
+
+---
+
 ## Lessons Learned
 
 ### 1. EKS RBAC vs IAM Permissions
@@ -317,7 +363,28 @@ kubectl run s3-test --rm -it \
 
 **Solution:** Override the container command via `--overrides` with `"command":["sh","-c","..."]`.
 
+### 7. Bitnami Helm Chart Service Account Naming
+
+**Issue:** Setting `master.serviceAccount.create=false` and `master.serviceAccount.name=backend-sa` didn't take effect. StatefulSet looked for a non-existent SA named after the release.
+
+**Solution:** Use top-level `serviceAccount.create=true` and `serviceAccount.name=<name>` for Bitnami charts. Or let the chart create its own SA — fighting chart SA naming conventions isn't worth it.
+
+### 8. Bitnami Redis Architecture Flag
+
+**Issue:** Omitting `--set architecture=standalone` deploys in replication mode, creating replica pods with no master pod.
+
+**Solution:** Always explicitly set `architecture=standalone` for dev environments. The chart defaults to `replication`.
+
+### 9. Strimzi Operator Pod Label
+
+**Issue:** Strimzi operator pod uses `strimzi.io/kind=cluster-operator` label, not `app.kubernetes.io/name=strimzi-cluster-operator`.
+
+**Solution:** Use the correct label for monitoring/validation:
+```bash
+kubectl get pods -l strimzi.io/kind=cluster-operator --all-namespaces
+```
+
 ---
 
-*EKS Operations Guide v1.1.0*
-*Last Updated: 2026-02-14*
+*EKS Operations Guide v1.2.0*
+*Last Updated: 2026-02-15*
