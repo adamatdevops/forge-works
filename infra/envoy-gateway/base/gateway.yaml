@@ -1,0 +1,21 @@
+# ForgeWorks Gateway - Envoy Gateway API
+# Creates an Envoy Proxy deployment + LoadBalancer Service
+# On EKS: provisions AWS Classic LB (dev), upgrade to NLB for production
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: forgeworks-gateway
+  namespace: envoy-gateway-system
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              forgeworks.io/gateway: enabled
