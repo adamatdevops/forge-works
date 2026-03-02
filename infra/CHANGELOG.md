@@ -5,6 +5,44 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-03-02
+
+### Added
+- **Sprint I-7: Envoy Gateway**
+  - Installed Envoy Gateway v1.7.0 via Helm (CNCF Gateway API implementation)
+  - Created GatewayClass `eg` with Envoy Gateway controller
+  - Created Gateway resource `forgeworks-gateway` with HTTP listener on port 80
+  - Created 3 HTTPRoutes: backend-api (/api/*), webhook-gateway (/webhook/*), frontend (/* catch-all)
+  - AWS Classic Load Balancer auto-provisioned with external endpoint
+  - Kustomize base/overlay structure for envoy-gateway manifests
+  - Namespace label `forgeworks.io/gateway=enabled` for route attachment
+
+### Changed
+- Updated NetworkPolicies: `ingress-nginx` → `envoy-gateway-system` (3 policies)
+  - `allow-backend-ingress`, `allow-frontend-ingress`, `allow-webhook-gateway-ingress`
+
+### Fixed
+- GatewayClass `eg` not auto-created by Helm chart → manual creation required
+- Kustomize security policy blocks cross-directory file references → consolidated routes into base/
+
+### Infrastructure Components
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| Envoy Gateway | 1.7.0 | envoy-gateway-system | Running |
+| Gateway (forgeworks-gateway) | - | envoy-gateway-system | Programmed |
+| Kafka (KRaft) | 4.1.1 | forge-engine | READY |
+| Flink (Session) | 1.20.3 | forge-engine | STABLE |
+| Redis (Standalone) | 8.6.0 | forge-engine | Running |
+| PostgreSQL | 18.2 | forge-engine | Running |
+| Strimzi Operator | 0.50.0 | forge-engine | Running |
+| Flink Operator | 1.10.0 | forge-engine | Running |
+| Cert-Manager | 1.16.2 | cert-manager | Running |
+| IRSA | 4 roles | forge-engine, forge-ml | Active |
+| S3 Buckets | 3 | us-east-1 | Created |
+| K8s Secrets | 6 | all namespaces | Created |
+
+---
+
 ## [0.6.0] - 2026-02-15
 
 ### Added

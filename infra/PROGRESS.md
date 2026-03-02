@@ -1,7 +1,7 @@
 # ForgeWorks Infrastructure - Progress Tracker
 
-> **Last Updated:** 2026-02-15
-> **Current Phase:** Sprint I-7 (Validation)
+> **Last Updated:** 2026-03-02
+> **Current Phase:** Sprint I-8 (Validation)
 
 ---
 
@@ -35,7 +35,10 @@ INFRASTRUCTURE DEPLOYMENT PROGRESS
 ✅ Sprint I-6: Data Layer Deploy              COMPLETE
    └── Redis 8.6.0 (standalone), PostgreSQL 18.2, all verified
 
-➡️ Sprint I-7: Validation                     NEXT
+✅ Sprint I-7: Envoy Gateway                  COMPLETE
+   └── Envoy Gateway v1.7.0, Gateway API, 3 HTTPRoutes, CLB provisioned
+
+➡️ Sprint I-8: Validation                     NEXT
 
 ═══════════════════════════════════════════════════════════════
 ```
@@ -325,6 +328,59 @@ Verified:       SELECT version() passed
 - Bitnami chart `master.serviceAccount` vs top-level `serviceAccount` → let chart create its own SA
 - `redis-test` pod PSS violations and hangs → test via `kubectl exec` on running pod
 
+### Sprint I-7: Envoy Gateway ✅
+
+**Completed:** 2026-03-02
+
+| Task | Status | Result |
+|------|--------|--------|
+| Install Envoy Gateway v1.7.0 | ✅ | Helm chart in envoy-gateway-system |
+| Create GatewayClass | ✅ | `eg` class, ACCEPTED |
+| Create Gateway resource | ✅ | forgeworks-gateway, Programmed: True |
+| Create HTTPRoutes | ✅ | 3 routes (backend, frontend, webhook) |
+| Update NetworkPolicies | ✅ | ingress-nginx → envoy-gateway-system |
+| Verify LoadBalancer | ✅ | AWS CLB provisioned with external endpoint |
+
+**Envoy Gateway:**
+```
+Release:        envoy-gateway (Helm)
+Chart:          gateway-helm v1.7.0
+GatewayClass:   eg (ACCEPTED)
+Gateway:        forgeworks-gateway (Programmed: True)
+LoadBalancer:   a0156db91...us-east-1.elb.amazonaws.com:80
+```
+
+**HTTPRoutes:**
+| Route | Path | Backend | Port |
+|-------|------|---------|------|
+| backend-api | /api/* | backend | 8000 |
+| webhook-gateway | /webhook/* | webhook-gateway | 8080 |
+| frontend | /* (catch-all) | frontend | 3000 |
+
+**NetworkPolicy Updates:**
+- `allow-backend-ingress` → envoy-gateway-system
+- `allow-frontend-ingress` → envoy-gateway-system
+- `allow-webhook-gateway-ingress` → envoy-gateway-system
+
+**Manifests Created:**
+```
+infra/envoy-gateway/
+├── base/
+│   ├── kustomization.yaml
+│   ├── gateway.yaml
+│   ├── backend-route.yaml
+│   ├── frontend-route.yaml
+│   └── webhook-route.yaml
+└── overlays/
+    └── dev/
+        └── kustomization.yaml
+```
+
+**Issues Resolved:**
+- GatewayClass `eg` not created by Helm chart → created manually
+- Kustomize security policy blocks cross-directory references → moved routes into base/
+- NGINX Ingress Controller retirement (March 2026) → forward-looking Gateway API adoption
+
 ---
 
 ## Cluster Information
@@ -392,5 +448,5 @@ aws eks update-nodegroup-config \
 
 ---
 
-*Progress Tracker v1.5.0*
-*Updated: 2026-02-15*
+*Progress Tracker v1.6.0*
+*Updated: 2026-03-02*
