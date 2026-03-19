@@ -32,8 +32,9 @@ async def status():
     """Kafka cluster health — brokers, topics, connectivity."""
     metadata = await producer.get_cluster_metadata()
     if not metadata.get("connected"):
+        import json
         return Response(
-            content='{"status":"unhealthy","kafka":' + str(metadata).replace("'", '"') + '}',
+            content=json.dumps({"status": "unhealthy", "kafka": metadata}),
             status_code=503,
             media_type="application/json",
         )

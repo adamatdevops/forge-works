@@ -59,7 +59,7 @@ async def get_cluster_metadata() -> dict:
     if not _producer or _producer._closed:
         return {"connected": False}
     try:
-        metadata = await _producer.partitions_for(settings.kafka_topic_github)
+        await _producer.partitions_for(settings.kafka_topic_github)
         client = _producer.client
         cluster = client.cluster
         brokers = [
@@ -69,8 +69,7 @@ async def get_cluster_metadata() -> dict:
         topics = list(cluster.topics())
         return {
             "connected": True,
-            "cluster_id": cluster.cluster_id(),
-            "controller_id": cluster.controller and cluster.controller.nodeId,
+            "controller_id": getattr(cluster.controller, "nodeId", None),
             "brokers": brokers,
             "broker_count": len(brokers),
             "topics": sorted(topics),
