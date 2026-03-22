@@ -51,7 +51,6 @@ async def status():
     return {
         "status": "healthy" if not missing_topics else "degraded",
         "kafka": {
-            "cluster_id": metadata.get("cluster_id"),
             "controller_id": metadata.get("controller_id"),
             "brokers": metadata.get("brokers"),
             "broker_count": metadata.get("broker_count"),
