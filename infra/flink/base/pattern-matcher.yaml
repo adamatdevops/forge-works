@@ -1,0 +1,56 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: pattern-matcher
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: pattern-matcher
+    app.kubernetes.io/part-of: forge-works
+    app.kubernetes.io/component: stream-processor
+    environment: dev
+spec:
+  image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v2
+  flinkVersion: v1_20
+  serviceAccount: flink-sa
+  flinkConfiguration:
+    execution.checkpointing.interval: "60000"
+    execution.checkpointing.mode: EXACTLY_ONCE
+    state.backend.type: hashmap
+    state.checkpoints.dir: file:///flink-data/checkpoints
+    state.savepoints.dir: file:///flink-data/savepoints
+    high-availability.type: kubernetes
+    high-availability.storageDir: file:///flink-data/ha
+    restart-strategy.type: exponential-delay
+    restart-strategy.exponential-delay.initial-backoff: 1s
+    restart-strategy.exponential-delay.max-backoff: 60s
+    kafka.bootstrap.servers: forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092
+  jobManager:
+    replicas: 1
+    resource:
+      cpu: 0.5
+      memory: "1536m"
+  taskManager:
+    replicas: 1
+    resource:
+      cpu: 0.5
+      memory: "2048m"
+  podTemplate:
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: flink-main-container
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092
+          volumeMounts:
+            - name: flink-data
+              mountPath: /flink-data
+      volumes:
+        - name: flink-data
+          emptyDir: {}
+  job:
+    jarURI: local:///opt/flink/usrlib/pattern-matcher.jar
+    entryClass: dev.forgeworks.engine.patterns.PatternMatcherJob
+    parallelism: 1
+    upgradeMode: stateless
