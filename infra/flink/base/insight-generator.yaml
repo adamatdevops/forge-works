@@ -1,0 +1,56 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: insight-generator
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: insight-generator
+    app.kubernetes.io/part-of: forge-works
+    app.kubernetes.io/component: stream-processor
+    environment: dev
+spec:
+  image: ghcr.io/adamatdevops/forge-works/insight-generator:dev
+  flinkVersion: v1_20
+  serviceAccount: flink-sa
+  flinkConfiguration:
+    execution.checkpointing.interval: "60000"
+    execution.checkpointing.mode: EXACTLY_ONCE
+    state.backend.type: hashmap
+    state.checkpoints.dir: file:///flink-data/checkpoints
+    state.savepoints.dir: file:///flink-data/savepoints
+    high-availability.type: kubernetes
+    high-availability.storageDir: file:///flink-data/ha
+    restart-strategy.type: exponential-delay
+    restart-strategy.exponential-delay.initial-backoff: 1s
+    restart-strategy.exponential-delay.max-backoff: 60s
+    kafka.bootstrap.servers: forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092
+  jobManager:
+    replicas: 1
+    resource:
+      cpu: 0.25
+      memory: "1024m"
+  taskManager:
+    replicas: 1
+    resource:
+      cpu: 0.25
+      memory: "1024m"
+  podTemplate:
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: flink-main-container
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092
+          volumeMounts:
+            - name: flink-data
+              mountPath: /flink-data
+      volumes:
+        - name: flink-data
+          emptyDir: {}
+  job:
+    jarURI: local:///opt/flink/usrlib/insight-generator.jar
+    entryClass: dev.forgeworks.engine.insights.InsightGeneratorJob
+    parallelism: 1
+    upgradeMode: stateless
