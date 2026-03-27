@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: stream-processor
     environment: dev
 spec:
-  image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v2
+  image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v3
   flinkVersion: v1_20
   serviceAccount: flink-sa
   flinkConfiguration:
