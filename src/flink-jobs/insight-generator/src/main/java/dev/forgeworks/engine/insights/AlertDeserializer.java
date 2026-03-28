@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 
 public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
 
@@ -22,7 +23,7 @@ public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
         try {
             return mapper.readValue(message, PatternAlert.class);
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize alert: {}", new String(message), e);
+            LOG.warn("Failed to deserialize alert: size={}, sha256={}", message.length, sha256(message), e);
             return null;
         }
     }
@@ -33,5 +34,18 @@ public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
     @Override
     public TypeInformation<PatternAlert> getProducedType() {
         return TypeInformation.of(PatternAlert.class);
+    }
+
+    private static String sha256(byte[] data) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(data);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < Math.min(8, hash.length); i++) {
+                sb.append(String.format("%02x", hash[i]));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 }

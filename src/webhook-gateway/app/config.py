@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     argocd_webhook_secret: str = ""
     kubernetes_webhook_token: str = ""
 
+    # Security
+    require_webhook_secrets: bool = True  # Set False only in dev overlay
+    max_request_body_bytes: int = 1_048_576  # 1MB
+
     model_config = {"env_prefix": "FW_", "env_file": ".env"}
 
     def topic_for_source(self, source: str) -> str | None:

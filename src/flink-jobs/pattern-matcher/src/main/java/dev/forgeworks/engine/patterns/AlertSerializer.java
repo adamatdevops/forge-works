@@ -21,8 +21,8 @@ public class AlertSerializer implements SerializationSchema<PatternAlert> {
         try {
             return mapper.writeValueAsBytes(alert);
         } catch (Exception e) {
-            LOG.error("Failed to serialize alert: {}", alert, e);
-            return new byte[0];
+            LOG.error("Failed to serialize alert: {}", alert.getAlertId(), e);
+            throw new RuntimeException("Serialization failed for alert " + alert.getAlertId(), e);
         }
     }
 }

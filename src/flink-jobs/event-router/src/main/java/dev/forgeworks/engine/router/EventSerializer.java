@@ -26,8 +26,8 @@ public class EventSerializer implements SerializationSchema<EventEnvelope> {
         try {
             return mapper.writeValueAsBytes(event);
         } catch (Exception e) {
-            LOG.error("Failed to serialize event: {}", event, e);
-            return new byte[0];
+            LOG.error("Failed to serialize event: {}", event.getEventId(), e);
+            throw new RuntimeException("Serialization failed for event " + event.getEventId(), e);
         }
     }
 }

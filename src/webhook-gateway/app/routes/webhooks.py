@@ -43,6 +43,17 @@ KAFKA_PUBLISH_LATENCY = Histogram(
 )
 
 
+def _check_body_size(request: Request) -> JSONResponse | None:
+    """Reject oversized payloads before reading the body."""
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > settings.max_request_body_bytes:
+        return JSONResponse(
+            {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
+            status_code=413,
+        )
+    return None
+
+
 def _parse_github_event_type(headers: dict, body: dict) -> str:
     """Derive event type from GitHub webhook headers and payload."""
     event = headers.get("x-github-event", "unknown")
@@ -151,7 +162,15 @@ async def webhook_github(
     x_github_event: str | None = Header(None),
 ):
     """Receive GitHub webhook events."""
+    size_error = _check_body_size(request)
+    if size_error:
+        return size_error
     raw_body = await request.body()
+    if len(raw_body) > settings.max_request_body_bytes:
+        return JSONResponse(
+            {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
+            status_code=413,
+        )
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="github", type=x_github_event or "unknown").inc()
@@ -191,7 +210,15 @@ async def webhook_argocd(
     x_argocd_signature: str | None = Header(None),
 ):
     """Receive ArgoCD webhook events."""
+    size_error = _check_body_size(request)
+    if size_error:
+        return size_error
     raw_body = await request.body()
+    if len(raw_body) > settings.max_request_body_bytes:
+        return JSONResponse(
+            {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
+            status_code=413,
+        )
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="argocd", type="webhook").inc()
@@ -228,6 +255,9 @@ async def webhook_kubernetes(
     authorization: str | None = Header(None),
 ):
     """Receive Kubernetes admission/event webhooks."""
+    size_error = _check_body_size(request)
+    if size_error:
+        return size_error
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="kubernetes", type="webhook").inc()

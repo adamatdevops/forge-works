@@ -19,8 +19,8 @@ public class InsightSerializer implements SerializationSchema<Insight> {
         try {
             return mapper.writeValueAsBytes(insight);
         } catch (Exception e) {
-            LOG.error("Failed to serialize insight: {}", insight, e);
-            return new byte[0];
+            LOG.error("Failed to serialize insight: {}", insight.getInsightId(), e);
+            throw new RuntimeException("Serialization failed for insight " + insight.getInsightId(), e);
         }
     }
 }

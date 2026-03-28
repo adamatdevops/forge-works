@@ -15,10 +15,30 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _validate_secrets():
+    """Fail-closed: refuse to start without webhook secrets unless explicitly disabled."""
+    if not settings.require_webhook_secrets:
+        logger.warning("Webhook secret validation DISABLED (dev mode)")
+        return
+    missing = []
+    if not settings.github_webhook_secret:
+        missing.append("FW_GITHUB_WEBHOOK_SECRET")
+    if not settings.argocd_webhook_secret:
+        missing.append("FW_ARGOCD_WEBHOOK_SECRET")
+    if not settings.kubernetes_webhook_token:
+        missing.append("FW_KUBERNETES_WEBHOOK_TOKEN")
+    if missing:
+        raise RuntimeError(
+            f"Webhook secrets required but not set: {', '.join(missing)}. "
+            "Set FW_REQUIRE_WEBHOOK_SECRETS=false to disable (dev only)."
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Start/stop Kafka producer with the application lifecycle."""
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
+    _validate_secrets()
     await producer.start_producer()
     yield
     await producer.stop_producer()

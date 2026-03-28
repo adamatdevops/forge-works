@@ -17,3 +17,8 @@ patches:
         value:
           name: FW_DEBUG
           value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: FW_REQUIRE_WEBHOOK_SECRETS
+          value: "false"
