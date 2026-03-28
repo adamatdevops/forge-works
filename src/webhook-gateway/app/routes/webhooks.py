@@ -1,3 +1,4 @@
+import json
 import logging
 
 from fastapi import APIRouter, Header, Request
@@ -46,12 +47,30 @@ KAFKA_PUBLISH_LATENCY = Histogram(
 def _check_body_size(request: Request) -> JSONResponse | None:
     """Reject oversized payloads before reading the body."""
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > settings.max_request_body_bytes:
+    if content_length:
+        try:
+            if int(content_length) > settings.max_request_body_bytes:
+                return JSONResponse(
+                    {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
+                    status_code=413,
+                )
+        except ValueError:
+            return JSONResponse(
+                {"error": "FW-IN-PARSE-001", "message": "Invalid Content-Length header"},
+                status_code=400,
+            )
+    return None
+
+
+async def _read_body_checked(request: Request) -> bytes | JSONResponse:
+    """Read request body with post-read size validation (handles chunked transfer)."""
+    raw_body = await request.body()
+    if len(raw_body) > settings.max_request_body_bytes:
         return JSONResponse(
             {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
             status_code=413,
         )
-    return None
+    return raw_body
 
 
 def _parse_github_event_type(headers: dict, body: dict) -> str:
@@ -165,12 +184,10 @@ async def webhook_github(
     size_error = _check_body_size(request)
     if size_error:
         return size_error
-    raw_body = await request.body()
-    if len(raw_body) > settings.max_request_body_bytes:
-        return JSONResponse(
-            {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
-            status_code=413,
-        )
+    result = await _read_body_checked(request)
+    if isinstance(result, JSONResponse):
+        return result
+    raw_body = result
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="github", type=x_github_event or "unknown").inc()
@@ -213,12 +230,10 @@ async def webhook_argocd(
     size_error = _check_body_size(request)
     if size_error:
         return size_error
-    raw_body = await request.body()
-    if len(raw_body) > settings.max_request_body_bytes:
-        return JSONResponse(
-            {"error": "FW-IN-LIMIT-002", "message": "Payload too large"},
-            status_code=413,
-        )
+    result = await _read_body_checked(request)
+    if isinstance(result, JSONResponse):
+        return result
+    raw_body = result
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="argocd", type="webhook").inc()
@@ -258,6 +273,10 @@ async def webhook_kubernetes(
     size_error = _check_body_size(request)
     if size_error:
         return size_error
+    result = await _read_body_checked(request)
+    if isinstance(result, JSONResponse):
+        return result
+    raw_body = result
     correlation_id = getattr(request.state, "correlation_id", "")
 
     WEBHOOKS_RECEIVED.labels(source="kubernetes", type="webhook").inc()
@@ -273,7 +292,7 @@ async def webhook_kubernetes(
             )
 
     try:
-        body: dict = await request.json()
+        body: dict = json.loads(raw_body)
     except Exception:
         WEBHOOKS_FAILED.labels(source="kubernetes", error="parse").inc()
         return JSONResponse(
