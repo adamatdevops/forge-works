@@ -26,6 +26,8 @@ spec:
     restart-strategy.exponential-delay.initial-backoff: 1s
     restart-strategy.exponential-delay.max-backoff: 60s
     kafka.bootstrap.servers: forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092
+    fs.s3a.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider
+    fs.s3a.endpoint: s3.us-east-1.amazonaws.com
   jobManager:
     replicas: 1
     resource:
@@ -40,6 +42,17 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      initContainers:
+        - name: install-s3-plugin
+          image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v3
+          command: ["bash", "-c"]
+          args:
+            - |
+              mkdir -p /opt/flink/plugins/s3-fs-hadoop &&
+              cp /opt/flink/opt/flink-s3-fs-hadoop-*.jar /opt/flink/plugins/s3-fs-hadoop/
+          volumeMounts:
+            - name: flink-plugins
+              mountPath: /opt/flink/plugins
       containers:
         - name: flink-main-container
           env:
@@ -48,8 +61,12 @@ spec:
           volumeMounts:
             - name: flink-data
               mountPath: /flink-data
+            - name: flink-plugins
+              mountPath: /opt/flink/plugins
       volumes:
         - name: flink-data
+          emptyDir: {}
+        - name: flink-plugins
           emptyDir: {}
   job:
     jarURI: local:///opt/flink/usrlib/pattern-matcher.jar

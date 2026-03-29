@@ -1,0 +1,150 @@
+# ForgeWorks Airflow — Dev Environment
+# Helm chart: apache-airflow/airflow
+# Docs: https://airflow.apache.org/docs/helm-chart/stable/index.html
+
+# Executor — KubernetesExecutor spawns a pod per task, no persistent workers
+executor: KubernetesExecutor
+
+# Airflow image — must match chart version (3.x)
+defaultAirflowRepository: apache/airflow
+defaultAirflowTag: 3.1.8
+
+# Use existing Postgres in forge-engine namespace
+data:
+  metadataSecretName: airflow-db-secret
+
+# Web server
+webserver:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  service:
+    type: ClusterIP
+    ports:
+      - name: airflow-ui
+        port: 8080
+
+# Scheduler
+scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Triggerer (for deferrable operators)
+triggerer:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+# No standalone workers — KubernetesExecutor handles this
+workers:
+  replicas: 0
+
+# DAGs configuration — git-sync from repo
+dags:
+  persistence:
+    enabled: false
+  gitSync:
+    enabled: false
+
+# Logs
+logs:
+  persistence:
+    enabled: false
+
+# Service account — uses existing IRSA-enabled SA
+serviceAccount:
+  create: false
+  name: airflow-sa
+
+# Pod template for KubernetesExecutor task pods
+kubernetesPodTemplate:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+# Migration wait timeout (seconds) for init containers
+migrationWaitTimeout: 300
+
+# Environment variables for all Airflow components
+env:
+  - name: AIRFLOW__CORE__DAGS_FOLDER
+    value: /opt/airflow/dags
+  - name: AIRFLOW__CORE__LOAD_EXAMPLES
+    value: "False"
+  - name: AIRFLOW__CORE__DEFAULT_TIMEZONE
+    value: "UTC"
+  - name: AIRFLOW__WEBSERVER__EXPOSE_CONFIG
+    value: "False"
+  - name: AIRFLOW__METRICS__STATSD_ON
+    value: "True"
+  - name: AIRFLOW__METRICS__STATSD_HOST
+    value: "localhost"
+  - name: AIRFLOW__METRICS__STATSD_PORT
+    value: "9125"
+
+# Airflow connections via extraSecrets
+extraSecrets:
+  'airflow-connections':
+    type: Opaque
+    stringData: |
+      AIRFLOW_CONN_KAFKA_DEFAULT: 'kafka://forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092'
+      AIRFLOW_CONN_MLFLOW_DEFAULT: 'http://mlflow.forge-ml.svc.cluster.local:5000'
+
+extraEnvFrom: ~
+
+# Security context
+securityContexts:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 50000
+    fsGroup: 0
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# DB migration job
+migrateDatabaseJob:
+  enabled: true
+  jobAnnotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+# Disable built-in Postgres (we use existing)
+postgresql:
+  enabled: false
+
+# Disable built-in Redis (not needed with KubernetesExecutor)
+redis:
+  enabled: false
+
+# Disable built-in StatsD exporter (we'll use our own Prometheus setup)
+statsd:
+  enabled: false
+
+# Flower (not needed with KubernetesExecutor)
+flower:
+  enabled: false
