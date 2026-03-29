@@ -31,15 +31,6 @@ patches:
       - op: replace
         path: /spec/kafka/resources/limits/cpu
         value: 4000m
-      - op: replace
-        path: /spec/zookeeper/storage/size
-        value: 50Gi
-      - op: replace
-        path: /spec/zookeeper/resources/requests/memory
-        value: 1Gi
-      - op: replace
-        path: /spec/zookeeper/resources/limits/memory
-        value: 2Gi
     target:
       group: kafka.strimzi.io
       version: v1

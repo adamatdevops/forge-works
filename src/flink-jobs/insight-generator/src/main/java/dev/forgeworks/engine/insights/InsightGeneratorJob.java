@@ -53,7 +53,7 @@ public class InsightGeneratorJob {
                 .setBootstrapServers(kafkaBootstrap)
                 .setTopics("forge.jobs.pending")
                 .setGroupId("forgeworks-insight-generator")
-                .setStartingOffsets(OffsetsInitializer.latest())
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetsInitializer.earliest()))
                 .setValueOnlyDeserializer(new AlertDeserializer())
                 .build();
 

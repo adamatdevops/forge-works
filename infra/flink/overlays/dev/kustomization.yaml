@@ -36,4 +36,3 @@ patches:
       group: flink.apache.org
       version: v1beta1
       kind: FlinkDeployment
-      name: forge-flink

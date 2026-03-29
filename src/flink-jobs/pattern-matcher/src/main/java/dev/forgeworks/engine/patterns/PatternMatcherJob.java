@@ -53,7 +53,7 @@ public class PatternMatcherJob {
                 .setBootstrapServers(kafkaBootstrap)
                 .setTopics("forge.insights.realtime")
                 .setGroupId("forgeworks-pattern-matcher")
-                .setStartingOffsets(OffsetsInitializer.latest())
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetsInitializer.earliest()))
                 .setValueOnlyDeserializer(new EventDeserializer())
                 .build();
 

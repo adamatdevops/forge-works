@@ -57,7 +57,7 @@ public class EventRouterJob {
                 .setBootstrapServers(kafkaBootstrap)
                 .setTopicPattern(Pattern.compile("forge\\.events\\..*"))
                 .setGroupId("forgeworks-event-router")
-                .setStartingOffsets(OffsetsInitializer.latest())
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetsInitializer.earliest()))
                 .setValueOnlyDeserializer(new EventDeserializer())
                 .build();
 

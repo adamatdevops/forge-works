@@ -15,11 +15,13 @@ spec:
   flinkConfiguration:
     execution.checkpointing.interval: "60000"
     execution.checkpointing.mode: EXACTLY_ONCE
-    state.backend.type: hashmap
-    state.checkpoints.dir: file:///flink-data/checkpoints
-    state.savepoints.dir: file:///flink-data/savepoints
+    state.backend.type: rocksdb
+    state.backend.incremental: "true"
+    state.checkpoints.dir: s3://fw-state-dev/flink/pattern-matcher/checkpoints
+    state.savepoints.dir: s3://fw-state-dev/flink/pattern-matcher/savepoints
+    state.checkpoints.num-retained: "3"
     high-availability.type: kubernetes
-    high-availability.storageDir: file:///flink-data/ha
+    high-availability.storageDir: s3://fw-state-dev/flink/pattern-matcher/ha
     restart-strategy.type: exponential-delay
     restart-strategy.exponential-delay.initial-backoff: 1s
     restart-strategy.exponential-delay.max-backoff: 60s
@@ -53,4 +55,4 @@ spec:
     jarURI: local:///opt/flink/usrlib/pattern-matcher.jar
     entryClass: dev.forgeworks.engine.patterns.PatternMatcherJob
     parallelism: 1
-    upgradeMode: stateless
+    upgradeMode: last-state
