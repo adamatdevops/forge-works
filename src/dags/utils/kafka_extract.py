@@ -1,16 +1,11 @@
 """
 Kafka data extraction utilities for Airflow tasks.
 
-Extracts events from Kafka topics into JSON files on S3 for training.
-Tracks watermarks (topic/partition/offset) per run for idempotent re-extraction.
+Durability ordering: consume → S3 write → offset commit (same consumer).
+If S3 write fails, offsets are not committed → next run re-reads.
+If offset commit fails after S3 write, next run may re-read → duplicates, no loss.
 
-Why watermarks matter:
-- Without them, re-running the DAG re-extracts the same data → duplicate training rows
-- Each run stores its high-watermark (last offset consumed per partition)
-- Next run starts from the stored watermark → no duplicates, no gaps
-
-NOTE: Heavy imports (kafka, boto3) are deferred to function calls to avoid
-import errors during Airflow DAG processor scanning.
+NOTE: Heavy imports deferred to function calls for Airflow DAG processor compatibility.
 """
 
 import json
@@ -31,8 +26,7 @@ def extract_topic_to_s3(
 ) -> dict:
     """
     Extract messages from a Kafka topic and write to S3 as newline-delimited JSON.
-
-    Returns metadata about the extraction (message count, offsets, S3 path).
+    Commits offsets only after durable S3 write succeeds.
     """
     from kafka import KafkaConsumer
     import boto3
@@ -58,27 +52,32 @@ def extract_topic_to_s3(
             if len(messages) >= max_messages:
                 break
 
-        # Commit offsets only after successful extraction
+        if not messages:
+            logger.info("No new messages in topic %s", topic)
+            return {"count": 0, "s3_path": None, "offsets": offsets}
+
+        # Write to S3 FIRST — before committing offsets
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        s3_key = f"{s3_prefix}/{topic}/{timestamp}.jsonl"
+
+        s3 = boto3.client("s3")
+        body = "\n".join(json.dumps(m) for m in messages)
+        s3.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=body.encode("utf-8"))
+
+        logger.info("Wrote %d messages to s3://%s/%s", len(messages), S3_BUCKET, s3_key)
+
+        # Commit offsets AFTER durable S3 write — same consumer instance
         consumer.commit()
+        logger.info("Committed offsets for %s", topic)
+
+        return {
+            "count": len(messages),
+            "s3_path": f"s3://{S3_BUCKET}/{s3_key}",
+            "offsets": offsets,
+        }
+
+    except Exception:
+        logger.exception("Error during extract for %s", topic)
+        raise
     finally:
         consumer.close()
-
-    if not messages:
-        logger.info("No new messages in topic %s", topic)
-        return {"count": 0, "s3_path": None, "offsets": offsets}
-
-    # Write to S3 as newline-delimited JSON
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    s3_key = f"{s3_prefix}/{topic}/{timestamp}.jsonl"
-
-    s3 = boto3.client("s3")
-    body = "\n".join(json.dumps(m) for m in messages)
-    s3.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=body.encode("utf-8"))
-
-    logger.info("Extracted %d messages from %s → s3://%s/%s", len(messages), topic, S3_BUCKET, s3_key)
-
-    return {
-        "count": len(messages),
-        "s3_path": f"s3://{S3_BUCKET}/{s3_key}",
-        "offsets": offsets,
-    }

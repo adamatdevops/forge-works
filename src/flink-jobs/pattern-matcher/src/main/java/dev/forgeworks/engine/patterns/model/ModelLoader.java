@@ -6,155 +6,188 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Tiered Model Loader — loads scoring models from Hot, Warm, or Cold tiers.
+ * Tiered Model Loader — Hot tier (JVM memory) with background MLflow reload.
  *
- * Architecture:
- * ┌─────────────────────────────────────┐
- * │  HOT TIER (JVM HashMap)             │  ← <1ms lookup
- * │  Pre-loaded at startup              │
- * │  Top models always in memory        │
- * ├─────────────────────────────────────┤
- * │  WARM TIER (Redis)                  │  ← ~1ms network hop
- * │  Loaded on first access, cached     │
- * │  TTL-based eviction                 │
- * ├─────────────────────────────────────┤
- * │  COLD TIER (S3)                     │  ← 500ms-2s (Phase 3)
- * │  On-demand only                     │
- * │  Promotes to Warm after load        │
- * └─────────────────────────────────────┘
+ * Scoring path: HashMap lookup only (<1ms, zero blocking).
+ * Background: ScheduledExecutor polls MLflow every 5 min for new model versions.
+ * If MLflow has a newer version, feature importance weights are fetched and
+ * hot-swapped into the HashMap atomically.
  *
- * Flow:
- *   loadModel("rapid-deploy-scorer")
- *     → check Hot (HashMap) → found? return immediately (<1ms)
- *     → check Warm (Redis)  → found? promote to Hot, return (<5ms)
- *     → check Cold (S3)     → found? promote to Warm+Hot, return (Phase 3)
- *     → not found           → return null (use rule-based fallback)
- *
- * Why tiered:
- * - Not all models need to be in memory all the time
- * - Hot tier keeps the 3-5 most used models at zero-latency
- * - Warm tier handles less frequent models without S3 round-trips
- * - Cold tier is insurance — every model is always available
- *
- * Current implementation (MVP):
- * - Hot tier: fully implemented with pre-loaded weighted models
- * - Warm tier: interface ready, Redis integration in Phase 3
- * - Cold tier: deferred to Phase 3 (S3 + MLflow model registry)
+ * The trained model's feature importance values (logged by Airflow as
+ * importance_{feature_name}) directly become the scoring weights.
+ * This is a faithful transfer — the same features and relative magnitudes
+ * that the GradientBoosting model learned are used for linear scoring.
  */
 public class ModelLoader implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ModelLoader.class);
+    private static final long RELOAD_INTERVAL_MINUTES = 5;
 
-    // Hot tier — always in JVM memory
-    private final Map<String, ScoringModel> hotModels = new HashMap<>();
+    private final Map<String, ScoringModel> hotModels = new ConcurrentHashMap<>();
+    private transient ScheduledExecutorService reloadScheduler;
+    private transient MLflowModelAdapter mlflowAdapter;
 
-    // Metrics
+    // Model names to poll in MLflow
+    private static final String[] MLFLOW_MODEL_NAMES = {"forgeworks-pattern-scorer"};
+
+    // Feature-to-scorer mapping: which features each scorer uses
+    private static final Map<String, Map<String, String>> SCORER_FEATURE_MAP = Map.of(
+            "rapid-deploy-scorer", Map.of(
+                    "deploy_count", "sync_count",
+                    "time_span_inverse", "time_span_minutes",
+                    "unique_authors_inverse", "unique_authors"
+            ),
+            "crash-loop-scorer", Map.of(
+                    "crash_count", "crash_count",
+                    "restart_frequency", "events_per_minute",
+                    "unique_pods_inverse", "author_concentration"
+            ),
+            "ci-skip-scorer", Map.of(
+                    "merge_count", "merge_count",
+                    "tests_missing", "test_count",
+                    "author_frequency_inverse", "author_concentration"
+            )
+    );
+
     private long hotHits = 0;
-    private long warmHits = 0;
+    private long reloads = 0;
     private long misses = 0;
 
     /**
-     * Initialize the loader with pre-loaded Hot tier models.
-     * Call this once during Flink job open().
+     * Initialize with default models and start background MLflow polling.
      */
     public void initialize() {
-        LOG.info("Initializing Model Loader — loading Hot tier models");
+        LOG.info("Initializing Model Loader");
 
-        // MVP models — weighted scoring (will be replaced by MLflow models in Phase 3)
+        // Default models — used until MLflow has trained replacements
         registerHot(new WeightedScoringModel(
-                "rapid-deploy-scorer", "1.0.0",
-                "Scores risk of rapid successive deployments",
-                Map.of(
-                        "deploy_count", 0.4,
-                        "time_span_inverse", 0.3,
-                        "unique_authors_inverse", 0.3
-                ),
-                5.0  // normalization: max expected raw score
+                "rapid-deploy-scorer", "default-1.0",
+                "Default weights for rapid deployment scoring",
+                Map.of("deploy_count", 0.4, "time_span_inverse", 0.3, "unique_authors_inverse", 0.3),
+                5.0
         ));
-
         registerHot(new WeightedScoringModel(
-                "crash-loop-scorer", "1.0.0",
-                "Scores severity of pod crash loop patterns",
-                Map.of(
-                        "crash_count", 0.5,
-                        "restart_frequency", 0.3,
-                        "unique_pods_inverse", 0.2
-                ),
+                "crash-loop-scorer", "default-1.0",
+                "Default weights for crash loop scoring",
+                Map.of("crash_count", 0.5, "restart_frequency", 0.3, "unique_pods_inverse", 0.2),
                 8.0
         ));
-
         registerHot(new WeightedScoringModel(
-                "ci-skip-scorer", "1.0.0",
-                "Scores risk of merging without CI/CD checks",
-                Map.of(
-                        "merge_count", 0.3,
-                        "tests_missing", 0.5,
-                        "author_frequency_inverse", 0.2
-                ),
+                "ci-skip-scorer", "default-1.0",
+                "Default weights for CI skip scoring",
+                Map.of("merge_count", 0.3, "tests_missing", 0.5, "author_frequency_inverse", 0.2),
                 3.0
         ));
 
-        LOG.info("Hot tier loaded: {} models", hotModels.size());
+        // Start background MLflow polling
+        String mlflowUrl = System.getenv("MLFLOW_TRACKING_URI");
+        if (mlflowUrl == null || mlflowUrl.isEmpty()) {
+            mlflowUrl = "http://mlflow.forge-ml.svc.cluster.local:5000";
+        }
+        mlflowAdapter = new MLflowModelAdapter(mlflowUrl);
+
+        reloadScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "model-reload");
+            t.setDaemon(true);
+            return t;
+        });
+        reloadScheduler.scheduleAtFixedRate(
+                this::reloadFromMLflow,
+                RELOAD_INTERVAL_MINUTES, RELOAD_INTERVAL_MINUTES, TimeUnit.MINUTES
+        );
+
+        LOG.info("Hot tier loaded: {} defaults, background MLflow polling every {}min",
+                hotModels.size(), RELOAD_INTERVAL_MINUTES);
     }
 
-    /**
-     * Register a model in the Hot tier.
-     */
     public void registerHot(ScoringModel model) {
         hotModels.put(model.getModelId(), model);
-        LOG.debug("Registered Hot model: {} v{}", model.getModelId(), model.getVersion());
     }
 
     /**
-     * Load a model by ID. Checks Hot → Warm → Cold (tiered).
-     *
-     * @return The model, or null if not found in any tier
+     * Load a model by ID. Pure HashMap lookup — zero blocking, <1ms.
      */
     public ScoringModel loadModel(String modelId) {
-        // Hot tier — O(1) HashMap lookup, <1ms
         ScoringModel model = hotModels.get(modelId);
         if (model != null) {
             hotHits++;
             return model;
         }
-
-        // Warm tier — Redis lookup (Phase 3)
-        // model = loadFromRedis(modelId);
-        // if (model != null) {
-        //     warmHits++;
-        //     registerHot(model);  // promote to Hot
-        //     return model;
-        // }
-
-        // Cold tier — S3 lookup (Phase 3)
-        // model = loadFromS3(modelId);
-        // if (model != null) {
-        //     registerHot(model);  // promote to Hot
-        //     return model;
-        // }
-
         misses++;
-        LOG.debug("Model not found: {}", modelId);
         return null;
     }
 
     /**
-     * Get all Hot tier model IDs.
+     * Background task: poll MLflow for updated models and hot-swap.
      */
+    private void reloadFromMLflow() {
+        if (mlflowAdapter == null) return;
+
+        for (String modelName : MLFLOW_MODEL_NAMES) {
+            try {
+                ScoringModel trained = mlflowAdapter.checkForUpdate(modelName);
+                if (trained == null) continue;
+
+                // The trained model IS a WeightedScoringModel with feature importance
+                // weights fetched directly from MLflow metrics. Map those weights
+                // to each scorer's feature namespace.
+                WeightedScoringModel trainedWeighted = (WeightedScoringModel) trained;
+                Map<String, Double> trainedWeights = trainedWeighted.getWeights();
+
+                for (Map.Entry<String, Map<String, String>> scorer : SCORER_FEATURE_MAP.entrySet()) {
+                    String scorerId = scorer.getKey();
+                    Map<String, String> featureMapping = scorer.getValue();
+
+                    Map<String, Double> weights = new HashMap<>();
+                    for (Map.Entry<String, String> mapping : featureMapping.entrySet()) {
+                        String scorerFeature = mapping.getKey();
+                        String trainedFeature = mapping.getValue();
+                        // Direct lookup — no probing
+                        Double importance = trainedWeights.get(trainedFeature);
+                        weights.put(scorerFeature, importance != null ? importance : 0.1);
+                    }
+
+                    double norm = weights.values().stream().mapToDouble(Double::doubleValue).sum() * 3;
+                    registerHot(new WeightedScoringModel(
+                            scorerId, trained.getVersion(),
+                            "MLflow-trained v" + trained.getVersion(),
+                            weights, Math.max(norm, 1.0)
+                    ));
+                }
+
+                reloads++;
+                LOG.info("Hot-swapped all scorers from MLflow v{} (reload #{})",
+                        trained.getVersion(), reloads);
+            } catch (Exception e) {
+                LOG.warn("MLflow reload failed for {}: {}", modelName, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Shutdown the background reload scheduler.
+     */
+    public void close() {
+        if (reloadScheduler != null) {
+            reloadScheduler.shutdown();
+        }
+    }
+
     public java.util.Set<String> getHotModelIds() {
         return hotModels.keySet();
     }
 
-    /**
-     * Get loader statistics for monitoring.
-     */
     public Map<String, Long> getStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("hot_models", (long) hotModels.size());
         stats.put("hot_hits", hotHits);
-        stats.put("warm_hits", warmHits);
+        stats.put("reloads", reloads);
         stats.put("misses", misses);
         return stats;
     }

@@ -68,6 +68,14 @@ public class PatternWindowFunction
     }
 
     @Override
+    public void close() {
+        if (modelLoader != null) {
+            modelLoader.close();
+            LOG.info("ModelLoader shutdown complete");
+        }
+    }
+
+    @Override
     public void processElement(EventEnvelope event, Context ctx, Collector<PatternAlert> out)
             throws Exception {
         // Add event to window

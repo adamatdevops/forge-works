@@ -5,6 +5,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -57,7 +58,7 @@ public class EventRouterJob {
                 .setBootstrapServers(kafkaBootstrap)
                 .setTopicPattern(Pattern.compile("forge\\.events\\..*"))
                 .setGroupId("forgeworks-event-router")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetsInitializer.earliest()))
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                 .setValueOnlyDeserializer(new EventDeserializer())
                 .build();
 

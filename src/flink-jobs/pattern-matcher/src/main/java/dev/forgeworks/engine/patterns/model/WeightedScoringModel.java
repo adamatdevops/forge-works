@@ -53,6 +53,9 @@ public class WeightedScoringModel implements ScoringModel {
     @Override
     public String getDescription() { return description; }
 
+    /** Direct access to weight map for MLflow reload mapping. */
+    public Map<String, Double> getWeights() { return new HashMap<>(weights); }
+
     @Override
     public double score(Map<String, Double> features) {
         double rawScore = 0.0;

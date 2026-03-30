@@ -5,6 +5,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ public class InsightGeneratorJob {
                 .setBootstrapServers(kafkaBootstrap)
                 .setTopics("forge.jobs.pending")
                 .setGroupId("forgeworks-insight-generator")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetsInitializer.earliest()))
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                 .setValueOnlyDeserializer(new AlertDeserializer())
                 .build();
 
