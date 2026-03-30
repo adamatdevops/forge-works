@@ -5,9 +5,16 @@
 # Executor — KubernetesExecutor spawns a pod per task, no persistent workers
 executor: KubernetesExecutor
 
-# Airflow image — must match chart version (3.x)
-defaultAirflowRepository: apache/airflow
-defaultAirflowTag: 3.1.8
+# Custom Airflow image with DAG dependencies (kafka-python, boto3, mlflow, scikit-learn)
+defaultAirflowRepository: ghcr.io/adamatdevops/forge-works/airflow-worker
+defaultAirflowTag: dev
+
+# GHCR pull secret
+images:
+  airflow:
+    pullPolicy: Always
+registry:
+  secretName: ghcr-pull-secret
 
 # Use existing Postgres in forge-engine namespace
 data:
