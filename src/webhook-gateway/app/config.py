@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     # Security
     require_webhook_secrets: bool = True  # Set False only in dev overlay
     max_request_body_bytes: int = 1_048_576  # 1MB
+    internal_api_token: str = ""  # Required for /status endpoint
 
     model_config = {"env_prefix": "FW_", "env_file": ".env"}
 

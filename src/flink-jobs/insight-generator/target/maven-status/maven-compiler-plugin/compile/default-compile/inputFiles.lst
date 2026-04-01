@@ -1,0 +1,7 @@
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/AlertDeserializer.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/Insight.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/InsightAggregator.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/InsightGeneratorJob.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/InsightSerializer.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/PatternAlert.java
+/Users/adamkeinan/git/repos/forge-works/src/flink-jobs/insight-generator/src/main/java/dev/forgeworks/engine/insights/Recommendations.java

@@ -1,0 +1,7 @@
+dev/forgeworks/engine/insights/PatternAlert.class
+dev/forgeworks/engine/insights/Insight.class
+dev/forgeworks/engine/insights/AlertDeserializer.class
+dev/forgeworks/engine/insights/InsightGeneratorJob.class
+dev/forgeworks/engine/insights/InsightSerializer.class
+dev/forgeworks/engine/insights/Recommendations.class
+dev/forgeworks/engine/insights/InsightAggregator.class

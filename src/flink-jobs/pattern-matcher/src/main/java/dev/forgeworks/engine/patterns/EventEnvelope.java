@@ -7,6 +7,8 @@ import java.util.Map;
 
 /**
  * Normalized event envelope — same schema as Event Router produces.
+ *
+ * @schema schemas/event-envelope.schema.json
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventEnvelope implements Serializable {

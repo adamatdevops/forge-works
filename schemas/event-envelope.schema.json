@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forgeworks.dev/schemas/event-envelope.schema.json",
+  "title": "ForgeWorks Event Envelope",
+  "description": "Canonical schema for events flowing through the ForgeWorks pipeline. All implementations (Python, Java) must conform to this schema.",
+  "type": "object",
+  "required": ["event_id", "source", "type"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique event identifier (format: evt_{hex12})"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Request correlation ID for end-to-end tracing"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["github", "argocd", "kubernetes"],
+      "description": "Event source system"
+    },
+    "type": {
+      "type": "string",
+      "description": "Event type (e.g., push, pull_request.opened, sync)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Source-specific metadata (repository, sender, namespace, etc.)",
+      "properties": {
+        "repository": { "type": "string" },
+        "sender": { "type": "string" },
+        "namespace": { "type": "string" },
+        "name": { "type": "string" }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "description": "Original webhook payload"
+    }
+  }
+}

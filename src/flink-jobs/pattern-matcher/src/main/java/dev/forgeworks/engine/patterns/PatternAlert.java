@@ -10,6 +10,8 @@ import java.util.UUID;
 /**
  * Output of the Pattern Matcher — a detected pattern with context.
  *
+ * @schema schemas/pattern-alert.schema.json
+ *
  * Published to forge.jobs.pending for downstream action (notifications,
  * automated remediation, dashboard updates).
  */

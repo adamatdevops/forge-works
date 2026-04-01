@@ -8,6 +8,8 @@ import java.util.Map;
 
 /**
  * Input model — matches the PatternAlert schema from Pattern Matcher.
+ *
+ * @schema schemas/pattern-alert.schema.json
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatternAlert implements Serializable {

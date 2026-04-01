@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
@@ -28,8 +28,20 @@ async def ready():
 
 
 @router.get("/status")
-async def status():
-    """Kafka cluster health — brokers, topics, connectivity."""
+async def status(x_forgeworks_internal: str | None = Header(None)):
+    """Kafka cluster health — restricted to internal callers.
+
+    Requires X-ForgeWorks-Internal header with valid token.
+    Rejects requests with missing, empty, or incorrect token.
+    """
+    import hmac
+    expected = settings.internal_api_token
+    if not expected or not x_forgeworks_internal or not hmac.compare_digest(x_forgeworks_internal, expected):
+        return Response(
+            content='{"error":"forbidden","message":"Internal endpoint"}',
+            status_code=403,
+            media_type="application/json",
+        )
     metadata = await producer.get_cluster_metadata()
     if not metadata.get("connected"):
         import json

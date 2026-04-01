@@ -8,6 +8,8 @@ import java.util.Map;
 /**
  * Normalized event envelope — matches the schema produced by webhook-gateway.
  *
+ * @schema schemas/event-envelope.schema.json
+ *
  * Example:
  * {
  *   "event_id": "evt_abc123",

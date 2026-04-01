@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forgeworks.dev/schemas/pattern-alert.schema.json",
+  "title": "ForgeWorks Pattern Alert",
+  "description": "Canonical schema for pattern alerts produced by the Pattern Matcher and consumed by the Insight Generator.",
+  "type": "object",
+  "required": ["alert_id", "pattern_id", "severity", "source"],
+  "properties": {
+    "alert_id": {
+      "type": "string",
+      "description": "Unique alert identifier (format: alert_{hex12})"
+    },
+    "pattern_id": {
+      "type": "string",
+      "description": "Pattern rule ID (e.g., PAT-CI-001, PAT-DEPLOY-001)"
+    },
+    "pattern_name": {
+      "type": "string",
+      "description": "Human-readable pattern name"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "message": {
+      "type": "string",
+      "description": "Alert description"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string"
+    },
+    "group_key": {
+      "type": "string",
+      "description": "Grouping key (source:repo or source:namespace/name)"
+    },
+    "event_count": {
+      "type": "integer"
+    },
+    "window_minutes": {
+      "type": "integer"
+    },
+    "trigger_event_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "context": {
+      "type": "object",
+      "description": "Additional context (model_score, features, thresholds)"
+    }
+  }
+}
