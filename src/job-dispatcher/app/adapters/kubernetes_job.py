@@ -39,6 +39,7 @@ class KubernetesJobAdapter(ControlPlaneAdapter):
         self._batch_v1: client.BatchV1Api | None = None
         self._core_v1: client.CoreV1Api | None = None
         self._connected = False
+        self._job_id_map: dict[str, str] = {}  # native_name → original_job_id
 
     @property
     def name(self) -> str:
@@ -142,6 +143,7 @@ class KubernetesJobAdapter(ControlPlaneAdapter):
         result = self._batch_v1.create_namespaced_job(
             namespace=settings.k8s_namespace, body=job
         )
+        self._job_id_map[result.metadata.name] = spec.job_id
         logger.info("K8s Job submitted: %s (pattern: %s)", job_name, spec.pattern_id)
         return result.metadata.name
 
@@ -181,7 +183,7 @@ class KubernetesJobAdapter(ControlPlaneAdapter):
             pass
 
         return JobResult(
-            job_id=native_job_id.replace("fw-", ""),
+            job_id=self._job_id_map.get(native_job_id, native_job_id),
             status=status,
             adapter=self.name,
             output=output,

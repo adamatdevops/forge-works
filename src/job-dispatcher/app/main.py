@@ -17,6 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 dispatcher = JobDispatcher()
+health.set_dispatcher(dispatcher)
 
 
 @asynccontextmanager

@@ -78,7 +78,7 @@ class JobDispatcher:
             bootstrap_servers=settings.kafka_bootstrap_servers,
             group_id=settings.kafka_consumer_group,
             auto_offset_reset="earliest",
-            enable_auto_commit=True,
+            enable_auto_commit=False,  # Manual commit after processing
             value_deserializer=lambda m: json.loads(m.decode("utf-8")),
         )
         self._producer = AIOKafkaProducer(
@@ -88,13 +88,18 @@ class JobDispatcher:
         await self._consumer.start()
         await self._producer.start()
 
-        # Connect all registered adapters
+        # Connect all registered adapters — fail startup if none connect
+        connected = 0
         for name, adapter in registry._adapters.items():
             try:
                 await adapter.connect()
+                connected += 1
                 logger.info("Adapter %s connected", name)
             except Exception:
                 logger.exception("Failed to connect adapter %s", name)
+
+        if connected == 0:
+            raise RuntimeError("No adapters connected — cannot start dispatcher")
 
         self._running = True
         logger.info("Job Dispatcher started — consuming from %s", settings.kafka_input_topic)
@@ -110,17 +115,35 @@ class JobDispatcher:
             await adapter.disconnect()
         logger.info("Job Dispatcher stopped")
 
+    def is_healthy(self) -> dict:
+        """Check dispatcher health: Kafka consumer/producer + running state."""
+        consumer_ok = self._consumer is not None and not self._consumer._closed
+        producer_ok = self._producer is not None and not self._producer._closed
+        return {
+            "running": self._running,
+            "kafka_consumer": consumer_ok,
+            "kafka_producer": producer_ok,
+            "healthy": self._running and consumer_ok and producer_ok,
+        }
+
     async def run(self) -> None:
-        """Main dispatch loop — consume insights and dispatch jobs."""
+        """Main dispatch loop — at-least-once with bounded concurrency.
+
+        Commits offsets only after processing completes.
+        On crash, uncommitted messages are redelivered (at-least-once).
+        """
         async for msg in self._consumer:
             if not self._running:
                 break
 
             try:
                 insight = Insight(**msg.value)
+                # Process and wait — ensures offset is only committed after completion
                 await self._process_insight(insight)
+                await self._consumer.commit()
             except Exception:
-                logger.exception("Error processing insight: %s", msg.value)
+                logger.exception("Error processing insight (offset not committed): %s", msg.value)
+                # Don't commit — message will be redelivered on restart
 
     async def _process_insight(self, insight: Insight) -> None:
         """Evaluate an insight and dispatch a job if actionable."""
@@ -129,6 +152,17 @@ class JobDispatcher:
         task_config = PATTERN_TASK_MAP.get(insight.pattern_id)
         if not task_config:
             logger.debug("No task mapping for pattern %s, skipping", insight.pattern_id)
+            return
+
+        # Enforce minimum severity
+        severity_order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+        min_sev = severity_order.get(task_config.get("min_severity", "low"), 0)
+        actual_sev = severity_order.get(insight.severity, 0)
+        if actual_sev < min_sev:
+            logger.debug(
+                "Insight severity %s below threshold %s for %s, skipping",
+                insight.severity, task_config["min_severity"], insight.pattern_id,
+            )
             return
 
         # Build job spec
