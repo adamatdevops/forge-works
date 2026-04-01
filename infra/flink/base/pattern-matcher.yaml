@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: stream-processor
     environment: dev
 spec:
-  image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v3
+  image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v4
   flinkVersion: v1_20
   serviceAccount: flink-sa
   flinkConfiguration:
@@ -44,7 +44,7 @@ spec:
         - name: ghcr-pull-secret
       initContainers:
         - name: install-s3-plugin
-          image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v3
+          image: ghcr.io/adamatdevops/forge-works/pattern-matcher:dev-v4
           command: ["bash", "-c"]
           args:
             - |

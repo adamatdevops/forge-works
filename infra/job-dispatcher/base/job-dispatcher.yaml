@@ -1,0 +1,130 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: job-dispatcher-sa
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: job-dispatcher
+    app.kubernetes.io/part-of: forge-works
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-dispatcher-role
+  namespace: forge-engine
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs", "jobs/status"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: job-dispatcher-binding
+  namespace: forge-engine
+subjects:
+  - kind: ServiceAccount
+    name: job-dispatcher-sa
+    namespace: forge-engine
+roleRef:
+  kind: Role
+  name: job-dispatcher-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: job-dispatcher-config
+  namespace: forge-engine
+data:
+  FW_KAFKA_BOOTSTRAP_SERVERS: "forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092"
+  FW_KAFKA_INPUT_TOPIC: "forge.learning.outcomes"
+  FW_KAFKA_RESULTS_TOPIC: "forge.jobs.results"
+  FW_KAFKA_FEEDBACK_TOPIC: "forge.learning.feedback"
+  FW_K8S_NAMESPACE: "forge-engine"
+  FW_DEFAULT_ADAPTER: "kubernetes-job"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-dispatcher
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: job-dispatcher
+    app.kubernetes.io/part-of: forge-works
+    app.kubernetes.io/component: dispatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: job-dispatcher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: job-dispatcher
+        app.kubernetes.io/part-of: forge-works
+        app.kubernetes.io/component: dispatcher
+    spec:
+      serviceAccountName: job-dispatcher-sa
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: job-dispatcher
+          image: ghcr.io/adamatdevops/forge-works/job-dispatcher:dev
+          ports:
+            - containerPort: 8090
+              name: http
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: job-dispatcher-config
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-dispatcher
+  namespace: forge-engine
+  labels:
+    app.kubernetes.io/name: job-dispatcher
+    app.kubernetes.io/part-of: forge-works
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: job-dispatcher
+  ports:
+    - port: 8090
+      targetPort: http
+      protocol: TCP
+      name: http

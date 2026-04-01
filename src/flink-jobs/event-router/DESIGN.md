@@ -199,10 +199,14 @@ The Event Router is deployed as a separate `FlinkDeployment` (not sharing the ba
 | Setting | Value | Why |
 |---------|-------|-----|
 | Checkpointing | EXACTLY_ONCE, 60s | Ensures no duplicate processing on restart |
-| State backend | hashmap | Dev — sufficient for <500MB state |
+| State backend | RocksDB (incremental) | Handles state growth beyond JVM heap |
+| Checkpoint storage | S3 (fw-state-dev) via IRSA | Durable, survives pod/node restarts |
+| HA storage | S3 (fw-state-dev) | Leader election metadata persisted |
+| Upgrade mode | last-state | Restores from last checkpoint on redeploy |
 | Restart strategy | exponential-delay (1s→60s) | Self-healing without overwhelming Kafka |
-| Kafka offset | `latest` | Only process new events (not replay history) |
+| Kafka offset | committedOffsets(EARLIEST) | Resume from committed; fallback to earliest on first run |
 | Consumer group | `forgeworks-event-router` | Dedicated group for offset tracking |
+| S3 credentials | IRSA (WebIdentityTokenCredentialsProvider) | No static AWS keys in pods |
 
 ---
 
