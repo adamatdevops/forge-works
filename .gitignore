@@ -106,6 +106,8 @@ history/
 *.pem
 *.key
 secrets/
+!infra/k8s/base/secrets/README.md
+!infra/k8s/base/secrets/create-secrets.sh
 credentials/
 
 # =============================================================================
@@ -201,3 +203,10 @@ pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 release.properties
+
+# =============================================================================
+# Outputs & MLflow local
+# =============================================================================
+outputs/
+mlruns/
+mlartifacts/
