@@ -1,18 +1,31 @@
 # ForgeWorks - Dynamic Reliability
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
+<!-- Engine Status -->
+[![Engine MVP](https://img.shields.io/badge/Engine%20MVP-Complete-brightgreen.svg)](#forgeworks-engine)
+[![Phase 1](https://img.shields.io/badge/Phase%201-Kafka%20%2B%20Gateway-brightgreen.svg)](roadmap/ACTION_PLAN_PHASE-1.md)
+[![Phase 2](https://img.shields.io/badge/Phase%202-Flink%20Real--Time-brightgreen.svg)](roadmap/ACTION_PLAN_PHASE-2.md)
+[![Phase 3](https://img.shields.io/badge/Phase%203-Airflow%20%2B%20MLflow-brightgreen.svg)](roadmap/ACTION_PLAN_ENGINE_PHASE-3.md)
+[![Phase 4](https://img.shields.io/badge/Phase%204-Adapters%20%2B%20E2E-brightgreen.svg)](roadmap/ACTION_PLAN_ENGINE_PHASE-4.md)
+
+<!-- Runtime -->
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Java 21](https://img.shields.io/badge/java-21%20LTS-red.svg?logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Node.js 22](https://img.shields.io/badge/node-22%20LTS-green.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
 [![TypeScript 5+](https://img.shields.io/badge/TypeScript-5+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![ESLint 9+](https://img.shields.io/badge/ESLint-9+-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
+
+<!-- Infrastructure -->
+[![Kubernetes 1.31](https://img.shields.io/badge/Kubernetes-1.31-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Apache Kafka](https://img.shields.io/badge/Kafka-4.1%20(Strimzi)-231F20.svg?logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
+[![Apache Flink](https://img.shields.io/badge/Flink-1.20-E6526F.svg?logo=apacheflink&logoColor=white)](https://flink.apache.org/)
+[![Airflow 3.1](https://img.shields.io/badge/Airflow-3.1-017CEE.svg?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/)
+[![MLflow 2.19](https://img.shields.io/badge/MLflow-2.19-0194E2.svg?logo=mlflow&logoColor=white)](https://mlflow.org/)
+[![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900.svg?logo=amazonaws&logoColor=white)](https://aws.amazon.com/eks/)
+
+<!-- Tooling -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![asdf](https://img.shields.io/badge/asdf-managed-blue.svg)](https://asdf-vm.com/)
 [![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/)
-[![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > **AI-Powered Real-Time Data Intelligence Platform**

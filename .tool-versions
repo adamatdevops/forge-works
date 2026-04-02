@@ -1,0 +1,4 @@
+java temurin-21.0.10+7.0.LTS
+maven 3.9.9
+python 3.11.15
+nodejs 22.22.2
