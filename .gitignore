@@ -210,3 +210,7 @@ release.properties
 outputs/
 mlruns/
 mlartifacts/
+
+  # CUE
+  cue.mod/
+  *.cue.json
