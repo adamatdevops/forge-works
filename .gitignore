@@ -211,6 +211,12 @@ outputs/
 mlruns/
 mlartifacts/
 
+# =============================================================================
+# Claude Code — ignore local state, keep shared skills
+# =============================================================================
+.claude/*
+!.claude/skills/
+
   # CUE
   cue.mod/
   *.cue.json
