@@ -244,6 +244,61 @@ Anomalies loading...   ██░░░░░░░░ 20%
 
 ---
 
+## MCP Server Integration
+
+### Layers → MCP Servers Mapping
+
+The layer architecture maps to the **Model Context Protocol (MCP)** server ecosystem. Each layer is backed by one or more MCP servers as its data source, enabling the Glue Bus to normalize cross-tool identifiers regardless of where they originate.
+
+**MVP Layers (current ForgeWorks scope):**
+
+| Layer | MCP Server | Data Source |
+|-------|------------|-------------|
+| Pipeline | `github` | GitHub Actions, PRs, commits |
+| Anomalies | `sentry` | Error tracking, traces |
+| Code | `filesystem`, `code-index` | Local codebase |
+| Context | `memory`, `context7` | Knowledge graph |
+
+**Extended Layers (future — beyond ForgeWorks-internal):**
+
+| Layer | MCP Server | Data Source |
+|-------|------------|-------------|
+| Cloud | (future) `aws-mcp` | AWS resources, CloudWatch |
+| IaC | (future) `terraform-mcp` | State files, plans |
+| Metrics | (future) `prometheus` | Prometheus queries |
+| Logs | `sentry` (extended) | Application + infra logs |
+
+### Architecture Vision
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    LAYERS WORKSPACE                     │
+├─────────────────────────────────────────────────────────┤
+│  [Layer: Pipeline]  [Layer: Cloud]  [Layer: Metrics]    │
+│         │                 │               │             │
+│         ▼                 ▼               ▼             │
+│    ┌─────────┐      ┌─────────┐     ┌──────────┐       │
+│    │ GitHub  │      │  AWS    │     │Prometheus│       │
+│    │  MCP    │      │  MCP    │     │   MCP    │       │
+│    └─────────┘      └─────────┘     └──────────┘       │
+│         │                 │               │             │
+│         └────────────┬────┴───────────────┘             │
+│                      ▼                                  │
+│              ┌──────────────┐                           │
+│              │   GLUE BUS   │                           │
+│              │              │                           │
+│              │ • ARNs       │                           │
+│              │ • Commit SHAs│                           │
+│              │ • Resource IDs│                          │
+│              │ • Trace IDs  │                           │
+│              └──────────────┘                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+The Glue Bus normalizes identifiers across MCP-sourced data, enabling cross-layer correlation regardless of source tool. This integration pattern extends naturally as new MCP servers come online — adding a layer is a matter of registering its MCP source and the glue keys it exposes.
+
+---
+
 ## Competitive Analysis
 
 ### What Exists Today
@@ -435,6 +490,10 @@ This is not an incremental improvement. This is a **paradigm shift** for the For
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: January 2025*
+*Document Version: 2.0*
+*Last Updated: 2026-05-04*
 *Status: Concept Ready for Frontend Implementation*
+
+**Changelog:**
+- **v2.0 (2026-05-04):** Merged MCP Server Integration section from sister `interview` repo's `IDEA_LAYERS_ARCHITECTURE.md` (v1.1, Jan 2025). Adapted layer-to-MCP mapping to distinguish MVP layers (ForgeWorks-internal) from Extended layers (future infra observability). Future Vision items already covered in Phase 3 roadmap; Security Audit use case omitted as it uses non-ForgeWorks layer model.
+- **v1.0 (Jan 2025):** Initial ForgeWorks-aligned version with Backend/Frontend Glue split.

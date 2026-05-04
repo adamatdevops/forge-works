@@ -1,0 +1,107 @@
+# STACK
+
+- DevOps
+- Platform Engineering
+- Amazon Web Services (AWS)
+- Google Cloud Platform (GCP)
+- Infrastructure as code (IaC)
+- CI/CD
+- Terraform
+- Git
+- Kubernetes
+- Microservices
+- GitOps
+- Zero-Touch Platform
+- No-Code Development
+- Argo
+- Pulumi
+- Helm Charts
+- GitHub
+- Amazon EKS
+- Infrastructure as a Service (IaaS)
+- Python (Programming Language)
+- Docker Products
+- Open-Source
+- Solution Architecture
+- Multi-Cloud
+- MLOps
+- Large Language Models (LLM)
+- Site Reliability Engineering
+- Apache Kafka
+- MCP
+- Prompt Engineering
+- Elastic Stack (ELK)
+- Machine Learning
+- Rust
+- Go
+- TypeScript
+- CDK
+- MLFlow
+- AWS CloudFormation
+- Prompt Engineering
+- Ray Serve
+- Opensearch
+- Relational Databases
+- Apache Airflow
+- Apache Spark
+- Apache Flink
+- Flux
+- Gitlab
+- PyTorch
+- Large Language Model Operations (LLMOps)
+- Continuous Delivery (CD)
+- AWS Identity and Access Management (AWS IAM)
+- Karpenter
+- Bash
+- JavaScript
+- Amazon Relational Database Service (RDS)
+- Scripting
+- Linux
+- Incident Response
+- Tenable.io
+- Istio
+- FastAPI
+- Cybersecurity
+- Node.js
+- Code Refactoring
+- PostgreSQL
+- Backstage
+- Consul
+- Cost Reduction
+- Back-End Web Development
+- etcd
+- Serverless
+- Datadog
+- New Relic
+- Splunk
+- Platform as a Service (PAAS)
+- Unix
+- Service Mesh
+- Streaming Architecture
+- Capability Maturity Model Integration (CMMI)
+- Script Analysis
+- Software Development Life Cycle (SDLC)
+- Data Pipelines
+- AWS SageMaker
+- AWS Lambda
+- Software as a Service (SaaS)
+- Web Application Development
+- Front-End Development
+- Selenium
+- Red Hat Enterprise Linux (RHEL)
+- Ansible
+- Test Automation
+- Cloud Computing
+- Architecture
+- Data Architects
+- Service-Oriented Architecture (SOA)
+- JSON
+- React.js
+- Fortinet
+- Artifactory
+- JFrog
+- Sonatype Nexus
+- ZTNA Architecture
+- Amazon S3
+- Groovy
+- Agile Methodologies
