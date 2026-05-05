@@ -5,6 +5,30 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-05-05
+
+### Added
+- **Normalizer IRSA — closes Sprint E5.1a open item.** The configuration normalizer can now write to S3 cold-tier.
+  - New IAM role `fw-forge-engine-normalizer-sa` with OIDC trust scoped to `system:serviceaccount:forge-engine:normalizer-sa`.
+  - New dedicated IAM policy `fw-engine-normalizer-s3-access` (least-privilege: `s3:PutObject`, `s3:GetObject`, `s3:AbortMultipartUpload` on `s3://fw-state-dev/normalizer/configs/*`, plus prefix-conditioned `s3:ListBucket`).
+  - K8s ServiceAccount `normalizer-sa` in `forge-engine` with the IRSA annotation.
+  - Deployment `normalizer` now uses `serviceAccountName: normalizer-sa`.
+
+### Changed
+- **`flink-sa` IRSA codified in repo.** The `eks.amazonaws.com/role-arn` annotation pointing to `fw-forge-engine-flink-sa` was previously applied directly to the live cluster. The manifest in `infra/k8s/base/service-accounts.yaml` now matches cluster state — no functional change, repo is reproducible from git.
+
+### Verified
+- STS round-trip from inside the normalizer pod returns the expected role ARN.
+- `s3:ListBucket` (prefix-conditioned) and `s3:PutObject` / `s3:GetObject` succeed end-to-end against `s3://fw-state-dev/normalizer/configs/*`.
+- IRSA smoke-test object created and removed during verification — bucket prefix left clean.
+
+### Infrastructure Components (delta from 0.7.0)
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| IRSA | 5 roles (was 4) | forge-engine, forge-ml | Active |
+
+---
+
 ## [0.7.0] - 2026-03-02
 
 ### Added
