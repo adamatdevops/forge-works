@@ -218,7 +218,11 @@ async def webhook_github(
         "sender": body.get("sender", {}).get("login", ""),
     }
 
-    return await _process_webhook("github", event_type, body, correlation_id, metadata)
+    # Route GitHub Actions events (workflow_run / workflow_job) to a separate
+    # source so the per-source normalizer pod consumes them from its own topic.
+    source = "github-actions" if x_github_event in ("workflow_run", "workflow_job") else "github"
+
+    return await _process_webhook(source, event_type, body, correlation_id, metadata)
 
 
 @router.post("/argocd")

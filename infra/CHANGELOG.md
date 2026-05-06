@@ -5,6 +5,40 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-05-06
+
+### Added
+- **Sprint E5.1b — Terraform + GitHub Actions normalizers.** The configuration normalization pipeline now supports two additional source systems alongside Kubernetes.
+  - **Code**: `TerraformNormalizer` maps ECS task definitions / services and K8s-via-TF resources to canonical `#Workload` / `#Service` records (CPU unit conversion: AWS units → millicores; memory passthrough). `GitHubActionsNormalizer` maps `workflow_run` / `workflow_job` webhook payloads to canonical `#Pipeline` / `#Stage` records. Pydantic `Pipeline` + `Stage` models added to mirror the existing CUE schema.
+  - **Webhook routing**: GitHub `workflow_run` / `workflow_job` events now route to a dedicated topic (`forge.events.github_actions`); other GitHub events keep going to `forge.events.github`.
+  - **Topics**: New Strimzi `KafkaTopic` resources `forge.events.terraform` and `forge.events.github_actions` (6 partitions, 3 replicas, 7-day retention — same shape as existing event topics).
+  - **IRSA — Terraform pod**: IAM role `fw-forge-engine-normalizer-terraform-sa` (OIDC trust scoped to `system:serviceaccount:forge-engine:normalizer-terraform-sa`) + dedicated policy `fw-engine-normalizer-terraform-s3-access` (least-privilege on `s3://fw-state-dev/normalizer/configs/terraform/*`).
+  - **IRSA — GitHub Actions pod**: IAM role `fw-forge-engine-normalizer-github-actions-sa` + policy `fw-engine-normalizer-github-actions-s3-access` (scoped to `s3://fw-state-dev/normalizer/configs/github-actions/*`).
+  - **K8s manifests**: Per-source pods (Path B) — separate ConfigMap + Deployment + Service + ServiceAccount for `normalizer-terraform` and `normalizer-github-actions`. Each pod consumes only its own input topic via `FW_KAFKA_INPUT_TOPIC` and uses a distinct consumer group.
+  - **CI**: New GitHub Actions workflow `normalizer-image.yml` builds + pushes the normalizer image to GHCR on every push to `main` (publishes both `:sha-<short>` and `:main-latest` tags). Runs unit tests and Hadolint before pushing.
+
+### Changed
+- All three normalizer Deployments now reference `ghcr.io/adamatdevops/forge-works/normalizer:main-latest` (was `:dev-v2`). The new CI workflow publishes this tag automatically; `imagePullPolicy: Always` ensures `kubectl rollout restart` picks it up.
+- Webhook gateway ConfigMap adds `FW_KAFKA_TOPIC_GITHUB_ACTIONS=forge.events.github_actions`.
+
+### Verified
+- 39 normalizer unit tests pass (30 Terraform + 9 GitHub Actions).
+- 38 webhook-gateway tests pass (33 existing + 5 new GHA-routing assertions).
+- IRSA round-trip from inside the Terraform normalizer pod confirms STS identity = `assumed-role/fw-forge-engine-normalizer-terraform-sa`; PutObject / GetObject / DeleteObject under the scoped prefix all 200.
+- GitHub Actions pod IRSA verification deferred until the first CI run produces the `main-latest` image (pod currently in `ImagePullBackOff` — expected pre-publish).
+
+### Notes
+- Producer simulator for Terraform / GHA event sources captured as TODO for E5.3 (or later). Until then, end-to-end exercises rely on hand-crafted JSON published into the source topics.
+
+### Infrastructure Components (delta from 0.7.1)
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| IRSA | 7 roles (was 5) | forge-engine, forge-ml | Active |
+| KafkaTopics | +2 (`forge.events.terraform`, `forge.events.github_actions`) | forge-engine | Created |
+| Normalizer Deployments | 3 (was 1) | forge-engine | Two new pods deployed |
+
+---
+
 ## [0.7.1] - 2026-05-05
 
 ### Added

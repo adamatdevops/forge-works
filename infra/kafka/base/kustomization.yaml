@@ -22,6 +22,8 @@ resources:
   - topics/forge-events-github.yaml
   - topics/forge-events-argocd.yaml
   - topics/forge-events-kubernetes.yaml
+  - topics/forge-events-terraform.yaml
+  - topics/forge-events-github-actions.yaml
 
   # Processing Topics
   - topics/forge-insights-realtime.yaml

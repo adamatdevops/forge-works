@@ -46,6 +46,25 @@ class Service(BaseModel):
     source: str = "kubernetes"
 
 
+class Stage(BaseModel):
+    """A single stage/job in a pipeline."""
+    name: str
+    image: str = ""
+    steps: list[str] = Field(default_factory=list)
+    depends: list[str] = Field(default_factory=list)
+    status: str = ""        # queued | in_progress | completed
+    conclusion: str = ""    # success | failure | cancelled | skipped | ""
+
+
+class Pipeline(BaseModel):
+    """Unified CI/CD definition — GitHub Actions, GitLab CI, Jenkins."""
+    name: str
+    repository: str
+    trigger: list[str] = Field(default_factory=list)
+    stages: list[Stage] = Field(default_factory=list)
+    source: str = "github-actions"
+
+
 class NormalizedConfig(BaseModel):
     """Wrapper with metadata — the output of normalization."""
     config_id: str = Field(default_factory=lambda: f"cfg_{uuid.uuid4().hex[:12]}")

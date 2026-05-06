@@ -9,7 +9,9 @@ from prometheus_client import Counter
 
 from app import store
 from app.config import settings
+from app.normalizers.github_actions import GitHubActionsNormalizer
 from app.normalizers.kubernetes import KubernetesNormalizer
+from app.normalizers.terraform import TerraformNormalizer
 from app.routes import health, query
 
 logging.basicConfig(
@@ -24,7 +26,11 @@ CONFIGS_PRODUCED = Counter("forgeworks_normalizer_configs_produced_total", "Conf
 EVENTS_SKIPPED = Counter("forgeworks_normalizer_events_skipped_total", "Events skipped (not normalizable)")
 
 # Normalizers
-normalizers = [KubernetesNormalizer()]
+normalizers = [
+    KubernetesNormalizer(),
+    TerraformNormalizer(),
+    GitHubActionsNormalizer(),
+]
 
 
 async def consume_loop():

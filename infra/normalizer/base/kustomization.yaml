@@ -5,3 +5,5 @@ namespace: forge-engine
 
 resources:
   - normalizer.yaml
+  - normalizer-terraform.yaml
+  - normalizer-github-actions.yaml

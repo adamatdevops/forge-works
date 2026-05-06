@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # Topic mapping
     kafka_topic_github: str = "forge.events.github"
+    kafka_topic_github_actions: str = "forge.events.github_actions"
     kafka_topic_argocd: str = "forge.events.argocd"
     kafka_topic_kubernetes: str = "forge.events.kubernetes"
     kafka_topic_dlq: str = "forge.dlq.events"
@@ -36,6 +37,7 @@ class Settings(BaseSettings):
     def topic_for_source(self, source: str) -> str | None:
         mapping = {
             "github": self.kafka_topic_github,
+            "github-actions": self.kafka_topic_github_actions,
             "argocd": self.kafka_topic_argocd,
             "kubernetes": self.kafka_topic_kubernetes,
         }

@@ -8,6 +8,7 @@ data:
   FW_APP_NAME: "webhook-gateway"
   FW_KAFKA_BOOTSTRAP_SERVERS: "forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092"
   FW_KAFKA_TOPIC_GITHUB: "forge.events.github"
+  FW_KAFKA_TOPIC_GITHUB_ACTIONS: "forge.events.github_actions"
   FW_KAFKA_TOPIC_ARGOCD: "forge.events.argocd"
   FW_KAFKA_TOPIC_KUBERNETES: "forge.events.kubernetes"
   FW_KAFKA_TOPIC_DLQ: "forge.dlq.events"
