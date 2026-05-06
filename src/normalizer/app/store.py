@@ -4,7 +4,7 @@ Tiered config state persistence.
 Hot tier:  Redis DB 1 (<5ms reads) — keyed by resource_ref
 Cold tier: S3 fw-state-dev (durable, versioned) — keyed by resource_ref/version
 
-Write path: Redis + S3 (dual write)
+Write path: Redis + S3 (dual write). Either failure raises — never silent.
 Read path:  Redis first → S3 fallback
 """
 
@@ -12,6 +12,7 @@ import json
 import logging
 
 from app.config import settings
+from app.dlq import RedisWriteError, S3WriteError
 from app.schemas import NormalizedConfig
 
 logger = logging.getLogger(__name__)
@@ -43,18 +44,23 @@ async def close_store():
 
 
 async def put(config: NormalizedConfig) -> None:
-    """Dual write: Redis (hot) + S3 (cold)."""
+    """Dual write: Redis (hot) + S3 (cold). Raises on any write failure."""
     key = config.resource_ref
-    data = config.model_dump()
+    # exclude_none aligns Python None with CUE "field absent" — never serialize null
+    data = config.model_dump(exclude_none=True)
     data_json = json.dumps(data)
 
     # Hot tier — Redis
     if _redis:
-        await _redis.setex(
-            f"config:{key}",
-            settings.redis_ttl_seconds,
-            data_json,
-        )
+        try:
+            await _redis.setex(
+                f"config:{key}",
+                settings.redis_ttl_seconds,
+                data_json,
+            )
+        except Exception as e:
+            logger.exception("Redis write failed for %s", key)
+            raise RedisWriteError(f"Redis SETEX failed for {key}: {e}") from e
 
     # Cold tier — S3
     try:
@@ -66,8 +72,9 @@ async def put(config: NormalizedConfig) -> None:
             Key=s3_key,
             Body=data_json.encode("utf-8"),
         )
-    except Exception:
-        logger.exception("S3 write failed for %s (Redis write succeeded)", key)
+    except Exception as e:
+        logger.exception("S3 write failed for %s (Redis write may have succeeded)", key)
+        raise S3WriteError(f"S3 PutObject failed for {key}: {e}") from e
 
 
 async def get(resource_ref: str) -> NormalizedConfig | None:

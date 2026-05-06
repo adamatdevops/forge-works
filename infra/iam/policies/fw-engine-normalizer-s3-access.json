@@ -1,0 +1,28 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ListBucketScopedToNormalizerPrefix",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::fw-state-dev",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        "normalizer/configs/*"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "ReadWriteNormalizerConfigs",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:AbortMultipartUpload"
+            ],
+            "Resource": "arn:aws:s3:::fw-state-dev/normalizer/configs/*"
+        }
+    ]
+}

@@ -8,7 +8,9 @@ data:
   FW_KAFKA_BOOTSTRAP_SERVERS: "forge-kafka-kafka-bootstrap.forge-engine.svc.cluster.local:9092"
   FW_KAFKA_INPUT_TOPIC: "forge.events.terraform"
   FW_KAFKA_OUTPUT_TOPIC: "forge.config.normalized"
+  FW_KAFKA_DLQ_TOPIC: "forge.dlq.events"
   FW_KAFKA_CONSUMER_GROUP: "normalizer-terraform"
+  FW_EXPECTED_SOURCE: "terraform"
   FW_S3_BUCKET: "fw-state-dev"
   # Prefix is shared; per-source partition comes from resource_ref encoding
   # (writes land under normalizer/configs/terraform/... — matches IAM policy)

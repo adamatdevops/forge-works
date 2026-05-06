@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     kafka_consumer_group: str = "forgeworks-normalizer"
     kafka_input_topic: str = "forge.events.kubernetes"
     kafka_output_topic: str = "forge.config.normalized"
+    kafka_dlq_topic: str = "forge.dlq.events"
+
+    # Per-source pod isolation. Empty = no enforcement (backward-compat).
+    expected_source: str = ""
 
     # Redis (DB 1 — separate from model cache DB 0)
     redis_host: str = "forge-redis.forge-engine.svc"

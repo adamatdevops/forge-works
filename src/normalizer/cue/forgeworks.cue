@@ -33,13 +33,13 @@ package forgeworks
 	source:    #Source
 
 	// Health
-	healthy:    bool | *true
-	ready:      bool | *true
-	crashLoops: int & >=0 | *0
+	healthy:     bool | *true
+	ready:       bool | *true
+	crash_loops: int & >=0 | *0
 
 	// Probes
-	hasLivenessProbe:  bool | *false
-	hasReadinessProbe: bool | *false
+	has_liveness_probe:  bool | *false
+	has_readiness_probe: bool | *false
 
 	// Scaling
 	hpa?: {
@@ -78,10 +78,12 @@ package forgeworks
 }
 
 #Stage: {
-	name:    string
-	image:   string | *""
-	steps:   [...string]
-	depends: [...string] | *[]
+	name:       string
+	image:      string | *""
+	steps:      [...string]
+	depends:    [...string] | *[]
+	status:     "" | "queued" | "in_progress" | "completed" | *""
+	conclusion: "" | "success" | "failure" | "cancelled" | "skipped" | *""
 }
 
 // ============================================================
@@ -108,9 +110,10 @@ package forgeworks
 #NormalizedConfig: {
 	config_id:      string
 	resource_ref:   string // join key: "{source}:{namespace}/{name}" or "{source}:{repo}"
-	schema_version: int & >=1
+	schema_version: int & >=2
 	observed_at:    string // ISO 8601
 	source:         #Source
+	resource_type:  "workload" | "service" | "pipeline" | "deployment"
 	resource:       #Workload | #Service | #Pipeline | #Deployment
 	raw_hash:       string // SHA256 of original input
 }
