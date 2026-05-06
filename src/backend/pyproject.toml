@@ -63,7 +63,15 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
-ignore = ["E501"]  # Line length handled by formatter
+ignore = [
+    "E501",  # Line length handled by formatter
+    # UP042: `class X(str, Enum)` → `enum.StrEnum`. Suppressed because StrEnum
+    # changes `str(X.A)` semantics (returns the value, not the qualified name)
+    # and the codebase has 14+ existing classes using the (str, Enum) pattern.
+    # Migration is a behavioral change disguised as a lint fix; defer to a
+    # focused PR with explicit per-class testing.
+    "UP042",
+]
 
 [tool.mypy]
 python_version = "3.11"

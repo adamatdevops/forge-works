@@ -13,7 +13,8 @@ from fastapi import APIRouter, HTTPException
 
 from app.forges.github_forge import get_github_forge
 from app.forges.github_k8s_bridge import get_github_kubernetes_bridge
-from app.forges.webhook_router import list_webhook_sources, router as webhook_router
+from app.forges.webhook_router import list_webhook_sources
+from app.forges.webhook_router import router as webhook_router
 
 router = APIRouter()
 
@@ -60,7 +61,9 @@ async def forge_health() -> dict[str, Any]:
     bridge_health = await bridge.health_check()
 
     return {
-        "overall_status": "healthy" if github_health.healthy and bridge_health.healthy else "degraded",
+        "overall_status": "healthy"
+        if github_health.healthy and bridge_health.healthy
+        else "degraded",
         "forges": {
             github_forge.forge_name: github_health.to_dict(),
             bridge.forge_name: bridge_health.to_dict(),

@@ -64,7 +64,10 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached settings instance."""
     s = Settings()
-    if s.environment != "development" and s.secret_key == "change-me-in-production-use-secrets-for-real-key":
+    if (
+        s.environment != "development"
+        and s.secret_key == "change-me-in-production-use-secrets-for-real-key"
+    ):
         raise ValueError(
             "SECRET_KEY must be set via environment variable in non-development environments. "
             "Do not use the default value in production."
