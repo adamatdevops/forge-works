@@ -28,3 +28,7 @@ asyncio_mode = "auto"
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# `cue/` lives next to `app/` for schema co-location; exclude it from packaging.
+packages = ["app"]
