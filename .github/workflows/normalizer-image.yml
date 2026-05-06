@@ -94,8 +94,13 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Summary
+        env:
+          IMAGE: ${{ steps.tags.outputs.image }}
+          SHORT_SHA: ${{ steps.tags.outputs.short_sha }}
         run: |
-          echo "## Pushed image tags" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- \`${{ steps.tags.outputs.image }}:sha-${{ steps.tags.outputs.short_sha }}\` (immutable — recommended for rollouts)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- \`${{ steps.tags.outputs.image }}:main-latest\` (moving — convenient with imagePullPolicy: Always)" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Pushed image tags"
+            echo ""
+            echo "- \`${IMAGE}:sha-${SHORT_SHA}\` (immutable — recommended for rollouts)"
+            echo "- \`${IMAGE}:main-latest\` (moving — convenient with imagePullPolicy: Always)"
+          } >> "$GITHUB_STEP_SUMMARY"
