@@ -6,12 +6,10 @@ import java.util.List;
 /**
  * Maps pattern IDs to actionable recommendations.
  *
- * Why static recommendations (not dynamic):
- * - Deterministic — same pattern always gets the same advice
- * - No external calls in the hot path
- * - Easy to extend — add a case, deploy
- * - Dynamic recommendations (LLM-generated) can be added in Phase 4
- *   when the Adapter layer can call external APIs
+ * <p>Why static recommendations (not dynamic): - Deterministic — same pattern always gets the same
+ * advice - No external calls in the hot path - Easy to extend — add a case, deploy - Dynamic
+ * recommendations (LLM-generated) can be added in Phase 4 when the Adapter layer can call external
+ * APIs
  */
 public class Recommendations {
 
@@ -24,7 +22,9 @@ public class Recommendations {
                 recs.add("Check if rollback loops are occurring (ArgoCD sync history)");
                 recs.add("Enable deployment rate limiting in ArgoCD application settings");
                 if (insight.getAlertCount() > 3) {
-                    recs.add("URGENT: Repeated rapid deployments — investigate root cause immediately");
+                    recs.add(
+                            "URGENT: Repeated rapid deployments — investigate root cause"
+                                    + " immediately");
                 }
                 break;
 

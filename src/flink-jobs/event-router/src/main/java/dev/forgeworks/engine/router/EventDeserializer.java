@@ -1,6 +1,7 @@
 package dev.forgeworks.engine.router;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.slf4j.Logger;
@@ -10,8 +11,8 @@ import java.io.IOException;
 import java.security.MessageDigest;
 
 /**
- * Deserializes Kafka message bytes into EventEnvelope objects.
- * Invalid JSON is logged and returns null (filtered downstream).
+ * Deserializes Kafka message bytes into EventEnvelope objects. Invalid JSON is logged and returns
+ * null (filtered downstream).
  */
 public class EventDeserializer implements DeserializationSchema<EventEnvelope> {
 
@@ -31,7 +32,11 @@ public class EventDeserializer implements DeserializationSchema<EventEnvelope> {
         try {
             return mapper.readValue(message, EventEnvelope.class);
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize event: size={}, sha256={}", message.length, sha256(message), e);
+            LOG.warn(
+                    "Failed to deserialize event: size={}, sha256={}",
+                    message.length,
+                    sha256(message),
+                    e);
             return null;
         }
     }

@@ -13,17 +13,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Stateful deduplication filter using Flink keyed state.
  *
- * How it works:
- * - Each event is keyed by source + event_id (routingKey)
- * - State stores a boolean "seen" flag per key
- * - TTL of 1 hour auto-evicts old entries (prevents unbounded state growth)
- * - If we've seen this event_id before, filter it out
+ * <p>How it works: - Each event is keyed by source + event_id (routingKey) - State stores a boolean
+ * "seen" flag per key - TTL of 1 hour auto-evicts old entries (prevents unbounded state growth) -
+ * If we've seen this event_id before, filter it out
  *
- * Why Flink state (not Redis/external):
- * - Zero network hops — state is co-located with processing
- * - Survives restarts via checkpoints
- * - Automatic cleanup via TTL
- * - Scales linearly with Flink parallelism
+ * <p>Why Flink state (not Redis/external): - Zero network hops — state is co-located with
+ * processing - Survives restarts via checkpoints - Automatic cleanup via TTL - Scales linearly with
+ * Flink parallelism
  */
 public class DeduplicationFilter extends RichFilterFunction<EventEnvelope> {
 
@@ -32,13 +28,14 @@ public class DeduplicationFilter extends RichFilterFunction<EventEnvelope> {
 
     @Override
     public void open(Configuration parameters) {
-        StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.hours(1))
-                .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-                .cleanupFullSnapshot()
-                .build();
+        StateTtlConfig ttlConfig =
+                StateTtlConfig.newBuilder(Time.hours(1))
+                        .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                        .cleanupFullSnapshot()
+                        .build();
 
-        ValueStateDescriptor<Boolean> descriptor = new ValueStateDescriptor<>(
-                "event-seen", TypeInformation.of(Boolean.class));
+        ValueStateDescriptor<Boolean> descriptor =
+                new ValueStateDescriptor<>("event-seen", TypeInformation.of(Boolean.class));
         descriptor.enableTimeToLive(ttlConfig);
 
         seenState = getRuntimeContext().getState(descriptor);

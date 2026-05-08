@@ -1,13 +1,12 @@
 package dev.forgeworks.engine.router;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Serializes EventEnvelope objects to JSON bytes for Kafka output.
- */
+/** Serializes EventEnvelope objects to JSON bytes for Kafka output. */
 public class EventSerializer implements SerializationSchema<EventEnvelope> {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventSerializer.class);

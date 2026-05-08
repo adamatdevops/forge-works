@@ -1,6 +1,7 @@
 package dev.forgeworks.engine.insights;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,11 +13,11 @@ import java.util.UUID;
 /**
  * Consolidated, actionable insight — the final output of the engine.
  *
- * An Insight is different from a PatternAlert:
- * - Alert = "this pattern was detected" (raw, may repeat)
- * - Insight = "here's what happened, why it matters, and what to do" (deduplicated, actionable)
+ * <p>An Insight is different from a PatternAlert: - Alert = "this pattern was detected" (raw, may
+ * repeat) - Insight = "here's what happened, why it matters, and what to do" (deduplicated,
+ * actionable)
  *
- * Consumers: UI dashboard, Slack notifications, automated remediation (Phase 4)
+ * <p>Consumers: UI dashboard, Slack notifications, automated remediation (Phase 4)
  */
 public class Insight implements Serializable {
 
@@ -89,40 +90,136 @@ public class Insight implements Serializable {
     }
 
     // Getters and setters
-    public String getInsightId() { return insightId; }
-    public void setInsightId(String insightId) { this.insightId = insightId; }
-    public String getPatternId() { return patternId; }
-    public void setPatternId(String patternId) { this.patternId = patternId; }
-    public String getPatternName() { return patternName; }
-    public void setPatternName(String patternName) { this.patternName = patternName; }
-    public String getSeverity() { return severity; }
-    public void setSeverity(String severity) { this.severity = severity; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-    public String getTimestamp() { return timestamp; }
-    public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
-    public String getSource() { return source; }
-    public void setSource(String source) { this.source = source; }
-    public String getGroupKey() { return groupKey; }
-    public void setGroupKey(String groupKey) { this.groupKey = groupKey; }
-    public List<String> getRecommendations() { return recommendations; }
-    public void setRecommendations(List<String> recommendations) { this.recommendations = recommendations; }
-    public int getAlertCount() { return alertCount; }
-    public void setAlertCount(int alertCount) { this.alertCount = alertCount; }
-    public String getFirstSeen() { return firstSeen; }
-    public void setFirstSeen(String firstSeen) { this.firstSeen = firstSeen; }
-    public String getLastSeen() { return lastSeen; }
-    public void setLastSeen(String lastSeen) { this.lastSeen = lastSeen; }
-    public Double getModelScore() { return modelScore; }
-    public void setModelScore(Double modelScore) { this.modelScore = modelScore; }
-    public List<String> getTriggerEventIds() { return triggerEventIds; }
-    public void setTriggerEventIds(List<String> triggerEventIds) { this.triggerEventIds = triggerEventIds; }
-    public Map<String, Object> getContext() { return context; }
-    public void setContext(Map<String, Object> context) { this.context = context; }
+    public String getInsightId() {
+        return insightId;
+    }
+
+    public void setInsightId(String insightId) {
+        this.insightId = insightId;
+    }
+
+    public String getPatternId() {
+        return patternId;
+    }
+
+    public void setPatternId(String patternId) {
+        this.patternId = patternId;
+    }
+
+    public String getPatternName() {
+        return patternName;
+    }
+
+    public void setPatternName(String patternName) {
+        this.patternName = patternName;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getGroupKey() {
+        return groupKey;
+    }
+
+    public void setGroupKey(String groupKey) {
+        this.groupKey = groupKey;
+    }
+
+    public List<String> getRecommendations() {
+        return recommendations;
+    }
+
+    public void setRecommendations(List<String> recommendations) {
+        this.recommendations = recommendations;
+    }
+
+    public int getAlertCount() {
+        return alertCount;
+    }
+
+    public void setAlertCount(int alertCount) {
+        this.alertCount = alertCount;
+    }
+
+    public String getFirstSeen() {
+        return firstSeen;
+    }
+
+    public void setFirstSeen(String firstSeen) {
+        this.firstSeen = firstSeen;
+    }
+
+    public String getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(String lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
+    public Double getModelScore() {
+        return modelScore;
+    }
+
+    public void setModelScore(Double modelScore) {
+        this.modelScore = modelScore;
+    }
+
+    public List<String> getTriggerEventIds() {
+        return triggerEventIds;
+    }
+
+    public void setTriggerEventIds(List<String> triggerEventIds) {
+        this.triggerEventIds = triggerEventIds;
+    }
+
+    public Map<String, Object> getContext() {
+        return context;
+    }
+
+    public void setContext(Map<String, Object> context) {
+        this.context = context;
+    }
 
     @Override
     public String toString() {
-        return "Insight{id='" + insightId + "', pattern='" + patternName +
-                "', severity='" + severity + "', alerts=" + alertCount + "}";
+        return "Insight{id='"
+                + insightId
+                + "', pattern='"
+                + patternName
+                + "', severity='"
+                + severity
+                + "', alerts="
+                + alertCount
+                + "}";
     }
 }

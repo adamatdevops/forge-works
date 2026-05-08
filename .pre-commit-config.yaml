@@ -124,3 +124,13 @@ repos:
             pnpm-lock\.yaml$|
             .*\.lock$
           )
+
+  # ---------------------------------------------------------------------------
+  # Tier 1 — Java auto-format (mirrors Spotless google-java-format in pom.xml)
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.16.0
+    hooks:
+      - id: pretty-format-java
+        args: [--autofix, --aosp]
+        files: \.java$

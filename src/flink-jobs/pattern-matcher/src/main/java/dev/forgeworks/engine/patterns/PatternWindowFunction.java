@@ -2,6 +2,7 @@ package dev.forgeworks.engine.patterns;
 
 import dev.forgeworks.engine.patterns.model.ModelLoader;
 import dev.forgeworks.engine.patterns.model.ScoringModel;
+
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -22,13 +23,12 @@ import java.util.Set;
 /**
  * Stateful pattern evaluation using incremental counters with timer-based reset.
  *
- * How aging works:
- * - Each key gets a processing-time timer set 10 minutes after the first event
- * - When the timer fires, counters are cleared (fresh window starts)
- * - Under continuous traffic, counters reset every 10 min (true sliding semantics)
- * - Under no traffic, state TTL (15 min) cleans up the entry entirely
+ * <p>How aging works: - Each key gets a processing-time timer set 10 minutes after the first event
+ * - When the timer fires, counters are cleared (fresh window starts) - Under continuous traffic,
+ * counters reset every 10 min (true sliding semantics) - Under no traffic, state TTL (15 min)
+ * cleans up the entry entirely
  *
- * eventIds are capped at MAX_EVENT_IDS to prevent unbounded growth.
+ * <p>eventIds are capped at MAX_EVENT_IDS to prevent unbounded growth.
  */
 public class PatternWindowFunction
         extends KeyedProcessFunction<String, EventEnvelope, PatternAlert> {
@@ -38,26 +38,37 @@ public class PatternWindowFunction
     private static final int MAX_EVENT_IDS = 50;
 
     private transient ValueState<EventCounters> countersState;
-    private transient ValueState<Long> timerState;  // tracks active timer timestamp
+    private transient ValueState<Long> timerState; // tracks active timer timestamp
     private transient ModelLoader modelLoader;
 
-    private static final Map<String, String> PATTERN_TO_MODEL = new HashMap<>() {{
-        put("PAT-DEPLOY-001", "rapid-deploy-scorer");
-        put("PAT-K8S-001", "crash-loop-scorer");
-        put("PAT-CI-001", "ci-skip-scorer");
-    }};
+    private static final Map<String, String> PATTERN_TO_MODEL =
+            new HashMap<>() {
+                {
+                    put("PAT-DEPLOY-001", "rapid-deploy-scorer");
+                    put("PAT-K8S-001", "crash-loop-scorer");
+                    put("PAT-CI-001", "ci-skip-scorer");
+                }
+            };
 
     @Override
     public void open(Configuration parameters) {
-        countersState = getRuntimeContext().getState(
-                new ValueStateDescriptor<>("event-counters", TypeInformation.of(EventCounters.class)));
+        countersState =
+                getRuntimeContext()
+                        .getState(
+                                new ValueStateDescriptor<>(
+                                        "event-counters", TypeInformation.of(EventCounters.class)));
 
-        timerState = getRuntimeContext().getState(
-                new ValueStateDescriptor<>("window-timer", TypeInformation.of(Long.class)));
+        timerState =
+                getRuntimeContext()
+                        .getState(
+                                new ValueStateDescriptor<>(
+                                        "window-timer", TypeInformation.of(Long.class)));
 
         modelLoader = new ModelLoader();
         modelLoader.initialize();
-        LOG.info("PatternWindowFunction initialized (incremental counters + timer reset) — models: {}",
+        LOG.info(
+                "PatternWindowFunction initialized (incremental counters + timer reset) — models:"
+                        + " {}",
                 modelLoader.getHotModelIds());
     }
 
@@ -95,9 +106,12 @@ public class PatternWindowFunction
 
         for (PatternAlert alert : alerts) {
             enrichWithScore(alert, counters);
-            LOG.info("Pattern matched: {} — {} (group: {}, events: {}, score: {})",
-                    alert.getPatternId(), alert.getPatternName(),
-                    alert.getGroupKey(), alert.getEventCount(),
+            LOG.info(
+                    "Pattern matched: {} — {} (group: {}, events: {}, score: {})",
+                    alert.getPatternId(),
+                    alert.getPatternName(),
+                    alert.getGroupKey(),
+                    alert.getEventCount(),
                     alert.getContext().get("model_score"));
             out.collect(alert);
         }
@@ -116,33 +130,63 @@ public class PatternWindowFunction
         List<PatternAlert> alerts = new ArrayList<>();
 
         if (c.syncCount > 3) {
-            alerts.add(PatternAlert.create(
-                    "PAT-DEPLOY-001", "Rapid Successive Deployments", "high",
-                    c.syncCount + " deployments detected in window for " + groupKey,
-                    "argocd", groupKey, c.syncCount, 10,
-                    new ArrayList<>(c.eventIds),
-                    new HashMap<>() {{ put("threshold", 3); put("actual", c.syncCount); }}
-            ));
+            alerts.add(
+                    PatternAlert.create(
+                            "PAT-DEPLOY-001",
+                            "Rapid Successive Deployments",
+                            "high",
+                            c.syncCount + " deployments detected in window for " + groupKey,
+                            "argocd",
+                            groupKey,
+                            c.syncCount,
+                            10,
+                            new ArrayList<>(c.eventIds),
+                            new HashMap<>() {
+                                {
+                                    put("threshold", 3);
+                                    put("actual", c.syncCount);
+                                }
+                            }));
         }
 
         if (c.crashCount > 3) {
-            alerts.add(PatternAlert.create(
-                    "PAT-K8S-001", "Pod Crash Loop Detected", "critical",
-                    c.crashCount + " crash/restart events for " + groupKey,
-                    "kubernetes", groupKey, c.crashCount, 5,
-                    new ArrayList<>(c.eventIds),
-                    new HashMap<>() {{ put("threshold", 3); put("actual", c.crashCount); }}
-            ));
+            alerts.add(
+                    PatternAlert.create(
+                            "PAT-K8S-001",
+                            "Pod Crash Loop Detected",
+                            "critical",
+                            c.crashCount + " crash/restart events for " + groupKey,
+                            "kubernetes",
+                            groupKey,
+                            c.crashCount,
+                            5,
+                            new ArrayList<>(c.eventIds),
+                            new HashMap<>() {
+                                {
+                                    put("threshold", 3);
+                                    put("actual", c.crashCount);
+                                }
+                            }));
         }
 
         if (c.mergeCount > 0 && c.testCount == 0) {
-            alerts.add(PatternAlert.create(
-                    "PAT-CI-001", "PR Merged Without Tests", "medium",
-                    "PR merged without test/check run detected for " + groupKey,
-                    "github", groupKey, c.mergeCount, 10,
-                    new ArrayList<>(c.eventIds),
-                    new HashMap<>() {{ put("merge_count", c.mergeCount); put("tests_detected", false); }}
-            ));
+            alerts.add(
+                    PatternAlert.create(
+                            "PAT-CI-001",
+                            "PR Merged Without Tests",
+                            "medium",
+                            "PR merged without test/check run detected for " + groupKey,
+                            "github",
+                            groupKey,
+                            c.mergeCount,
+                            10,
+                            new ArrayList<>(c.eventIds),
+                            new HashMap<>() {
+                                {
+                                    put("merge_count", c.mergeCount);
+                                    put("tests_detected", false);
+                                }
+                            }));
         }
 
         return alerts;
@@ -165,9 +209,8 @@ public class PatternWindowFunction
     }
 
     /**
-     * Incremental counters — O(1) update per event.
-     * Cleared by onTimer every 10 minutes for true windowing semantics.
-     * eventIds capped at MAX_EVENT_IDS to prevent unbounded growth.
+     * Incremental counters — O(1) update per event. Cleared by onTimer every 10 minutes for true
+     * windowing semantics. eventIds capped at MAX_EVENT_IDS to prevent unbounded growth.
      */
     public static class EventCounters implements Serializable {
         public int eventCount = 0;
@@ -189,11 +232,15 @@ public class PatternWindowFunction
             if (type == null) return;
 
             if (type.contains("sync")) syncCount++;
-            if (type.contains("crash") || type.contains("restart")
-                    || type.contains("backoff") || type.contains("failed")) crashCount++;
+            if (type.contains("crash")
+                    || type.contains("restart")
+                    || type.contains("backoff")
+                    || type.contains("failed")) crashCount++;
             if (type.contains("merged")) mergeCount++;
-            if (type.contains("check_run") || type.contains("check_suite")
-                    || type.contains("workflow_run") || type.contains("status")) testCount++;
+            if (type.contains("check_run")
+                    || type.contains("check_suite")
+                    || type.contains("workflow_run")
+                    || type.contains("status")) testCount++;
             if (type.contains("push")) pushCount++;
 
             if (event.getMetadata() != null) {

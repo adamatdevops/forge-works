@@ -2,6 +2,7 @@ package dev.forgeworks.engine.insights;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -44,30 +45,101 @@ public class PatternAlert implements Serializable {
 
     public PatternAlert() {}
 
-    public String getAlertId() { return alertId; }
-    public void setAlertId(String alertId) { this.alertId = alertId; }
-    public String getPatternId() { return patternId; }
-    public void setPatternId(String patternId) { this.patternId = patternId; }
-    public String getPatternName() { return patternName; }
-    public void setPatternName(String patternName) { this.patternName = patternName; }
-    public String getSeverity() { return severity; }
-    public void setSeverity(String severity) { this.severity = severity; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-    public String getTimestamp() { return timestamp; }
-    public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
-    public String getSource() { return source; }
-    public void setSource(String source) { this.source = source; }
-    public String getGroupKey() { return groupKey; }
-    public void setGroupKey(String groupKey) { this.groupKey = groupKey; }
-    public int getEventCount() { return eventCount; }
-    public void setEventCount(int eventCount) { this.eventCount = eventCount; }
-    public int getWindowMinutes() { return windowMinutes; }
-    public void setWindowMinutes(int windowMinutes) { this.windowMinutes = windowMinutes; }
-    public List<String> getTriggerEventIds() { return triggerEventIds; }
-    public void setTriggerEventIds(List<String> triggerEventIds) { this.triggerEventIds = triggerEventIds; }
-    public Map<String, Object> getContext() { return context; }
-    public void setContext(Map<String, Object> context) { this.context = context; }
+    public String getAlertId() {
+        return alertId;
+    }
+
+    public void setAlertId(String alertId) {
+        this.alertId = alertId;
+    }
+
+    public String getPatternId() {
+        return patternId;
+    }
+
+    public void setPatternId(String patternId) {
+        this.patternId = patternId;
+    }
+
+    public String getPatternName() {
+        return patternName;
+    }
+
+    public void setPatternName(String patternName) {
+        this.patternName = patternName;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getGroupKey() {
+        return groupKey;
+    }
+
+    public void setGroupKey(String groupKey) {
+        this.groupKey = groupKey;
+    }
+
+    public int getEventCount() {
+        return eventCount;
+    }
+
+    public void setEventCount(int eventCount) {
+        this.eventCount = eventCount;
+    }
+
+    public int getWindowMinutes() {
+        return windowMinutes;
+    }
+
+    public void setWindowMinutes(int windowMinutes) {
+        this.windowMinutes = windowMinutes;
+    }
+
+    public List<String> getTriggerEventIds() {
+        return triggerEventIds;
+    }
+
+    public void setTriggerEventIds(List<String> triggerEventIds) {
+        this.triggerEventIds = triggerEventIds;
+    }
+
+    public Map<String, Object> getContext() {
+        return context;
+    }
+
+    public void setContext(Map<String, Object> context) {
+        this.context = context;
+    }
 
     /** Dedup key: same pattern + same group = same logical alert */
     public String dedupKey() {

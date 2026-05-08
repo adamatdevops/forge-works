@@ -71,6 +71,7 @@ select = [
     "FURB",   # refurb
     "LOG",    # flake8-logging
     "RUF",    # Ruff-specific rules
+    "S",      # flake8-bandit (security)
 ]
 
 # Ignore specific rules
@@ -96,8 +97,8 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [lint.per-file-ignores]
-# Tests can have magic values and unused arguments
-"**/tests/**/*.py" = ["PLR2004", "ARG001", "ARG002", "S101"]
+# Tests can have magic values, unused arguments, asserts, and subprocess calls
+"**/tests/**/*.py" = ["PLR2004", "ARG001", "ARG002", "S101", "S603", "S607"]
 # Init files can have unused imports
 "**/__init__.py" = ["F401", "F403"]
 # Migrations can be messy

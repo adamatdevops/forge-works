@@ -1,6 +1,7 @@
 package dev.forgeworks.engine.patterns;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.slf4j.Logger;
@@ -25,13 +26,19 @@ public class EventDeserializer implements DeserializationSchema<EventEnvelope> {
         try {
             return mapper.readValue(message, EventEnvelope.class);
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize event: size={}, sha256={}", message.length, sha256(message), e);
+            LOG.warn(
+                    "Failed to deserialize event: size={}, sha256={}",
+                    message.length,
+                    sha256(message),
+                    e);
             return null;
         }
     }
 
     @Override
-    public boolean isEndOfStream(EventEnvelope nextElement) { return false; }
+    public boolean isEndOfStream(EventEnvelope nextElement) {
+        return false;
+    }
 
     @Override
     public TypeInformation<EventEnvelope> getProducedType() {

@@ -1,6 +1,7 @@
 package dev.forgeworks.engine.insights;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.slf4j.Logger;
@@ -15,7 +16,9 @@ public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
     private transient ObjectMapper mapper;
 
     @Override
-    public void open(InitializationContext context) { mapper = new ObjectMapper(); }
+    public void open(InitializationContext context) {
+        mapper = new ObjectMapper();
+    }
 
     @Override
     public PatternAlert deserialize(byte[] message) throws IOException {
@@ -23,13 +26,19 @@ public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
         try {
             return mapper.readValue(message, PatternAlert.class);
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize alert: size={}, sha256={}", message.length, sha256(message), e);
+            LOG.warn(
+                    "Failed to deserialize alert: size={}, sha256={}",
+                    message.length,
+                    sha256(message),
+                    e);
             return null;
         }
     }
 
     @Override
-    public boolean isEndOfStream(PatternAlert next) { return false; }
+    public boolean isEndOfStream(PatternAlert next) {
+        return false;
+    }
 
     @Override
     public TypeInformation<PatternAlert> getProducedType() {

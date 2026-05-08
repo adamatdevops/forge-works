@@ -11,23 +11,17 @@ import java.util.Set;
 /**
  * Extracts numeric features from event windows for model scoring.
  *
- * Why a separate extractor:
- * - Models need numeric inputs, events are structured JSON
- * - Feature engineering is reusable across models
- * - Decouples "what to measure" from "how to score"
- * - Features become training data in Phase 3 (logged to Kafka)
+ * <p>Why a separate extractor: - Models need numeric inputs, events are structured JSON - Feature
+ * engineering is reusable across models - Decouples "what to measure" from "how to score" -
+ * Features become training data in Phase 3 (logged to Kafka)
  *
- * Feature naming convention: {category}_{metric}
- *   deploy_count, crash_count, merge_count — raw counts
- *   time_span_inverse — 1.0/minutes (higher = faster = riskier)
- *   unique_*_inverse — 1.0/count (higher = fewer unique = riskier)
- *   *_missing — 1.0 if absent, 0.0 if present
+ * <p>Feature naming convention: {category}_{metric} deploy_count, crash_count, merge_count — raw
+ * counts time_span_inverse — 1.0/minutes (higher = faster = riskier) unique_*_inverse — 1.0/count
+ * (higher = fewer unique = riskier) *_missing — 1.0 if absent, 0.0 if present
  */
 public class FeatureExtractor {
 
-    /**
-     * Extract deployment-related features from an ArgoCD event window.
-     */
+    /** Extract deployment-related features from an ArgoCD event window. */
     public static Map<String, Double> extractDeployFeatures(List<EventEnvelope> window) {
         Map<String, Double> features = new HashMap<>();
 
@@ -35,7 +29,8 @@ public class FeatureExtractor {
         Set<String> authors = new HashSet<>();
 
         for (EventEnvelope e : window) {
-            if ("argocd".equals(e.getSource()) && e.getType() != null
+            if ("argocd".equals(e.getSource())
+                    && e.getType() != null
                     && e.getType().contains("sync")) {
                 deployCount++;
                 if (e.getMetadata() != null) {
@@ -52,9 +47,7 @@ public class FeatureExtractor {
         return features;
     }
 
-    /**
-     * Extract crash-loop features from a Kubernetes event window.
-     */
+    /** Extract crash-loop features from a Kubernetes event window. */
     public static Map<String, Double> extractCrashFeatures(List<EventEnvelope> window) {
         Map<String, Double> features = new HashMap<>();
 
@@ -62,9 +55,12 @@ public class FeatureExtractor {
         Set<String> pods = new HashSet<>();
 
         for (EventEnvelope e : window) {
-            if ("kubernetes".equals(e.getSource()) && e.getType() != null
-                    && (e.getType().contains("crash") || e.getType().contains("restart")
-                    || e.getType().contains("backoff") || e.getType().contains("failed"))) {
+            if ("kubernetes".equals(e.getSource())
+                    && e.getType() != null
+                    && (e.getType().contains("crash")
+                            || e.getType().contains("restart")
+                            || e.getType().contains("backoff")
+                            || e.getType().contains("failed"))) {
                 crashCount++;
                 if (e.getMetadata() != null) {
                     Object name = e.getMetadata().get("name");
@@ -80,9 +76,7 @@ public class FeatureExtractor {
         return features;
     }
 
-    /**
-     * Extract CI/CD skip features from a GitHub event window.
-     */
+    /** Extract CI/CD skip features from a GitHub event window. */
     public static Map<String, Double> extractCIFeatures(List<EventEnvelope> window) {
         Map<String, Double> features = new HashMap<>();
 
@@ -103,8 +97,10 @@ public class FeatureExtractor {
                 }
             }
 
-            if (type.contains("check_run") || type.contains("check_suite")
-                    || type.contains("workflow_run") || type.contains("status")) {
+            if (type.contains("check_run")
+                    || type.contains("check_suite")
+                    || type.contains("workflow_run")
+                    || type.contains("status")) {
                 hasTests = true;
             }
         }

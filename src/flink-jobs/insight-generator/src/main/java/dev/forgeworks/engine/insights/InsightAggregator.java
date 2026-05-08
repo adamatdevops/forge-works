@@ -16,39 +16,33 @@ import java.util.List;
 /**
  * Deduplicates alerts and produces consolidated insights with recommendations.
  *
- * How deduplication works:
- * - Alerts are keyed by pattern_id:group_key (dedupKey)
- * - State stores the last emitted Insight for each key
- * - Cooldown: 5 minutes — if an insight was emitted within 5 min, suppress
- * - After cooldown expires (TTL), next alert creates a fresh insight
+ * <p>How deduplication works: - Alerts are keyed by pattern_id:group_key (dedupKey) - State stores
+ * the last emitted Insight for each key - Cooldown: 5 minutes — if an insight was emitted within 5
+ * min, suppress - After cooldown expires (TTL), next alert creates a fresh insight
  *
- * Why 5-minute cooldown:
- * - Without it, every event through the Pattern Matcher fires a new alert
- *   (e.g., 10 merges without tests = 10 alerts for the same repo)
- * - With cooldown: first merge triggers alert, next 4 within 5 min are
- *   counted but suppressed. After 5 min, if still happening, re-alert.
- * - The alert_count in the insight shows how many were suppressed
+ * <p>Why 5-minute cooldown: - Without it, every event through the Pattern Matcher fires a new alert
+ * (e.g., 10 merges without tests = 10 alerts for the same repo) - With cooldown: first merge
+ * triggers alert, next 4 within 5 min are counted but suppressed. After 5 min, if still happening,
+ * re-alert. - The alert_count in the insight shows how many were suppressed
  *
- * State sizing:
- * - Each entry: ~1KB (serialized Insight)
- * - Expected keys: ~50-200 (pattern:group combinations)
- * - Total: ~200KB (negligible)
+ * <p>State sizing: - Each entry: ~1KB (serialized Insight) - Expected keys: ~50-200 (pattern:group
+ * combinations) - Total: ~200KB (negligible)
  */
-public class InsightAggregator
-        extends KeyedProcessFunction<String, PatternAlert, Insight> {
+public class InsightAggregator extends KeyedProcessFunction<String, PatternAlert, Insight> {
 
     private static final Logger LOG = LoggerFactory.getLogger(InsightAggregator.class);
     private transient ValueState<Insight> lastInsightState;
 
     @Override
     public void open(Configuration parameters) {
-        StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.minutes(5))
-                .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-                .cleanupFullSnapshot()
-                .build();
+        StateTtlConfig ttlConfig =
+                StateTtlConfig.newBuilder(Time.minutes(5))
+                        .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                        .cleanupFullSnapshot()
+                        .build();
 
-        ValueStateDescriptor<Insight> descriptor = new ValueStateDescriptor<>(
-                "last-insight", TypeInformation.of(Insight.class));
+        ValueStateDescriptor<Insight> descriptor =
+                new ValueStateDescriptor<>("last-insight", TypeInformation.of(Insight.class));
         descriptor.enableTimeToLive(ttlConfig);
 
         lastInsightState = getRuntimeContext().getState(descriptor);
@@ -68,8 +62,11 @@ public class InsightAggregator
             }
             lastInsightState.update(existing);
 
-            LOG.debug("Alert suppressed (cooldown): {} for {} — total: {}",
-                    alert.getPatternId(), alert.getGroupKey(), existing.getAlertCount());
+            LOG.debug(
+                    "Alert suppressed (cooldown): {} for {} — total: {}",
+                    alert.getPatternId(),
+                    alert.getGroupKey(),
+                    existing.getAlertCount());
             return;
         }
 
@@ -83,9 +80,12 @@ public class InsightAggregator
         // Store for dedup
         lastInsightState.update(insight);
 
-        LOG.info("Insight generated: {} — {} (group: {}, score: {})",
-                insight.getPatternId(), insight.getPatternName(),
-                insight.getGroupKey(), insight.getModelScore());
+        LOG.info(
+                "Insight generated: {} — {} (group: {}, score: {})",
+                insight.getPatternId(),
+                insight.getPatternName(),
+                insight.getGroupKey(),
+                insight.getModelScore());
 
         out.collect(insight);
     }
