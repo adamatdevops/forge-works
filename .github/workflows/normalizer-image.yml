@@ -94,6 +94,7 @@ jobs:
           context: src/normalizer
           file: src/normalizer/Dockerfile
           push: true
+          provenance: false
           tags: |
             ${{ steps.tags.outputs.image }}:sha-${{ steps.tags.outputs.short_sha }}
             ${{ steps.tags.outputs.image }}:main-latest
