@@ -137,7 +137,7 @@ class KubernetesNormalizer(ConfigNormalizer):
             resource_ref=f"kubernetes:{ns}/{name}",
             source="kubernetes",
             resource_type="workload",
-            resource=workload.model_dump(),
+            resource=workload.model_dump(exclude_none=True),
             raw_hash=NormalizedConfig.compute_hash(raw_bytes),
         )
 
@@ -165,7 +165,7 @@ class KubernetesNormalizer(ConfigNormalizer):
             resource_ref=f"kubernetes:{ns}/{name}",
             source="kubernetes",
             resource_type="service",
-            resource=service.model_dump(),
+            resource=service.model_dump(exclude_none=True),
             raw_hash=NormalizedConfig.compute_hash(raw_bytes),
         )
 

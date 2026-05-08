@@ -5,6 +5,68 @@ All notable changes to ForgeWorks Infrastructure will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-05-06
+
+### Breaking
+
+- **`NormalizedConfig.schema_version` 1 → 2.** Three CUE `#Workload` fields renamed from camelCase to snake_case (`crashLoops` → `crash_loops`, `hasLivenessProbe` → `has_liveness_probe`, `hasReadinessProbe` → `has_readiness_probe`). `resource_type` is now a closed enum codified in CUE (`"workload" | "service" | "pipeline" | "deployment"`). All Pydantic serialization uses `exclude_none=True` so Python `None` aligns with CUE "field absent" — null values are no longer published.
+- Image tag `:dev-v2` is no longer produced by CI. All Deployments reference `:main-latest` (rolling) and `:sha-<short>` (immutable) is also published.
+
+### Added — Sprint E5.1c (Codex feedback close-out)
+
+- **CUE↔Pydantic schema fidelity gate** — `tests/test_cue_schema.py` validates every normalizer's output against `cue vet -d '#NormalizedConfig'`. CI workflow installs CUE CLI v0.16.0 so any Pydantic ↔ CUE drift fails the build. (Codex Block #1)
+- **DLQ pipeline** — every failure path publishes a structured `DLQEvent` envelope to `forge.dlq.events` *before* committing the consumer offset. New module `app/dlq.py` defines five error codes:
+  - `FW-NL-PARSE-001` — JSON decode failure
+  - `FW-NL-NORM-001` — normalizer raised
+  - `FW-NL-S3-001` — cold-tier write failed
+  - `FW-NL-REDIS-001` — hot-tier write failed
+  - `FW-NL-SRC-001` — source mismatch (per-pod isolation breach)
+  New metric `forgeworks_normalizer_dlq_published_total{error_code}`. `store.put` now raises `S3WriteError` / `RedisWriteError` instead of silently logging. (Codex Block #2)
+- **Per-source isolation guard** — new env `FW_EXPECTED_SOURCE`. Each per-source pod rejects events whose `source` field does not match its expected value, routing them to DLQ with `FW-NL-SRC-001`. Empty default preserves backward-compat. (Codex Block #3)
+  - `normalizer-config` → `FW_EXPECTED_SOURCE=kubernetes`
+  - `normalizer-terraform-config` → `FW_EXPECTED_SOURCE=terraform`
+  - `normalizer-github-actions-config` → `FW_EXPECTED_SOURCE=github-actions`
+- **IAM codified in `infra/iam/`** — pulled live trust + managed policy JSON for the three new normalizer IRSA roles created in Sprint E5.1b. New `infra/iam/scripts/diff-iam.sh` reports drift between repo and AWS for every artifact under the directory; current run = zero drift across 7 trust policies + 6 managed policies. (Codex Should-fix #1)
+- New `process_message` helper extracted from `consume_loop` for unit testability without spinning up Kafka.
+- Normalizer pyproject bumped 0.1.0 → 0.2.0.
+
+### Changed
+
+- **Dockerfile single source-of-truth** — builder stage now copies `app/` before `pip install .` (so the package builds with `[tool.setuptools] packages = ["app"]`) and the runtime stage drops the redundant `COPY app/ ./app/`. Code now lives in exactly one location: `/usr/local/lib/python3.11/site-packages/app/`. (Codex Should-fix #5)
+- All three normalizer Deployment ConfigMaps add `FW_KAFKA_DLQ_TOPIC: "forge.dlq.events"`.
+
+### Tests
+
+- `src/normalizer/tests/`: 67 passing — 39 unchanged + 9 schema-fidelity + 10 DLQ + 9 process-message.
+- `src/webhook-gateway/tests/`: 38 unchanged, all passing (regression check).
+
+### Verified (pre-commit)
+
+- `cue vet` validation passes for every supported normalizer output type (kubernetes deployment + service, terraform ECS task + ALB listener, GHA workflow_run + workflow_job).
+- Negative-path tests confirm CUE rejects: `schema_version=1`, camelCase resource fields, unknown `resource_type`.
+- `store.put` propagates Redis and S3 failures (verified via mocked-boto3 tests).
+- `process_message` routes every failure class to DLQ with the correct error code (5 paths × happy-path covered).
+- `infra/iam/scripts/diff-iam.sh` clean — repo matches live AWS state for all IRSA artifacts.
+
+### Deferred (explicitly out of scope, captured for follow-up)
+
+- Terraform CPU heuristic at `f >= 16` boundary — to be replaced by producer-side `cpu_unit` envelope tag in E5.3 (producer simulator sprint). Codex Should-fix #3.
+- GHA routing for `check_run` / `check_suite` / `workflow_dispatch` — defer until normalizer parsers exist for those payload shapes. Codex Should-fix #2.
+- Image supply-chain (SBOM / provenance / cosign signing) — dedicated CI hardening sprint. Codex Should-fix #4.
+- Per-source observability metric labels (latency / error taxonomy) — fold into E5.2 Pattern Matcher integration. Codex Worth-discussing #3.
+- Cross-correlation contract for `workflow_run` ↔ `workflow_job` — design in E5.2 alongside the Pattern Matcher's stateful merge logic. Codex Worth-discussing #1.
+- `query.py` Pattern Matcher integration docstring — fix during E5.2.
+
+### Infrastructure Components (delta from 0.7.2)
+
+| Component | Version | Namespace | Status |
+|-----------|---------|-----------|--------|
+| Normalizer (image) | `:main-latest`, `:sha-<short>` | forge-engine | Deployed (3 pods) |
+| Normalizer (package) | 0.2.0 | n/a | Schema v2 |
+| `infra/iam/` artifacts | 7 trust + 6 policies codified | n/a | Diff = 0 |
+
+---
+
 ## [0.7.2] - 2026-05-06
 
 ### Added

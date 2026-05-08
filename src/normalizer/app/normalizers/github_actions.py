@@ -63,7 +63,7 @@ class GitHubActionsNormalizer(ConfigNormalizer):
             resource_ref=f"github-actions:{repo}/{run_id}",
             source="github-actions",
             resource_type="pipeline",
-            resource=pipeline.model_dump(),
+            resource=pipeline.model_dump(exclude_none=True),
             raw_hash=NormalizedConfig.compute_hash(raw_bytes),
         )
 
@@ -104,7 +104,7 @@ class GitHubActionsNormalizer(ConfigNormalizer):
             resource_ref=f"github-actions:{repo}/{run_id}/jobs/{job_id}",
             source="github-actions",
             resource_type="pipeline",
-            resource=pipeline.model_dump(),
+            resource=pipeline.model_dump(exclude_none=True),
             raw_hash=NormalizedConfig.compute_hash(raw_bytes),
         )
 

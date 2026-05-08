@@ -66,15 +66,20 @@ class Pipeline(BaseModel):
 
 
 class NormalizedConfig(BaseModel):
-    """Wrapper with metadata — the output of normalization."""
+    """Wrapper with metadata — the output of normalization.
+
+    @schema_version 2 — breaking rename of CUE camelCase fields to snake_case
+    (crash_loops, has_liveness_probe, has_readiness_probe). resource_type is
+    now a closed enum and codified in CUE.
+    """
     config_id: str = Field(default_factory=lambda: f"cfg_{uuid.uuid4().hex[:12]}")
     resource_ref: str  # join key: "{source}:{namespace}/{name}"
-    schema_version: int = 1
+    schema_version: int = 2
     observed_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
     source: str
-    resource_type: str  # "workload", "service", "pipeline", "deployment"
+    resource_type: str  # "workload" | "service" | "pipeline" | "deployment"
     resource: dict = Field(default_factory=dict)
     raw_hash: str = ""
 

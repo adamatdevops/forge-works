@@ -1,6 +1,6 @@
 [project]
 name = "normalizer"
-version = "0.1.0"
+version = "0.2.0"
 description = "ForgeWorks Configuration Normalizer — transforms K8s/Terraform/CI configs into unified CUE representations"
 requires-python = ">=3.11"
 

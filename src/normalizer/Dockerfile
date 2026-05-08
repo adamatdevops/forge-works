@@ -3,6 +3,7 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 COPY pyproject.toml .
+COPY app/ ./app/
 RUN pip install --no-cache-dir --prefix=/install .
 
 # --- Runtime stage ---
@@ -21,7 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && adduser --system --no-create-home --uid 10001 appuser
 
 COPY --from=builder /install /usr/local
-COPY app/ ./app/
 
 USER 10001
 EXPOSE 8095
