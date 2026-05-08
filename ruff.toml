@@ -80,6 +80,12 @@ ignore = [
     "PLR2004", # Magic value comparison
     "TRY003",  # Avoid long messages in exceptions
     "ISC001",  # Conflicts with formatter
+    # UP042: `class X(str, Enum)` -> `enum.StrEnum`. Suppressed because StrEnum
+    # changes `str(X.A)` semantics (returns the value, not the qualified name)
+    # and the codebase has 27+ existing classes using the (str, Enum) pattern.
+    # Migration is a behavioral change disguised as a lint fix; defer to a
+    # focused PR with explicit per-class testing.
+    "UP042",
 ]
 
 # Allow fix for all enabled rules
