@@ -299,11 +299,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 11
+      # Run Maven on JDK 17 — Spotless 3.x's plugin classes are compiled for JVM 17+.
+      # Bytecode still targets Java 11 via <maven.compiler.source/target>11</> in each pom.
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "11"
+          java-version: "17"
           cache: maven
 
       - name: Verify (compile + test + Spotless check + SpotBugs check)
