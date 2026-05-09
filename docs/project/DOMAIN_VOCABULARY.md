@@ -5,10 +5,10 @@ That’s exactly how strong platforms differentiate themselves without over-engi
 
 Below is a **carefully structured Forge vocabulary**, designed to:
 
-* replace generic DevOps verbs (“build”, “create”, “deploy”)
-* reinforce the *forge metaphor consistently*
-* work naturally in **UI labels, flows, logs, and docs**
-* stay professional (not cringe, not fantasy-roleplay)
+- replace generic DevOps verbs (“build”, “create”, “deploy”)
+- reinforce the _forge metaphor consistently_
+- work naturally in **UI labels, flows, logs, and docs**
+- stay professional (not cringe, not fantasy-roleplay)
 
 ---
 
@@ -35,15 +35,15 @@ These are your **primary verbs** — they should appear everywhere.
 
 Templates are not “templates” — they are **molds**.
 
-| Concept             | Forge Term            | UI / Doc Usage                     | Feedback                 |  
-| ------------------- | --------------------- | ---------------------------------- |--------------------------| 
-| Template            | **Mold**              | “Select forging mold”              | Needs Improvement        |  
-| Standard template   | **Approved mold**     | “Approved mold (recommended)”      | Needs Improvement        |          
-| Custom template     | **Experimental mold** | “Experimental mold (non-standard)” | Needs Improvement        |      
-| Versioned template  | **Mold revision**     | “Mold revision v2.1”               | Needs Improvement        |  
-| Deprecated template | **Retired mold**      | “Retired mold — not recommended”   | Needs Improvement        |  
+| Concept             | Forge Term            | UI / Doc Usage                     | Feedback          |
+| ------------------- | --------------------- | ---------------------------------- | ----------------- |
+| Template            | **Mold**              | “Select forging mold”              | Needs Improvement |
+| Standard template   | **Approved mold**     | “Approved mold (recommended)”      | Needs Improvement |
+| Custom template     | **Experimental mold** | “Experimental mold (non-standard)” | Needs Improvement |
+| Versioned template  | **Mold revision**     | “Mold revision v2.1”               | Needs Improvement |
+| Deprecated template | **Retired mold**      | “Retired mold — not recommended”   | Needs Improvement |
 
-This is *excellent* for governance-through-design.
+This is _excellent_ for governance-through-design.
 Recommendation: Use "Image" instead of "Template", And find an alternative suggestion for "Template".
 
 ---
@@ -52,9 +52,9 @@ Recommendation: Use "Image" instead of "Template", And find an alternative sugge
 
 These work perfectly as **step labels** or progress indicators.
 
-| Stage     | Forge Term   | Example                      |
-| --------- | ------------ | ---------------------------- |
-| Start     | **Ignite**   | “Ignite forging”             |
+| Stage | Forge Term | Example          |
+| ----- | ---------- | ---------------- |
+| Start | **Ignite** | “Ignite forging” |
 
 You now have a **full lifecycle** without using DevOps clichés.
 
@@ -64,32 +64,32 @@ You now have a **full lifecycle** without using DevOps clichés.
 
 This is one of the strongest areas for metaphor.
 
-| Generic          | Forge Term      | Meaning                | Recommendation
-| ---------------- | --------------- | ---------------------- |----------------------
-| Production-ready | **Hardened**    | Meets all standards    | Find a replacement
-| Stable           | **Tempered**    | Passed baseline checks | Find a replacement
-| Untested         | **Raw**         | Initial state          | Good. Needs a final touch or edition
-| Risky            | **Brittle**     | Likely to fail         | Find a replacement
-| Robust           | **Well-forged** | High confidence         | Find a replacement
+| Generic          | Forge Term      | Meaning                | Recommendation                       |
+| ---------------- | --------------- | ---------------------- | ------------------------------------ |
+| Production-ready | **Hardened**    | Meets all standards    | Find a replacement                   |
+| Stable           | **Tempered**    | Passed baseline checks | Find a replacement                   |
+| Untested         | **Raw**         | Initial state          | Good. Needs a final touch or edition |
+| Risky            | **Brittle**     | Likely to fail         | Find a replacement                   |
+| Robust           | **Well-forged** | High confidence        | Find a replacement                   |
 
-That’s 🔥 and *clear*.
+That’s 🔥 and _clear_.
 
 ---
 
-That’s powerful and *not hype*.
+That’s powerful and _not hype_.
 
 ---
 
 ## 5. Failures & Debugging (This is gold for your core value)
 
-This maps *perfectly* to your logs + pipeline story.
+This maps _perfectly_ to your logs + pipeline story.
 
-| Generic    | Forge Term             | Usage                        |
-| ---------- | ---------------------- | ---------------------------- |
-| Error      | **Fracture**           | “Pipeline fracture detected” | Strong!!!
-| Failure    | **Break under stress** | “Service broke under stress” | To Improve
-| Root cause | **Weak point**         | “Identified weak point”       | Find a replacement
-| Retry      | **Re-forge**           | “Re-forge with adjustments”  | Find a replacement
+| Generic    | Forge Term             | Usage                        | Feedback           |
+| ---------- | ---------------------- | ---------------------------- | ------------------ |
+| Error      | **Fracture**           | “Pipeline fracture detected” | Strong!!!          |
+| Failure    | **Break under stress** | “Service broke under stress” | To Improve         |
+| Root cause | **Weak point**         | “Identified weak point”      | Find a replacement |
+| Retry      | **Re-forge**           | “Re-forge with adjustments”  | Find a replacement |
 
 This makes debugging feel **guided**, not chaotic.
 
@@ -99,30 +99,30 @@ This makes debugging feel **guided**, not chaotic.
 
 This supports your “reliability through evolution” philosophy.
 
-| Concept             | Forge Term        | Meaning                  |
-| ------------------- | ----------------- | ------------------------ |
-| Iteration           | **Re-forging**    | Controlled change        |
-| Drift               | **Warping**       | Deviation from standards | Keep Both
-| Update template     | **Refine mold**   | Standards evolve          | Keep Both
+| Concept         | Forge Term      | Meaning                  | Feedback  |
+| --------------- | --------------- | ------------------------ | --------- |
+| Iteration       | **Re-forging**  | Controlled change        |           |
+| Drift           | **Warping**     | Deviation from standards | Keep Both |
+| Update template | **Refine mold** | Standards evolve         | Keep Both |
 
 Example:
 
 > “This failure contributed to **Forge memory** and improved future recommendations.”
 
-That’s a *killer* concept.
+That’s a _killer_ concept.
 
 ---
 
 ## 7. Suggested UI Action Labels (Ready to use)
 
-* **Forge New Service**
-* **Select Mold**
-* **View Forging Guidance**
-* **Inspect Forged Output**
-* **Re-Forge with Changes**
-* **View Stress Signals**
-* **Service Status: Tempered / Hardened**
-* **Refine Mold (Admin)**
+- **Forge New Service**
+- **Select Mold**
+- **View Forging Guidance**
+- **Inspect Forged Output**
+- **Re-Forge with Changes**
+- **View Stress Signals**
+- **Service Status: Tempered / Hardened**
+- **Refine Mold (Admin)**
 
 These are distinctive but still professional.
 
@@ -130,15 +130,15 @@ These are distinctive but still professional.
 
 ## 8. One rule to keep it from becoming gimmicky
 
-> **Use Forge language for *meaning*, not decoration.**
+> **Use Forge language for _meaning_, not decoration.**
 
 Guidelines:
 
-* UI labels: YES
-* Status messages: YES
-* Headings: YES
-* Code identifiers: NO (keep code boring)
-* Error stack traces: NO
+- UI labels: YES
+- Status messages: YES
+- Headings: YES
+- Code identifiers: NO (keep code boring)
+- Error stack traces: NO
 
 The metaphor should **clarify**, not distract.
 
@@ -149,7 +149,7 @@ The metaphor should **clarify**, not distract.
 You’re not “renaming buttons”.
 You’re creating a **shared mental model**:
 
-* raw → tempered → hardened
-* molds → standards
-* stress → faults → strengthening
-* evolution without chaos
+- raw → tempered → hardened
+- molds → standards
+- stress → faults → strengthening
+- evolution without chaos

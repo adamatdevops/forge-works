@@ -14,7 +14,7 @@
 | Login to SSO | `aws sso login --sso-session forgeworks` |
 | Scale up nodes | See [Scale Up](#scale-up-nodes) |
 | Scale down nodes | See [Scale Down](#scale-down-nodes-cost-saving) |
-| Delete cluster | See [Delete Cluster](#delete-cluster) |
+| Delete cluster | See [Delete Cluster](#delete-cluster-full-cost-elimination) |
 | Fix kubectl auth | See [Authentication](#authentication-troubleshooting) |
 
 ---

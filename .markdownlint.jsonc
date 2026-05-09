@@ -71,6 +71,7 @@
   "MD032": false,
 
   // MD033 - Inline HTML (allow certain elements)
+  // p + em added for the centered architecture image + caption pattern in README.md.
   "MD033": {
     "allowed_elements": [
       "br",
@@ -80,7 +81,9 @@
       "sup",
       "kbd",
       "img",
-      "a"
+      "a",
+      "p",
+      "em"
     ]
   },
 

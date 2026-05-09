@@ -3,16 +3,16 @@
 moving away from generic names is a **great strategic move** 👍
 Strong repo names should:
 
-* sound professional and realistic
-* reflect real-world platform / DevOps domains
-* feel like something that would exist inside a serious engineering org
-* still stay safe & non-identifiable
+- sound professional and realistic
+- reflect real-world platform / DevOps domains
+- feel like something that would exist inside a serious engineering org
+- still stay safe & non-identifiable
 
 Let’s define a **naming style** and then propose better names for your repos.
 
-* README intro tone
-* architecture narrative
-* “project origin story” framing
+- README intro tone
+- architecture narrative
+- “project origin story” framing
 
 So the repos feel:
 
@@ -42,14 +42,14 @@ Think:
 
 # 🧩 Recommended Naming Style Patterns
 
-### Pattern 1 — Domain + Capability
+## Pattern 1 — Domain + Capability
 
 Examples:
 
-* `platform-secure-cicd-orchestration`
-* `infra-multi-env-promotion-terraform`
-* `gitops-eks-environment-delivery`
-* `platform-developer-self-service-portal`
+- `platform-secure-cicd-orchestration`
+- `infra-multi-env-promotion-terraform`
+- `gitops-eks-environment-delivery`
+- `platform-developer-self-service-portal`
 
 This feels **enterprise + platform-oriented**.
 
@@ -59,16 +59,16 @@ This feels **enterprise + platform-oriented**.
 
 Think:
 
-* short codename
-* plus functional subtitle
+- short codename
+- plus functional subtitle
 
 Examples:
 
-* `atlas-cicd-governance-pipeline`
-* `keystone-terraform-env-lifecycle`
-* `orion-gitops-app-delivery`
-* `sentinel-compliance-as-code`
-* `nexus-developer-platform-foundation`
+- `atlas-cicd-governance-pipeline`
+- `keystone-terraform-env-lifecycle`
+- `orion-gitops-app-delivery`
+- `sentinel-compliance-as-code`
+- `nexus-developer-platform-foundation`
 
 This feels:
 
@@ -84,11 +84,11 @@ Hiring managers LOVE this style.
 
 Examples:
 
-* `release-control-plane`
-* `environment-promotion-engine`
-* `delivery-governance-pipeline`
-* `platform-enablement-hub`
-* `secure-build-supply-chain-poc`
+- `release-control-plane`
+- `environment-promotion-engine`
+- `delivery-governance-pipeline`
+- `platform-enablement-hub`
+- `secure-build-supply-chain-poc`
 
 This signals:
 
@@ -108,14 +108,14 @@ Here are upgraded options for each repo, with tone variants.
 
 **Platform / Governance tone**
 
-* `atlas-secure-cicd-governance`
-* `platform-secure-delivery-pipeline`
-* `release-supply-chain-security`
+- `atlas-secure-cicd-governance`
+- `platform-secure-delivery-pipeline`
+- `release-supply-chain-security`
 
 **More technical tone**
 
-* `secure-software-delivery-pipeline`
-* `cicd-governance-control-plane`
+- `secure-software-delivery-pipeline`
+- `cicd-governance-control-plane`
 
 👉 My top pick:
 
@@ -123,9 +123,9 @@ Here are upgraded options for each repo, with tone variants.
 
 Feels like:
 
-* an internal program name
-* business-aligned
-* architecture-oriented
+- an internal program name
+- business-aligned
+- architecture-oriented
 
 ---
 
@@ -135,14 +135,14 @@ Feels like:
 
 **Platform / lifecycle tone**
 
-* `keystone-environment-promotion`
-* `infra-environment-lifecycle-terraform`
-* `platform-env-promotion-framework`
+- `keystone-environment-promotion`
+- `infra-environment-lifecycle-terraform`
+- `platform-env-promotion-framework`
 
 **More technical tone**
 
-* `terraform-environment-promotion-engine`
-* `opentofu-multi-env-delivery`
+- `terraform-environment-promotion-engine`
+- `opentofu-multi-env-delivery`
 
 👉 My top pick:
 
@@ -162,13 +162,13 @@ Excellent interview talking point.
 
 **Platform delivery tone**
 
-* `orion-gitops-app-delivery`
-* `platform-eks-delivery-automation`
-* `gitops-environment-control-plane`
+- `orion-gitops-app-delivery`
+- `platform-eks-delivery-automation`
+- `gitops-environment-control-plane`
 
 **More technical tone**
 
-* `eks-gitops-deployment-framework`
+- `eks-gitops-deployment-framework`
 
 👉 My top pick:
 
@@ -187,13 +187,13 @@ Feels like:
 
 **Risk & governance tone**
 
-* `sentinel-compliance-as-code`
-* `platform-risk-automation`
-* `audit-driven-delivery-controls`
+- `sentinel-compliance-as-code`
+- `platform-risk-automation`
+- `audit-driven-delivery-controls`
 
 **Healthcare / regulated tone**
 
-* `regulated-delivery-governance`
+- `regulated-delivery-governance`
 
 👉 My top pick:
 
@@ -201,9 +201,9 @@ Feels like:
 
 Perfect balance of:
 
-* authority
-* safety
-* maturity
+- authority
+- safety
+- maturity
 
 ---
 
@@ -213,13 +213,13 @@ Perfect balance of:
 
 **Product mindset tone**
 
-* `nexus-developer-platform-foundation`
-* `platform-enablement-hub`
-* `developer-self-service-gateway`
+- `nexus-developer-platform-foundation`
+- `platform-enablement-hub`
+- `developer-self-service-gateway`
 
 **More lightweight tone**
 
-* `idp-golden-paths-platform`
+- `idp-golden-paths-platform`
 
 👉 My top pick:
 
@@ -236,10 +236,10 @@ Communicates:
 
 They signal:
 
-* ownership of **platform initiatives**
-* system-level architecture thinking
-* experience with **internal engineering programs**
-* not just local technical tasks
+- ownership of **platform initiatives**
+- system-level architecture thinking
+- experience with **internal engineering programs**
+- not just local technical tasks
 
 They make your repos feel like:
 
@@ -248,4 +248,3 @@ They make your repos feel like:
 …which is exactly the story you want.
 
 ---
-
