@@ -1,7 +1,6 @@
 package dev.forgeworks.engine.router;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

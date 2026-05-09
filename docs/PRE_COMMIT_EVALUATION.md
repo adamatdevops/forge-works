@@ -42,35 +42,35 @@ Defer to CI when any of:
 
 ## Hook-by-hook verdict
 
-| #   | Hook                    | Tier | Verdict     | Rationale                                                               |
-| --- | ----------------------- | ---- | ----------- | ----------------------------------------------------------------------- |
-| 1   | trailing-whitespace     | 1    | use         | <100ms, auto-fix, prevents diff churn                                   |
-| 2   | end-of-file-fixer       | 1    | use         | <100ms, auto-fix, POSIX correctness                                     |
-| 3   | check-yaml              | 1    | use         | Catches malformed YAML before yamllint, instant                         |
-| 4   | check-json              | 1    | use         | IAM policies are JSON; instant syntax gate                              |
-| 5   | check-toml              | 1    | use         | pyproject.toml correctness, instant                                     |
-| 6   | check-merge-conflict    | 1    | use         | Catches accidental `<<<<<<<` markers                                    |
-| 7   | check-added-large-files | 1    | use         | Block accidental large blobs (>500KB)                                   |
-| 8   | check-case-conflict     | 1    | use         | macOS/Linux case-sensitivity drift                                      |
-| 9   | check-symlinks          | 1    | use         | Broken symlinks, fast                                                   |
-| 10  | mixed-line-ending       | 1    | use         | Force LF, catches Windows line endings                                  |
-| 11  | ruff (lint)             | 1    | use         | Mirrors CI exactly. Auto-fixes most issues. ~200ms staged               |
-| 12  | ruff-format             | 1    | use         | Mirrors `ruff format --check` in CI; auto-applies                       |
-| 13  | prettier (frontend)     | 1    | use         | Auto-format TS/TSX/CSS/MD/YAML/JSON; fast on staged files               |
-| 14  | yamllint                | 2    | use         | Already configured in `.yamllint`; matches CI                           |
-| 15  | markdownlint-cli2       | 2    | use         | Already configured in `.markdownlint.jsonc`; matches CI                 |
-| 16  | shellcheck              | 2    | use         | `infra/iam/scripts/diff-iam.sh` and others; fast                        |
-| 17  | hadolint                | 2    | use         | Dockerfile-only; runs only on changed Dockerfiles; matches CI           |
-| 18  | detect-secrets          | 2    | use         | Token leak prevention; baseline file checked into repo                  |
-| 19  | mypy                    | —    | defer to CI | Slow (needs full install); strict mode is CI-only by design             |
-| 20  | eslint (full)           | —    | defer to CI | Type-aware lint needs `tsc` references; PR-level fine                   |
-| 21  | tsc / typecheck         | —    | defer to CI | 30-90s on cold cache; not commit-time friendly                          |
-| 22  | pytest                  | —    | defer to CI | Tests don't belong in pre-commit; brittle, slow                         |
-| 23  | gitleaks                | —    | defer to CI | Already in CI; detect-secrets is the lighter local equivalent           |
-| 24  | snyk                    | —    | defer to CI | Network call + token; CI-only                                           |
-| 25  | cue vet                 | —    | optional    | Could add later for `src/normalizer/cue/`; defer until first regression |
-| 26  | terraform fmt           | —    | optional    | No `.tf` files yet; revisit after Terraform module work lands           |
-| 27  | pretty-format-java      | 1    | use         | Wraps google-java-format JAR (AOSP style); auto-formats staged `.java`  |
+| #   | Hook                    | Tier | Verdict                                             | Rationale                                                                        |
+| --- | ----------------------- | ---- | --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | trailing-whitespace     | 1    | use                                                 | <100ms, auto-fix, prevents diff churn                                            |
+| 2   | end-of-file-fixer       | 1    | use                                                 | <100ms, auto-fix, POSIX correctness                                              |
+| 3   | check-yaml              | 1    | use                                                 | Catches malformed YAML before yamllint, instant                                  |
+| 4   | check-json              | 1    | use                                                 | IAM policies are JSON; instant syntax gate                                       |
+| 5   | check-toml              | 1    | use                                                 | pyproject.toml correctness, instant                                              |
+| 6   | check-merge-conflict    | 1    | use                                                 | Catches accidental `<<<<<<<` markers                                             |
+| 7   | check-added-large-files | 1    | use                                                 | Block accidental large blobs (>500KB)                                            |
+| 8   | check-case-conflict     | 1    | use                                                 | macOS/Linux case-sensitivity drift                                               |
+| 9   | check-symlinks          | 1    | use                                                 | Broken symlinks, fast                                                            |
+| 10  | mixed-line-ending       | 1    | use                                                 | Force LF, catches Windows line endings                                           |
+| 11  | ruff (lint)             | 1    | use                                                 | Mirrors CI exactly. Auto-fixes most issues. ~200ms staged                        |
+| 12  | ruff-format             | 1    | use                                                 | Mirrors `ruff format --check` in CI; auto-applies                                |
+| 13  | prettier (frontend)     | 1    | use                                                 | Auto-format TS/TSX/CSS/MD/YAML/JSON; fast on staged files                        |
+| 14  | yamllint                | 2    | use                                                 | Already configured in `.yamllint`; matches CI                                    |
+| 15  | markdownlint-cli2       | 2    | use                                                 | Already configured in `.markdownlint.jsonc`; matches CI                          |
+| 16  | shellcheck              | 2    | use                                                 | `infra/iam/scripts/diff-iam.sh` and others; fast                                 |
+| 17  | hadolint                | 2    | use                                                 | Dockerfile-only; runs only on changed Dockerfiles; matches CI                    |
+| 18  | detect-secrets          | 2    | use                                                 | Token leak prevention; baseline file checked into repo                           |
+| 19  | mypy                    | —    | defer to CI                                         | Slow (needs full install); strict mode is CI-only by design                      |
+| 20  | eslint (full)           | —    | defer to CI                                         | Type-aware lint needs `tsc` references; PR-level fine                            |
+| 21  | tsc / typecheck         | —    | defer to CI                                         | 30-90s on cold cache; not commit-time friendly                                   |
+| 22  | pytest                  | —    | defer to CI                                         | Tests don't belong in pre-commit; brittle, slow                                  |
+| 23  | gitleaks                | —    | defer to CI                                         | Already in CI; detect-secrets is the lighter local equivalent                    |
+| 24  | snyk                    | —    | defer to CI                                         | Network call + token; CI-only                                                    |
+| 25  | cue vet                 | —    | optional                                            | Could add later for `src/normalizer/cue/`; defer until first regression          |
+| 26  | terraform fmt           | —    | optional                                            | No `.tf` files yet; revisit after Terraform module work lands                    |
+| 27  | pretty-format-java      | —    | **removed** — see "Java formatting authority" below | Conflicts with Spotless on import order; Spotless wins as single source of truth |
 
 ## Java tooling (Flink jobs in `src/flink-jobs/{event-router,insight-generator,pattern-matcher}/`)
 
@@ -88,21 +88,39 @@ runs as Maven plugins via `mvn verify`.
 | PMD                | source       | -                  | skip                                              | High false-positive rate; tuning cost > value                                                                                                                                                  |
 | SonarQube/Cloud    | both         | -                  | skip                                              | Requires server; CI integration friction                                                                                                                                                       |
 
+### Java formatting authority — Spotless only, no pre-commit Java hook
+
+We initially added a `pretty-format-java` pre-commit hook (google-java-format 1.33
+via downloaded JAR), expecting it to mirror Spotless's `googleJavaFormat 1.33`
+configuration in the poms. In practice the two formatters disagreed on import
+ordering — likely a JVM-version effect: pre-commit's bundled JRE behaves
+differently from the build JVM, even with matching google-java-format
+versions. Each commit cycled the two formatters against each other.
+
+Resolution: **`mvn spotless:apply` is the single source of truth for Java
+formatting.** The pre-commit Java hook was removed (see `.pre-commit-config.yaml`
+header comment). Developers run `mvn spotless:apply` from the relevant Flink
+module before committing Java changes; CI's `java-build` matrix job runs `mvn
+verify`, which calls `spotless:check` and fails on drift.
+
+This is consistent with how most multi-module Maven Java projects handle
+formatting in 2026: Spotless inside Maven, no parallel pre-commit hook to
+conflict with it.
+
 ### Spotless config (in each pom.xml)
 
 ```xml
 <plugin>
     <groupId>com.diffplug.spotless</groupId>
     <artifactId>spotless-maven-plugin</artifactId>
-    <version>2.46.1</version>
+    <version>3.4.0</version>
     <configuration>
         <java>
             <googleJavaFormat>
-                <version>1.22.0</version>
+                <version>1.33.0</version>
                 <style>AOSP</style>
+                <reflowLongStrings>false</reflowLongStrings>
             </googleJavaFormat>
-            <removeUnusedImports/>
-            <importOrder/>
             <trimTrailingWhitespace/>
             <endWithNewline/>
         </java>
@@ -115,6 +133,10 @@ runs as Maven plugins via `mvn verify`.
     </executions>
 </plugin>
 ```
+
+`<importOrder/>` and `<removeUnusedImports/>` are intentionally omitted —
+google-java-format already handles both, and adding the Spotless steps
+on top introduces ordering instability across JVM versions.
 
 `mvn spotless:apply` to auto-fix; `mvn spotless:check` (or `mvn verify`) to gate.
 The pre-commit `pretty-format-java` hook uses the same google-java-format AOSP style — they stay in sync.
@@ -163,6 +185,11 @@ the root `ruff.toml` for backend files. Adding `"S"` to root only affects
 `src/normalizer/`, `src/webhook-gateway/`, `src/job-dispatcher/` (which inherit
 from root) — backend is unaffected. All three inheriting packages pass cleanly.
 
+**Tactical fix shipped:** added `"UP042"` to backend's own
+`src/backend/pyproject.toml` ignore list to mirror root, since CI's older ruff
+finds backend's local config first and wouldn't otherwise honor root's UP042
+suppression.
+
 **Follow-up (E5.2):** consolidate ruff config into root `ruff.toml` only;
 remove `[tool.ruff]` block from `src/backend/pyproject.toml` so backend
 inherits the same rule set as the rest of the tree. Will surface ~1090 S
@@ -171,9 +198,12 @@ per-file-ignore — and S105/S106/S311 to triage).
 
 ## Hooks selected for v1 rollout
 
-Tier 1 (built-ins + ruff + prettier + java format): 14 hooks
+Tier 1 (built-ins + ruff + prettier): 13 hooks
 Tier 2 (linters): 5 hooks
-Total: **19 hooks**
+Total: **18 hooks**
+
+Java formatting is enforced via Maven Spotless (build-time, CI), not
+pre-commit. See "Java formatting authority" above.
 
 Expected median commit overhead: 1–3 seconds for a typical 1–5 file change.
 

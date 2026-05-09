@@ -126,11 +126,15 @@ repos:
           )
 
   # ---------------------------------------------------------------------------
-  # Tier 1 — Java auto-format (mirrors Spotless google-java-format in pom.xml)
+  # Java formatting: NOT in pre-commit.
+  #
+  # We tried `pretty-format-java` (google-java-format 1.33 via JAR), but its
+  # import-handling diverges from Spotless's google-java-format 1.33 inside Maven
+  # (likely a JVM-version effect — pre-commit's bundled JRE differs from the
+  # build JVM), so they fight each other on every commit.
+  #
+  # Single source of truth: `mvn spotless:apply` per Flink module. CI's
+  # `java-build` job runs `mvn verify` which calls Spotless `check` and fails
+  # on drift. Developers should run `mvn spotless:apply` before committing
+  # Java changes. See docs/PRE_COMMIT_EVALUATION.md for rationale.
   # ---------------------------------------------------------------------------
-  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.16.0
-    hooks:
-      - id: pretty-format-java
-        args: [--autofix, --aosp]
-        files: \.java$

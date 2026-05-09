@@ -1,8 +1,5 @@
 package dev.forgeworks.engine.patterns.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tiered Model Loader — Hot tier (JVM memory) with background MLflow reload.

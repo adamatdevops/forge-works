@@ -1,7 +1,6 @@
 package dev.forgeworks.engine.patterns.model;
 
 import dev.forgeworks.engine.patterns.EventEnvelope;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
