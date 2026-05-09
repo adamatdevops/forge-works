@@ -214,7 +214,7 @@ mlartifacts/
 # Claude Code — ignore local state, keep shared skills
 # =============================================================================
 .claude/*
-#!.claude/skills/
+.claude/skills/
 .cursor/*
 
 # CUE
