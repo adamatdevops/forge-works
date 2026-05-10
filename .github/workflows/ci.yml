@@ -144,7 +144,7 @@ jobs:
             --all-projects
             --severity-threshold=high
             --policy-path=.snyk
-            --exclude=frontend,node_modules,src/frontend,.next,venv,.venv
+            --exclude=tests,frontend,node_modules,.venv,venv
 
   # ==========================================================================
   # Test Job - Backend Tests
