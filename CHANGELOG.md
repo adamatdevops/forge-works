@@ -34,7 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bumped `jackson-core` 2.15.3 → 2.18.7** across all 3 Flink modules — fixes 2 HIGH-severity Snyk findings (Allocation of Resources Without Limits / DoS, SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551 and -15365924)
 - **Added dated `.snyk` ignores** for 8 HIGH transitive CVEs in `kafka-clients@3.4.0`, `commons-lang3@3.12.0`, and `lz4-java@1.8.0` — all require Flink 1.20 → 2.0 to remediate at the source. Each ignore carries a per-CVE rationale, in-context mitigation note, and an `expires: 2026-08-10` re-evaluation date. Tracked under task #24 (Flink 2.0 upgrade evaluation)
 - **Snyk `.snyk` policy path** — added `--policy-path=.snyk` to both Snyk steps in `ci.yml`. With `--all-projects`, Snyk only auto-applies a `.snyk` file to manifests at the same path as the policy file; our Flink poms live under `src/flink-jobs/<module>/`, so without `--policy-path` the root ignores were silently skipped
-- **Maven Snyk `--exclude`** — Maven step now also excludes `frontend,node_modules,src/frontend,.next,venv,.venv` (mirrors the Python step). Stops the Maven scan from picking up npm/Python manifests and surfacing irrelevant cross-ecosystem CVEs
+- **Maven Snyk `--exclude`** — Maven step now uses basename-only exclude `tests,frontend,node_modules,.venv,venv` (mirrors the Python step). Stops the Maven scan from picking up npm/Python manifests and surfacing irrelevant cross-ecosystem CVEs
+
+### Fixed
+
+- **Frontend test step ran in watch mode + masked failures** — `ci.yml` invoked `pnpm test --coverage --passWithNoTests`, which (a) launched vitest in watch mode (would never terminate), (b) passed flags pnpm didn't recognize, (c) was wrapped in `continue-on-error: true` so the broken step appeared green. Replaced with `pnpm test:coverage` (uses the existing `vitest run --coverage` script) and removed `continue-on-error`. The frontend's ~10 unit-test files now actually gate CI
 
 ### Pending
 

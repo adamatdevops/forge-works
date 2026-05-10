@@ -243,8 +243,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run frontend tests
-        run: pnpm --filter @forge-works/frontend test --coverage --passWithNoTests
-        continue-on-error: true
+        run: pnpm --filter @forge-works/frontend test:coverage
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v4
