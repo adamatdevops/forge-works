@@ -343,6 +343,7 @@ jobs:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.security.result }}" != "success" ]] || \
              [[ "${{ needs.test-backend.result }}" != "success" ]] || \
              [[ "${{ needs.test-frontend.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \

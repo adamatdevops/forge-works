@@ -27,15 +27,9 @@
     "test:backend": "turbo run test --filter=@forge-works/backend",
     "test:frontend": "turbo run test --filter=@forge-works/frontend",
     "lint:backend": "turbo run lint --filter=@forge-works/backend",
-    "lint:frontend": "turbo run lint --filter=@forge-works/frontend",
-    "changeset": "changeset",
-    "changeset:version": "changeset version",
-    "changeset:publish": "turbo run build && changeset publish",
-    "release": "pnpm changeset:version && pnpm changeset:publish"
+    "lint:frontend": "turbo run lint --filter=@forge-works/frontend"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
-    "@changesets/cli": "^2.29.8",
     "turbo": "^2.3.0"
   }
 }

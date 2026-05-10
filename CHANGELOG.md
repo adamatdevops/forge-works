@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - AuthGuard component for client-side protected routes
   - AuthButton integrated in dashboard header
   - Redirect logic for authenticated/unauthenticated users
+- **ADR `docs/decisions/RELEASE_TOOLING.md`** — captures the Changesets → Conventional Commits + release-please decision, evaluated against eight factors (flow methodology, branch strategy, semver, cadence, industry standards, best practices, stack composition, vision)
+
+### Changed
+
+- **Release process: Changesets → Conventional Commits + manual `git tag` (interim) → release-please (target)** — `RELEASE.md` rewritten to describe the interim manual process; release-please wires in task #23
+- **CI Success aggregate now gates on Security job** — `ci.yml` was silently passing CI Success when Snyk failed; added `needs.security.result` to the conditional
+
+### Removed
+
+- **Changesets infrastructure** — `.changeset/` directory, `.github/workflows/changeset-check.yml`, `.github/workflows/release.yml`, `pnpm changeset:*` / `pnpm release` scripts, `@changesets/cli` + `@changesets/changelog-github` devDependencies, `needs-changeset` + `skip-changeset` labels. Rationale in `docs/decisions/RELEASE_TOOLING.md`
 
 ### Pending
 

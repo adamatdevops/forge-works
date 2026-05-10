@@ -52,8 +52,10 @@
   description: "Infrastructure, CI/CD, GitHub config"
 
 # =============================================================================
-# Semver Labels (For Changesets)
+# Semver Labels
 # =============================================================================
+# Used for manual semver hints on PRs and to mark Renovate major bumps.
+# Will also feed release-please's release-as: hints once wired (task #23).
 - name: "semver:major"
   color: "B60205"
   description: "Breaking change - major version bump"
@@ -114,11 +116,3 @@
 - name: "breaking-change"
   color: "B60205"
   description: "Contains breaking changes"
-
-- name: "needs-changeset"
-  color: "FBCA04"
-  description: "PR needs a changeset file"
-
-- name: "skip-changeset"
-  color: "EEEEEE"
-  description: "No changeset required"
