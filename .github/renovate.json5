@@ -1,0 +1,105 @@
+// Renovate config — https://docs.renovatebot.com/configuration-options/
+//
+// Activation: requires the Mend Renovate GitHub App to be installed on this
+// repo (Marketplace: https://github.com/marketplace/renovate). Once installed,
+// the App auto-discovers this file and skips its onboarding PR.
+//
+// Tuned for forge-works' solo-author cadence: weekly batch, conservative
+// auto-merge for low-risk updates, manual review for majors.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Curated defaults: stability days, semantic-commits, lockfile maintenance,
+  // sensible PR description, etc. Avoids reinventing the wheel.
+  extends: [
+    "config:recommended",
+    ":semanticCommits", // PR titles use Conventional Commits — matches our convention
+    ":dependencyDashboard", // single tracking issue summarizing all updates
+  ],
+
+  // Single weekly batch — Monday early morning Israel time (UTC+3 / IDT).
+  // Avoids weekday noise; gives Monday morning to triage the dashboard.
+  timezone: "Asia/Jerusalem",
+  schedule: ["before 6am on monday"],
+
+  // Cap concurrent PRs so we don't flood the queue.
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+
+  labels: ["dependencies"],
+
+  // Sensible default for a small team — assign all to repo author.
+  assignees: ["adamatdevops"],
+
+  // Groups + automerge tuning per ecosystem.
+  packageRules: [
+    // Group all minor + patch updates per ecosystem into a single PR each week.
+    // Cuts PR count from ~15 to ~5; reviewer fatigue down.
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      matchManagers: ["pip_requirements", "pep621", "poetry"],
+      groupName: "python (minor + patch)",
+    },
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      matchManagers: ["maven"],
+      groupName: "maven (minor + patch)",
+    },
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      matchManagers: ["github-actions"],
+      groupName: "github-actions (minor + patch)",
+    },
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      matchManagers: ["dockerfile", "docker-compose"],
+      groupName: "docker (minor + patch)",
+    },
+
+    // Automerge low-risk classes once CI is green.
+    // Note: requires branch protection on main + required CI checks
+    // (already configured under task #23 §A).
+    {
+      matchUpdateTypes: ["pin", "digest", "lockFileMaintenance"],
+      automerge: true,
+    },
+    {
+      matchUpdateTypes: ["patch"],
+      matchManagers: ["github-actions", "dockerfile"],
+      automerge: true,
+    },
+
+    // Major updates: NEVER auto-merge. Always require human review +
+    // changelog reading. Most breaking changes ride on majors.
+    {
+      matchUpdateTypes: ["major"],
+      automerge: false,
+      labels: ["dependencies", "major-bump"],
+      // Add a stability delay so we don't catch the day-zero release of a major
+      // (often has bugs). Renovate waits this many days after release.
+      minimumReleaseAge: "5 days",
+    },
+
+    // Pin Python interpreter manually — Renovate has wrong heuristics for
+    // multi-package monorepos. Touch python version only via deliberate PR.
+    {
+      matchPackageNames: ["python"],
+      enabled: false,
+    },
+  ],
+
+  // Vuln alerts: open PRs even outside the schedule for actual CVE fixes.
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security", "dependencies"],
+    schedule: ["at any time"], // bypass the weekly schedule for security
+    minimumReleaseAge: null, // bypass stability delay for security
+  },
+
+  // Lockfile maintenance: weekly refresh, automerge.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["before 6am on monday"],
+    automerge: true,
+  },
+}
