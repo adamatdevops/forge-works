@@ -116,13 +116,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Snyk (Python)
+      # Snyk PR gate — HIGH/CRITICAL fail the PR. Severity below that is
+      # reported but doesn't block. Vulns the codebase has accepted (with
+      # rationale) live in .snyk and are filtered out automatically.
+      # First-run note: surfaces existing dep debt; expect to triage on
+      # rollout (either bump the dep, or add a dated ignore to .snyk).
+      - name: Snyk test — Python (all projects)
         uses: snyk/actions/python@master
-        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=src/backend/pyproject.toml
+          args: >-
+            --all-projects
+            --severity-threshold=high
+            --exclude=tests,frontend,node_modules,.venv,venv
+
+      - name: Snyk test — Maven (all Flink modules)
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >-
+            --all-projects
+            --severity-threshold=high
 
   # ==========================================================================
   # Test Job - Backend Tests
