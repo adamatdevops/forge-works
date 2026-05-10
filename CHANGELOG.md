@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Changesets infrastructure** — `.changeset/` directory, `.github/workflows/changeset-check.yml`, `.github/workflows/release.yml`, `pnpm changeset:*` / `pnpm release` scripts, `@changesets/cli` + `@changesets/changelog-github` devDependencies, `needs-changeset` + `skip-changeset` labels. Rationale in `docs/decisions/RELEASE_TOOLING.md`
 
+### Security
+
+- **Bumped `jackson-core` 2.15.3 → 2.18.7** across all 3 Flink modules — fixes 2 HIGH-severity Snyk findings (Allocation of Resources Without Limits / DoS, SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551 and -15365924)
+- **Added dated `.snyk` ignores** for 8 HIGH transitive CVEs in `kafka-clients@3.4.0`, `commons-lang3@3.12.0`, and `lz4-java@1.8.0` — all require Flink 1.20 → 2.0 to remediate at the source. Each ignore carries a per-CVE rationale, in-context mitigation note, and an `expires: 2026-08-10` re-evaluation date. Tracked under task #24 (Flink 2.0 upgrade evaluation)
+
 ### Pending
 
 - Database migration for auth tables (requires Docker)
