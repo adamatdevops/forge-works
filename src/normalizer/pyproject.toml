@@ -29,6 +29,10 @@ asyncio_mode = "auto"
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
 # `cue/` lives next to `app/` for schema co-location; exclude it from packaging.
-packages = ["app"]
+# Auto-discover `app` and all subpackages (e.g. `app.normalizers`, `app.routes`)
+# so newly added subpackages don't get silently dropped from the wheel.
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["cue*", "tests*"]
