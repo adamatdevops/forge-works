@@ -119,8 +119,11 @@ jobs:
       # Snyk PR gate — HIGH/CRITICAL fail the PR. Severity below that is
       # reported but doesn't block. Vulns the codebase has accepted (with
       # rationale) live in .snyk and are filtered out automatically.
-      # First-run note: surfaces existing dep debt; expect to triage on
-      # rollout (either bump the dep, or add a dated ignore to .snyk).
+      #
+      # Note on --policy-path: with --all-projects, a root .snyk file only
+      # auto-applies to manifests at the repo root. Our Flink poms live under
+      # src/flink-jobs/<module>/, so we must point Snyk at the root .snyk
+      # explicitly. See https://docs.snyk.io/manage-risk/policies/the-.snyk-file
       - name: Snyk test — Python (all projects)
         uses: snyk/actions/python@master
         env:
@@ -129,6 +132,7 @@ jobs:
           args: >-
             --all-projects
             --severity-threshold=high
+            --policy-path=.snyk
             --exclude=tests,frontend,node_modules,.venv,venv
 
       - name: Snyk test — Maven (all Flink modules)
@@ -139,6 +143,8 @@ jobs:
           args: >-
             --all-projects
             --severity-threshold=high
+            --policy-path=.snyk
+            --exclude=frontend,node_modules,src/frontend,.next,venv,.venv
 
   # ==========================================================================
   # Test Job - Backend Tests
