@@ -9,9 +9,9 @@ package forgeworks
 // ============================================================
 
 #Resources: {
-	cpu_millicores: int & >=0  // K8s "250m"→250, "1"→1000, Terraform cpu=256→250
-	memory_mib:     int & >=0  // K8s "512Mi"→512, "2Gi"→2048, Terraform memory=512→512
-	storage_gib?:   int & >=0  // Optional storage
+	cpu_millicores: int & >=0 // K8s "250m"→250, "1"→1000, Terraform cpu=256→250
+	memory_mib:     int & >=0 // K8s "512Mi"→512, "2Gi"→2048, Terraform memory=512→512
+	storage_gib?:   int & >=0 // Optional storage
 }
 
 #Labels: [string]: string
@@ -72,16 +72,16 @@ package forgeworks
 #Pipeline: {
 	name:       string
 	repository: string
-	trigger:    [...string] // ["push", "pull_request"]
-	stages:     [...#Stage]
-	source:     #Source
+	trigger: [...string] // ["push", "pull_request"]
+	stages: [...#Stage]
+	source: #Source
 }
 
 #Stage: {
-	name:       string
-	image:      string | *""
-	steps:      [...string]
-	depends:    [...string] | *[]
+	name:  string
+	image: string | *""
+	steps: [...string]
+	depends: [...string] | *[]
 	status:     "" | "queued" | "in_progress" | "completed" | *""
 	conclusion: "" | "success" | "failure" | "cancelled" | "skipped" | *""
 }

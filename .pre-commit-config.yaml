@@ -126,6 +126,33 @@ repos:
           )
 
   # ---------------------------------------------------------------------------
+  # Tier 1 — CUE schema (forge-works normalizer schemas in src/normalizer/cue/)
+  #
+  # Local hooks invoking the system `cue` binary (no canonical pre-commit-cue
+  # repo). Requires `cue` on PATH for contributors; the CI workflow already
+  # installs it (see .github/workflows/normalizer-image.yml).
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: cue-fmt
+        name: cue fmt (check)
+        entry: cue fmt --check --files
+        language: system
+        files: \.cue$
+      - id: cue-vet
+        name: cue vet
+        entry: bash -c 'cd src/normalizer/cue && cue vet .'
+        language: system
+        files: ^src/normalizer/cue/.*\.cue$
+        pass_filenames: false
+
+  # ---------------------------------------------------------------------------
+  # Terraform: deferred. infra/iam/ is JSON policy docs (not HCL) as of 2026-05;
+  # the existing check-json hook already validates syntax. Add antonbabenko/
+  # pre-commit-terraform when actual .tf files land in the repo.
+  # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
   # Java formatting: NOT in pre-commit.
   #
   # We tried `pretty-format-java` (google-java-format 1.33 via JAR), but its

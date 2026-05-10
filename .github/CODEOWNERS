@@ -1,0 +1,11 @@
+# CODEOWNERS — see https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Owners listed here are auto-requested as reviewers when matching files
+# change in a PR. Required-review enforcement is configured separately
+# via branch protection rules.
+#
+# As of 2026-05, forge-works is solo-authored. The catch-all line below
+# claims everything for @adamatdevops; refine into per-area owners
+# (e.g. /src/flink-jobs/ → engine team) once collaborators land.
+
+* @adamatdevops
