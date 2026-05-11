@@ -3,6 +3,8 @@ package dev.forgeworks.engine.patterns;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,6 +14,8 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventEnvelope implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("event_id")
     private String eventId;
@@ -68,19 +72,19 @@ public class EventEnvelope implements Serializable {
     }
 
     public Map<String, Object> getMetadata() {
-        return metadata;
+        return metadata == null ? null : Collections.unmodifiableMap(metadata);
     }
 
     public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
+        this.metadata = metadata == null ? null : new HashMap<>(metadata);
     }
 
     public Map<String, Object> getPayload() {
-        return payload;
+        return payload == null ? null : Collections.unmodifiableMap(payload);
     }
 
     public void setPayload(Map<String, Object> payload) {
-        this.payload = payload;
+        this.payload = payload == null ? null : new HashMap<>(payload);
     }
 
     public String groupKey() {

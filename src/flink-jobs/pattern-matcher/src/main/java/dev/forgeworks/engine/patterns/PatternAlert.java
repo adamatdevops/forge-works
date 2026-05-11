@@ -3,6 +3,9 @@ package dev.forgeworks.engine.patterns;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +18,8 @@ import java.util.UUID;
  *     remediation, dashboard updates).
  */
 public class PatternAlert implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("alert_id")
     private String alertId;
@@ -117,11 +122,11 @@ public class PatternAlert implements Serializable {
     }
 
     public List<String> getTriggerEventIds() {
-        return triggerEventIds;
+        return triggerEventIds == null ? null : Collections.unmodifiableList(triggerEventIds);
     }
 
     public Map<String, Object> getContext() {
-        return context;
+        return context == null ? null : Collections.unmodifiableMap(context);
     }
 
     // Setters for deserialization
@@ -166,11 +171,11 @@ public class PatternAlert implements Serializable {
     }
 
     public void setTriggerEventIds(List<String> triggerEventIds) {
-        this.triggerEventIds = triggerEventIds;
+        this.triggerEventIds = triggerEventIds == null ? null : new ArrayList<>(triggerEventIds);
     }
 
     public void setContext(Map<String, Object> context) {
-        this.context = context;
+        this.context = context == null ? null : new HashMap<>(context);
     }
 
     @Override

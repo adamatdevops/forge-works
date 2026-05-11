@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Shared SpotBugs filter for the 3 Flink modules (event-router, insight-generator,
+  pattern-matcher). Suppresses findings that are false positives for the standard
+  Flink lifecycle / serialization patterns we use.
+
+  Anything not listed here is treated as a real finding and will fail the build
+  (failOnError=true in each module pom).
+
+  Each module's pom.xml references this file via:
+    <excludeFilterFile>../spotbugs-exclude.xml</excludeFilterFile>
+-->
+<FindBugsFilter
+        xmlns="https://github.com/spotbugs/filter/3.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/4.8.6/spotbugs/etc/findbugsfilter.xsd">
+
+    <!--
+      UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR — SpotBugs flags transient state fields
+      that aren't initialized in the constructor. In Flink RichFunction subclasses,
+      ValueState / ListState / MapState fields are initialized in `open(Configuration)`
+      via `getRuntimeContext().getState(...)` — the Flink runtime calls open() once per
+      task instance before any record processing. The constructor cannot initialize
+      these fields because no RuntimeContext exists yet.
+
+      This is the documented Flink lifecycle. Suppress for our RichFunctions.
+    -->
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+        <Or>
+            <Class name="dev.forgeworks.engine.router.DeduplicationFilter"/>
+            <Class name="dev.forgeworks.engine.insights.InsightAggregator"/>
+            <Class name="dev.forgeworks.engine.patterns.PatternWindowFunction"/>
+        </Or>
+    </Match>
+
+    <!--
+      SE_TRANSIENT_FIELD_NOT_RESTORED — SpotBugs flags transient fields that aren't
+      explicitly restored in readObject(). Our Flink Serialization/DeserializationSchema
+      impls hold a `transient ObjectMapper mapper` and re-initialize it via:
+        (a) Flink's `open(InitializationContext)` lifecycle method, AND
+        (b) a defensive `if (mapper == null) mapper = new ObjectMapper();` guard at the
+            top of every serialize()/deserialize() call.
+
+      Either path covers post-deserialization use. SpotBugs only sees lack of an
+      explicit readObject() and flags. Suppress for our schema impls.
+    -->
+    <Match>
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+        <Or>
+            <Class name="dev.forgeworks.engine.router.EventDeserializer"/>
+            <Class name="dev.forgeworks.engine.router.EventSerializer"/>
+            <Class name="dev.forgeworks.engine.insights.AlertDeserializer"/>
+            <Class name="dev.forgeworks.engine.insights.InsightSerializer"/>
+            <Class name="dev.forgeworks.engine.patterns.EventDeserializer"/>
+            <Class name="dev.forgeworks.engine.patterns.AlertSerializer"/>
+        </Or>
+    </Match>
+
+    <!--
+      SE_TRANSIENT_FIELD_NOT_RESTORED on RichFunction + its helpers — same Flink
+      lifecycle as the UWF case above, applied to the transient *non-state* fields:
+
+        - PatternWindowFunction.modelLoader: transient ModelLoader, initialized in
+          open() and torn down in close(). Never reconstructed via readObject because
+          Flink re-runs open() after deserialization.
+
+        - ModelLoader.{reloadScheduler, mlflowAdapter}: transient infrastructure
+          owned by the ModelLoader. ModelLoader implements Serializable so it can be
+          held as a field, but in practice the field that holds it
+          (PatternWindowFunction.modelLoader) is itself transient — so ModelLoader is
+          never deserialized in our pipeline. The transients are re-initialized by
+          initialize(), called explicitly from PatternWindowFunction.open().
+
+      Adding readObject() restoration here would be dead code.
+    -->
+    <Match>
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+        <Or>
+            <Class name="dev.forgeworks.engine.patterns.PatternWindowFunction"/>
+            <Class name="dev.forgeworks.engine.patterns.model.ModelLoader"/>
+        </Or>
+    </Match>
+
+</FindBugsFilter>

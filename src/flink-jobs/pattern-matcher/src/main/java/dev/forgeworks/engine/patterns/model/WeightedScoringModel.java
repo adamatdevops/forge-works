@@ -24,6 +24,8 @@ import java.util.Map;
  */
 public class WeightedScoringModel implements ScoringModel {
 
+    private static final long serialVersionUID = 1L;
+
     private final String modelId;
     private final String version;
     private final String description;
