@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - AuthButton integrated in dashboard header
   - Redirect logic for authenticated/unauthenticated users
 - **ADR `docs/decisions/RELEASE_TOOLING.md`** — captures the Changesets → Conventional Commits + release-please decision, evaluated against eight factors (flow methodology, branch strategy, semver, cadence, industry standards, best practices, stack composition, vision)
+- **PR status lifecycle labeler** — 4-state convention `pr status:{opened,review,merged,closed}` mirrored into `.github/labels.yml` (so `labels-sync.yml` keeps the repo consistent), plus a new `.github/workflows/pr-status-labeler.yml` that auto-transitions on `pull_request` events (opened/reopened/converted_to_draft → opened, ready_for_review/review_requested → review, closed → merged|closed). "Blocked" stays in the orthogonal `status:blocked` work-state label — one source of truth. Renovate's `addLabels: ["pr status:opened"]` (in `.github/renovate.json5`) seeds the lifecycle on every dependency PR — using `addLabels` instead of `labels` so packageRules' major-bump override doesn't drop it
 
 ### Changed
 
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **Changesets infrastructure** — `.changeset/` directory, `.github/workflows/changeset-check.yml`, `.github/workflows/release.yml`, `pnpm changeset:*` / `pnpm release` scripts, `@changesets/cli` + `@changesets/changelog-github` devDependencies, `needs-changeset` + `skip-changeset` labels. Rationale in `docs/decisions/RELEASE_TOOLING.md`
+- **Label cleanup** — pruned 12 labels from the repo to make `.github/labels.yml` the single source of truth: `breaking-change` (redundant with `semver:major`), `needs-changeset` + `skip-changeset` (Changesets removed in `ebc141f`), 3 GitHub defaults overlapping with `type:*` (`bug` → `type:fix`, `documentation` → `type:docs`, `enhancement` → `type:feature`), and 6 unused GitHub triage defaults (`duplicate`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). Kept `security` (referenced by `renovate.json5` `vulnerabilityAlerts`) and added it to the manifest
 
 ### Security
 
