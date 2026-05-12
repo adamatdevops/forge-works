@@ -1,0 +1,389 @@
+# yaml-language-server: $schema=https://coderabbit.ai/schema.v2.json
+#
+# CodeRabbit — advisory-only PR review for forge-works.
+# Reference: https://docs.coderabbit.ai/reference/configuration
+#
+# DOCTRINE (locked — do not relax without explicit decision):
+#   - Advisory only. NEVER auto-merge, auto-approve, or commit code.
+#   - Comments only. No "Request Changes" reviews that would block merges.
+#   - Bot identity must be clearly the CodeRabbit bot (default @coderabbitai).
+#   - Must not race with .github/workflows/pr-status-labeler.yml or
+#     labels-sync.yml — CodeRabbit performs no label manipulation here.
+#
+# Pre-install gate verification (per research/github_apps/evaluation_list.md
+# Decision Record for CodeRabbit). Each gate maps to a config knob below
+# or a one-time dashboard verification you do at app.coderabbit.ai:
+#   1. Training policy → DASHBOARD: confirm "do not train on customer code"
+#      is in effect for this org. https://docs.coderabbit.ai/about/data-retention
+#   2. Auto-approval/auto-merge disabled → reviews.request_changes_workflow: false
+#      (CodeRabbit also has no native auto-merge feature; the formal-review path
+#      is the only way it could block/unblock merges.)
+#   3. Comments-only scope → CodeRabbit doesn't commit by default; we use no
+#      "1-click apply" features that mutate code.
+#   4. Co-existence with our labeler workflows → no labels: block in this
+#      file; CodeRabbit's defaults don't touch labels.
+#   5. Bot identity → posts as @coderabbitai by default; never impersonates.
+
+language: en-US
+early_access: false
+
+tone_instructions: |
+  Be concise. Skip pleasantries. Reference exact file paths and line numbers.
+  Match the project doctrine: Conventional Commits subjects, no half-finished
+  implementations, no premature abstractions, no comments explaining WHAT code
+  does (only WHY when non-obvious). Comments here are ADVISORY only — never
+  demand changes, never assume autonomous merge will happen.
+
+reviews:
+  profile: chill # "chill" = lower noise; only flag substantive issues
+  request_changes_workflow: false # NEVER post formal "Request Changes" GitHub review
+
+  # ──────────────────────────────────────────────────────────────────────
+  # DASHBOARD MIRROR — the following settings live in the CodeRabbit web
+  # dashboard (https://app.coderabbit.ai → Reviews) because the current
+  # schema does not expose them as YAML fields. Captured here so the
+  # rationale stays in-repo even if the dashboard config drifts.
+  # ──────────────────────────────────────────────────────────────────────
+  #
+  # ▸ high_level_summary_in_walkthrough = true
+  #   Place CodeRabbit's auto-summary inside the walkthrough section,
+  #   NOT inside the PR description. PR descriptions are author-owned;
+  #   the bot stays in bot-owned territory.
+  #
+  # ▸ high_level_summary_placeholder = "@coderabbitai summary"  (default; keep)
+  #   With walkthrough placement on, this only fires when an author
+  #   explicitly drops `@coderabbitai summary` into the description.
+  #   Acts as an opt-in escape hatch for release-PR-style descriptions
+  #   where we DO want the summary in the description body.
+  #
+  # ▸ high_level_summary_instructions:
+  #     Be terse. Lead with a 1-sentence headline of what changed at the
+  #     architectural level — not a file-by-file recap. Follow with 2-4
+  #     bullets covering only:
+  #       - The key change in functional terms ("changed how X works",
+  #         not "renamed Y to Z")
+  #       - Non-obvious side effects: new dependencies, new permissions,
+  #         new secrets, new config files, schema/contract changes
+  #       - Cross-cutting concerns: touches multiple subsystems, breaks
+  #         a documented invariant, or surfaces tech debt
+  #     Skip entirely:
+  #       - File-by-file walkthrough (that belongs in the walkthrough section)
+  #       - Restating the PR title or commit subject
+  #       - Contributor tables, line-count tables, "added/removed by
+  #         author" tables (this is a solo project)
+  #       - Marketing language ("dramatically improves",
+  #         "significantly enhances", "powerful new")
+  #     Match the project's Conventional Commits style: imperative
+  #     voice, no fluff, no closing pleasantries.
+  #
+  # ▸ anti_slop label (dashboard field) = INTENTIONALLY EMPTY.
+  #   Anti-Slop detection still runs (see anti_slop = ON below), but no
+  #   label is written when it triggers. Two reasons:
+  #     1. Doctrine consistency with auto_apply_labels = OFF — we
+  #        forbid autonomous label writes from CodeRabbit. Leaving
+  #        this field empty makes the doctrine consistent regardless
+  #        of whether Anti-Slop respects the general auto-apply toggle
+  #        or has its own bypass path.
+  #     2. No "slop" label exists in .github/labels.yml. Adding one
+  #        would need: manifest entry, labels-sync.yml reconciliation,
+  #        a decision record for who writes it, and resolution against
+  #        the auto-apply lock. Premature without a confirmed need.
+  #   Effect: Anti-Slop signal lands as advisory PR comment (intended
+  #   behavior); no metadata mutation.
+  #
+  # ▸ anti_slop = ON  (soft — monitor for false positives, flip OFF if noisy)
+  #   Reason: doctrine ("no fluff, no marketing language") aligns with what
+  #   Anti-Slop catches — low-quality / AI-generated PRs without coherent
+  #   intent. Three notes:
+  #     1. forge-works is heavily AI-assisted (Claude Code conversations).
+  #        Anti-Slop COULD false-positive on AI-fingerprint patterns
+  #        even when PRs are high-quality. But Anti-Slop's correct
+  #        heuristic is "shows reasoning", not "looks AI-written" —
+  #        our rationale-rich CHANGELOG entries + Conventional Commits
+  #        + doctrine alignment should pass.
+  #     2. Advisory only: false positives add a comment, never block merge.
+  #     3. Defensive value: if forge-works ever accepts external
+  #        contributions or runs autonomous Claude Code against issues,
+  #        Anti-Slop is the first "did this PR exist for a reason?" gate.
+  #   Re-evaluate after 3-5 PRs:
+  #     - If false-positive rate is high, flip OFF.
+  #     - If Anti-Slop correctly catches noisy/incoherent PRs, keep ON.
+  #
+  # ▸ disable_cache = OFF  (= cache enabled, the default)
+  #   Reason: pure operational performance, no doctrine implication.
+  #     1. Cached re-reviews skip unchanged files; small fixup commits
+  #        only re-review the new diff. Material savings on time + cost.
+  #     2. Cache is keyed on file content + config — file changes or
+  #        .coderabbit.yaml changes auto-invalidate it. No staleness risk.
+  #     3. The toggle is a debugging escape hatch (flip ON for one PR
+  #        if reviews seem off, then flip back), not a steady-state knob.
+  #
+  # ▸ path_filters AND path_instructions (dashboard fields) = INTENTIONALLY EMPTY.
+  #   Source of truth is the `path_filters:` and `path_instructions:`
+  #   blocks below in this file. Reasons (apply to both):
+  #     1. .coderabbit.yaml is in-repo, version-controlled, PR-reviewable.
+  #        Dashboard settings are org-wide and bypass code review.
+  #     2. YAML overrides dashboard for these fields; mirroring would
+  #        be at best redundant, at worst create drift risk.
+  #     3. Dashboard config applies to ALL repos under the org. If
+  #        another repo joins later, dashboard becomes their DEFAULT —
+  #        polluting it with forge-works-specific config is incorrect.
+  #   Coverage gaps to consider adding to YAML later (NOT to dashboard):
+  #     - src/normalizer/**, src/job-dispatcher/**, src/airflow-worker/**,
+  #       src/webhook-gateway/** — Python services not yet covered by
+  #       path_instructions. Add per-service guidance in a focused PR
+  #       once first PRs show whether CodeRabbit's defaults miss anything.
+  #
+  # ▸ prompt_for_ai_agents = OFF  (soft — can flip ON if Claude-Code workflow needs it)
+  #   Reason: doctrine ("Be terse") wins over the marginal value the
+  #   structured AI prompt adds. Four notes:
+  #     1. Every inline finding adds a separate "🤖 Prompt for AI Agents"
+  #        block. A PR with 15 findings becomes 30 visible blocks — too
+  #        noisy for the "Be terse, skip pleasantries" doctrine.
+  #     2. Claude Code parses prose comments fine; structured prompts
+  #        add only marginal value over the original comment.
+  #     3. Most prompts restate the comment in imperative voice — same
+  #        info, more lines.
+  #     4. Pattern: poem OFF, fortune OFF, prompt OFF — anything that
+  #        adds visual weight without proportional signal gets cut.
+  #   Escape hatch: if you find yourself pasting CodeRabbit comments
+  #   into Claude Code repeatedly and wanting the AI-prompt block,
+  #   flip ON. Soft toggle, no doctrine lock.
+  #
+  # ▸ in_progress_fortune = OFF
+  #   Reason: doctrine alignment with `poem: false` (line 60) — no fluff,
+  #   no marketing language. Three notes:
+  #     1. The GitHub PR UI already shows a running indicator for active
+  #        checks; the fortune message conveys no additional signal.
+  #     2. Comment persists in PR history forever, adding noise to
+  #        archaeology weeks/months later.
+  #     3. Same family of decision as `poem: false` — flavor toggles OFF.
+  #
+  # ▸ fail_commit_status = OFF  (LOCKED — do not flip without explicit decision)
+  #   Reason: same merge-gate-risk family as commit_status. A failing
+  #   status check could be added to branch protection's Required Checks
+  #   list, silently turning CodeRabbit into a blocker. Locked OFF for
+  #   the same reasons as commit_status and request_changes_workflow.
+  #
+  # ▸ changed_files_summary = ON
+  #   Reason: structured per-file table (file path → 1-line description)
+  #   is useful navigation metadata. Distinct from walkthrough — that's
+  #   narrative, this is index. Low-cost signal, no doctrine concern.
+  #
+  # ▸ sequence_diagrams = OFF  (soft — flip ON for Engine Phase 6 flow work)
+  #   Reason: doctrine terseness wins on the typical PR (bug fix, config
+  #   tweak, refactor) where a diagram is clutter without insight.
+  #   Asymmetry: OFF means missing some valuable diagrams BUT they're
+  #   recoverable per-PR ("@coderabbitai mermaid"); ON costs every PR.
+  #   Re-evaluate when Engine Phase 6 (#22) starts introducing agent
+  #   flows — that's a phase where sequence diagrams may pay off
+  #   broadly enough to justify ON.
+  #
+  # ▸ commit_status = OFF  (LOCKED — do not flip without explicit decision)
+  #   Reason: same family as request_changes_workflow and auto_apply_labels —
+  #   anything that could plausibly evolve into a merge gate or autonomous
+  #   write goes OFF, locked. Three notes:
+  #     1. Accidental-gate risk: if ON, CodeRabbit posts a GitHub commit
+  #        status (e.g., `coderabbit/review`). Adding that to branch
+  #        protection's Required Checks would silently turn the advisory
+  #        tool into a merge gate. Quieter failure mode than a formal
+  #        Request-Changes review — easier to miss.
+  #     2. Redundant signal: walkthrough comment + inline findings already
+  #        signal that CodeRabbit ran. A commit-status check adds another
+  #        surface without conveying anything the comment doesn't.
+  #     3. What you keep with OFF: walkthrough, inline comments, high-level
+  #        summary, all the actually-useful CodeRabbit signal. What you
+  #        lose: a commit-level checkmark that duplicates the comment.
+  #
+  # ▸ auto_assign_reviewers = OFF  (LOCKED — do not flip without explicit decision)
+  #   Reason: doctrine forbids autonomous writes. Three reinforcing notes:
+  #     1. Solo project today — no second reviewer to route to.
+  #     2. CODEOWNERS is the canonical reviewer-routing mechanism when
+  #        the team grows. AI-driven assignment would compete with that
+  #        single source of truth and inject judgment (expertise,
+  #        availability, recent context) that's hard to reason about.
+  #     3. CodeRabbit can still SUGGEST reviewers in walkthrough/comment
+  #        (advisory) — author applies manually if useful.
+  #
+  # ▸ auto_apply_labels = OFF  (LOCKED — do not flip without explicit decision)
+  #   Reason: doctrine forbids autonomous writes from CodeRabbit. The
+  #   Labeling Instructions allowlist controls WHAT it can suggest;
+  #   this toggle controls WHO applies them. CodeRabbit suggests via
+  #   PR comment (advisory); human applies. Two reasons not to flip:
+  #     1. Race with .github/workflows/pr-status-labeler.yml — bot
+  #        writes could overwrite our 4-state lifecycle mid-transition.
+  #     2. "Comments only, no commits" pre-install gate (gate #3) covers
+  #        all bot writes including label mutations, not just code commits.
+  #
+  # ▸ labeling_instructions:
+  #   CodeRabbit may SUGGEST labels (advisory PR comment) but never apply
+  #   them — and only from the allowlist below. Doctrine: CodeRabbit
+  #   stays out of label namespaces owned by other automation.
+  #
+  #   ALLOWLIST (CodeRabbit may suggest these — semantic detection from diff):
+  #     - type:feature, type:fix, type:docs, type:chore, type:refactor,
+  #       type:test, type:perf
+  #     - semver:major, semver:minor, semver:patch
+  #     - security  (only outside Renovate-opened vuln PRs)
+  #
+  #   DENYLIST (NEVER suggest — owned by other automation):
+  #     - pkg:*           → .github/workflows/labeler.yml (path-based)
+  #     - pr status:*     → .github/workflows/pr-status-labeler.yml (lifecycle)
+  #     - priority:*      → operator-only
+  #     - status:*        → PR-author-only (work state)
+  #     - dependencies,
+  #       major-bump      → .github/renovate.json5
+  #
+  #   Suggestion rules (full text in dashboard):
+  #     - type:feature    → new module/route/component/capability/API
+  #     - type:fix        → bug/regression/failing-test resolution
+  #     - type:docs       → docs/ or *.md only; no production code changes
+  #     - type:chore      → build/CI/tooling/format-only; no Renovate overlap
+  #     - type:refactor   → structure change, no behavior change
+  #     - type:test       → test-only; source under test unchanged
+  #     - type:perf       → measurable perf change, not speculation
+  #     - semver:major    → breaking; look for "BREAKING CHANGE:" footer
+  #     - semver:minor    → new backwards-compatible surface
+  #     - semver:patch    → default for non-breaking type:* changes
+  #     - security        → CVE/auth/hardening; skip Renovate-opened ones
+  #
+  # ▸ review_details = ON  (validation phase) → flip OFF after baseline.
+  #   Reason ON now: lets us verify path_filters and disabled tools are
+  #   actually applied. The walkthrough's "files reviewed / files skipped /
+  #   tools ran" panel is the only way to confirm the doctrine gates work
+  #   without inferring from CodeRabbit's positive output alone.
+  #   Flip OFF after ~3 PRs of validated baseline (no surprise activations,
+  #   no off-scope files reviewed). At that point the metadata becomes
+  #   noise — keep it on briefly, drop it once trusted.
+  #
+  # ▸ auto_title_instructions:
+  #     Generate PR titles in Conventional Commits format:
+  #     `type(scope): subject`.
+  #       - Lowercase types: feat, fix, chore, refactor, docs, test, ci,
+  #         perf, build, style, revert
+  #       - Scope is lowercase, dash-separated (ci, frontend, backend,
+  #         flink, infra, engine, github, deps)
+  #       - Subject in imperative voice, lowercase first letter, NO
+  #         trailing period
+  #       - Single sentence — narrative goes in PR body, not title
+  #       - If multiple scopes affected, choose the dominant one rather
+  #         than chaining
+  #     Examples:
+  #       - `fix(ci): pin checkov-action SHA per supply-chain framework`
+  #       - `feat(engine): add agent-invocation Kafka topic`
+  #       - `chore(deps): bump jackson-core 2.15.3 → 2.18.7`
+  #     Don't:
+  #       - Capitalize subject ("Fix" or "Update" — should be lowercase)
+  #       - Use marketing words ("Drastically improve", "Powerful new")
+  #       - Add ticket numbers, dates, or branch names to titles
+  #       - Use scope plurals ("backends", "frontends")
+  # ──────────────────────────────────────────────────────────────────────
+
+  high_level_summary: true
+  poem: false # disable the haiku/poem feature (cute but noisy)
+  review_status: true
+  collapse_walkthrough: true
+
+  auto_review:
+    enabled: true
+    drafts: false # skip draft PRs
+    base_branches: [main]
+    ignore_title_keywords:
+      - "WIP"
+      - "wip"
+      - "DO NOT MERGE"
+      - "do not merge"
+
+  # Surfaces CodeRabbit will analyze. Excludes lockfiles, generated artifacts,
+  # tests, migrations, infra manifests, docs, and research notes — keeping the
+  # review focused on production source code.
+  path_filters:
+    - "src/**"
+    # Lockfiles & manifests we don't want AI commentary on
+    - "!**/*.lock"
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+    - "!**/poetry.lock"
+    # Generated / build / vendor
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/.next/**"
+    - "!**/coverage/**"
+    - "!**/__pycache__/**"
+    - "!**/.venv/**"
+    - "!**/venv/**"
+    - "!**/node_modules/**"
+    # DB migrations (alembic-generated)
+    - "!src/backend/alembic/versions/**"
+    # Tests — focus AI review on source, not test code
+    - "!**/tests/**"
+    - "!**/__tests__/**"
+    - "!**/*.test.{ts,tsx,py}"
+    - "!**/*.spec.{ts,tsx,py}"
+    - "!src/frontend/e2e/**"
+    # Out of code-review scope
+    - "!infra/**"
+    - "!docs/**"
+    - "!research/**"
+
+  # Per-directory context so suggestions match project conventions.
+  path_instructions:
+    - path: "src/backend/**"
+      instructions: |
+        FastAPI + Pydantic backend. Pydantic models validate at I/O boundaries
+        only (handlers, external API responses) — not on internal call sites.
+        Type hints required. Follow agentless orchestration doctrine: no
+        autonomous mutations of external systems.
+    - path: "src/frontend/**"
+      instructions: |
+        Next.js 14 App Router + React 18 + TypeScript. No `any` types.
+        Functional components only. Server-component vs client-component
+        distinction must be explicit ("use client" directive when needed).
+        Hooks rules apply.
+    - path: "src/flink-jobs/**"
+      instructions: |
+        Apache Flink Java jobs. RichFunction lifecycle: state initialization
+        belongs in `open()`, NEVER in constructors. Spotless formatting
+        enforced by mvn verify; SpotBugs filter at
+        src/flink-jobs/spotbugs-exclude.xml. Don't suggest serialVersionUID
+        removal — it's intentional on Serializable classes.
+    - path: ".github/workflows/**"
+      instructions: |
+        Per research/github_actions/GITHUB_ACTIONS.md §2D, third-party
+        actions should be SHA-pinned. Flag any `@vX` or `@master` reference
+        on a non-`actions/*` or non-`github/*` namespace action as a
+        supply-chain finding.
+
+  abort_on_close: true
+
+  # CodeRabbit's per-language linters. We disable the ones we already run in
+  # CI to avoid duplicate noise on PR comments — CodeRabbit's value is
+  # semantic/architectural review, not re-running tools we already gate on.
+  tools:
+    languagetool:
+      enabled: false # we don't lint English prose in PRs
+    markdownlint:
+      enabled: false # we run markdownlint-cli2 in pre-commit + CI
+    ruff:
+      enabled: false # we run ruff in CI lint job
+    eslint:
+      enabled: false # we run eslint in CI lint job
+    hadolint:
+      enabled: false # we run hadolint in CI lint job
+    yamllint:
+      enabled: false # we run yamllint in CI lint job
+    gitleaks:
+      enabled: false # we run gitleaks in CI security job
+
+chat:
+  # Respond to @coderabbitai mentions in PR comments. Pure conversational —
+  # never writes code, never approves, never merges.
+  auto_reply: true
+
+knowledge_base:
+  # Allow CodeRabbit to learn project context (file patterns, naming
+  # conventions, prior PR feedback) from this repo. Stays scoped to the repo;
+  # no cross-customer leakage per CodeRabbit's data-retention policy.
+  opt_out: false
+  learnings:
+    scope: auto
