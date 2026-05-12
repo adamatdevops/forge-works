@@ -147,6 +147,46 @@ jobs:
             --exclude=tests,frontend,node_modules,.venv,venv
 
   # ==========================================================================
+  # IaC Scan - Checkov (Kubernetes manifests, Dockerfiles, GitHub Actions)
+  # ==========================================================================
+  # OSS path: runs the Checkov CLI directly rather than installing the
+  # Bridgecrew Marketplace App. Same scanner, no SaaS data egress, no App
+  # permissions grant. See research/github_apps/evaluation_list.md → Checkov.
+  #
+  # First-pass rollout uses soft_fail: true to baseline existing findings
+  # without breaking CI. After triage we tighten via soft_fail_on: per
+  # severity. Findings flow to the GitHub Security tab via SARIF upload.
+  checkov:
+    name: IaC Scan (Checkov)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # required for SARIF upload to Security tab
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # TODO(sha-pin): retrofit to commit SHA per
+      # research/github_actions/GITHUB_ACTIONS.md §2D — tracked in follow-up.
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: kubernetes,dockerfile,github_actions
+          output_format: cli,sarif
+          output_file_path: console,checkov.sarif
+          soft_fail: true
+          # Skip generated, vendored, and out-of-scope paths
+          skip_path: node_modules,.venv,venv,dist,build,coverage,.history
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov.sarif
+          category: checkov
+
+  # ==========================================================================
   # Test Job - Backend Tests
   # ==========================================================================
   test-backend:
@@ -170,6 +210,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Codecov needs HEAD + previous commit to compute diff coverage
+          # and resolve the base ref.
+          fetch-depth: 2
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -196,15 +240,27 @@ jobs:
       - name: Run tests
         run: |
           cd src/backend
-          PYTHONPATH=. pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          PYTHONPATH=. pytest tests/ -v \
+            --cov=app --cov-branch --cov-report=xml --cov-report=term-missing \
+            --junitxml=junit.xml
         env:
           DATABASE_URL: postgresql+asyncpg://forge:forge@localhost:5432/forge_test
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: src/backend/coverage.xml
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+      - name: Upload test results to Codecov (Test Analytics)
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          files: src/backend/junit.xml
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # ==========================================================================
   # Test Job - Frontend Tests
@@ -215,6 +271,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Codecov needs HEAD + previous commit for diff coverage.
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -246,11 +305,20 @@ jobs:
         run: pnpm --filter @forge-works/frontend test:coverage
 
       - name: Upload frontend coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: src/frontend/coverage/lcov.info
           flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+      - name: Upload test results to Codecov (Test Analytics)
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          files: src/frontend/junit.xml
+          flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # ==========================================================================
   # Build Job - Docker & Frontend Build Verification
@@ -342,13 +410,14 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [lint, security, test-backend, test-frontend, build, java-build]
+    needs: [lint, security, checkov, test-backend, test-frontend, build, java-build]
     if: always()
     steps:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.security.result }}" != "success" ]] || \
+             [[ "${{ needs.checkov.result }}" != "success" ]] || \
              [[ "${{ needs.test-backend.result }}" != "success" ]] || \
              [[ "${{ needs.test-frontend.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \

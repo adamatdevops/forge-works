@@ -1,0 +1,97 @@
+# Codecov configuration for forge-works
+# Reference: https://docs.codecov.com/docs/codecovyml-reference
+#
+# First-pass policy (advisory-only): post PR comments with diff-coverage
+# context, but do NOT fail PRs on threshold breach yet. After ~2 weeks of
+# baseline data, tighten by flipping `informational: true` → false on the
+# patch + project status entries and promote the Codecov Check Run to
+# Required in branch protection.
+#
+# Adopted per research/github_apps/evaluation_list.md (Decision Record: Codecov).
+# Companion: ci.yml jobs `test-backend` + `test-frontend` upload coverage
+# under flags `backend` and `frontend` respectively.
+
+codecov:
+  # Don't post the coverage comment until all CI is done — avoids racing
+  # the comment with in-flight test runs that may still update coverage.
+  notify:
+    wait_for_ci: true
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "60...90" # red <60, yellow 60-89, green ≥90
+
+  status:
+    # Project-level: overall repo coverage trend.
+    project:
+      default:
+        target: auto # compare against the PR's base branch
+        threshold: 2% # allow up to 2% drop before flagging
+        if_ci_failed: error
+        only_pulls: false
+        informational: true # ADVISORY-ONLY for first rollout
+
+    # Patch-level: coverage of new lines in the PR diff.
+    patch:
+      default:
+        target: 60% # new code should be ≥60% covered
+        threshold: 5%
+        if_ci_failed: error
+        informational: true # ADVISORY-ONLY for first rollout
+
+comment:
+  layout: "header, diff, flags, files, footer"
+  behavior: default
+  require_changes: true # only post if coverage actually changed
+  show_carryforward_flags: true
+
+flag_management:
+  default_rules:
+    # If a flag's coverage isn't uploaded in a given run (e.g., PR only
+    # touches backend → frontend test job is skipped), use the previous
+    # value rather than treating it as 0%.
+    carryforward: true
+  individual_flags:
+    - name: backend
+      paths:
+        - src/backend/app/
+      carryforward: true
+    - name: frontend
+      paths:
+        - src/frontend/src/
+      carryforward: true
+
+# Paths excluded from coverage measurement entirely (won't count toward
+# either numerator or denominator).
+ignore:
+  # Test code itself
+  - "**/tests/**"
+  - "**/__tests__/**"
+  - "**/test_*.py"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "src/frontend/e2e/**" # Playwright e2e suite
+
+  # Generated / vendored / cache
+  - "**/node_modules/**"
+  - "**/.venv/**"
+  - "**/venv/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.next/**"
+  - "**/coverage/**"
+  - "**/__pycache__/**"
+
+  # Static assets and migrations
+  - "src/frontend/public/**"
+  - "src/backend/alembic/**"
+
+  # Out of code scope for coverage
+  - "infra/**"
+  - "docs/**"
+  - "research/**"
+
+github_checks:
+  annotations: true # inline coverage annotations on PR diff
