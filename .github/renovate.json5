@@ -27,6 +27,11 @@
   prHourlyLimit: 2,
 
   labels: ["dependencies"],
+  // addLabels merges with packageRules' labels (which would otherwise replace
+  // the top-level `labels`), so every Renovate PR — including majors and
+  // vulnerabilityAlerts — enters the lifecycle at `pr status:opened`. The
+  // pr-status-labeler workflow transitions it from there.
+  addLabels: ["pr status:opened"],
 
   // Sensible default for a small team — assign all to repo author.
   assignees: ["adamatdevops"],

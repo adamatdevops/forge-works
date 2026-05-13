@@ -70,14 +70,15 @@ pnpm test
 
 We use trunk-based development with short-lived feature branches.
 
-| Type | Pattern | Example |
-|------|---------|---------|
+| Type    | Pattern                          | Example                            |
+| ------- | -------------------------------- | ---------------------------------- |
 | Feature | `feature/<ticket>-<description>` | `feature/FW-123-add-metrics-layer` |
-| Bug Fix | `fix/<ticket>-<description>` | `fix/FW-456-button-alignment` |
-| Hotfix | `hotfix/<ticket>-<description>` | `hotfix/FW-789-security-patch` |
-| Docs | `docs/<description>` | `docs/update-api-docs` |
+| Bug Fix | `fix/<ticket>-<description>`     | `fix/FW-456-button-alignment`      |
+| Hotfix  | `hotfix/<ticket>-<description>`  | `hotfix/FW-789-security-patch`     |
+| Docs    | `docs/<description>`             | `docs/update-api-docs`             |
 
 **Rules:**
+
 - Keep branches short-lived (< 2 days ideal)
 - Squash merge to main
 - Delete branches after merge
@@ -95,6 +96,7 @@ type(scope): description
 ```
 
 Types:
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `docs` - Documentation
@@ -104,76 +106,64 @@ Types:
 - `chore` - Maintenance tasks
 
 Examples:
+
 ```
 feat(api): add template recommendation endpoint
 fix(db): resolve connection pool exhaustion
 docs(readme): update installation instructions
 ```
 
-## Changesets
+## Release Notes
 
-We use [Changesets](https://github.com/changesets/changesets) for versioning and changelogs.
+forge-works uses **Conventional Commits + a hand-curated `CHANGELOG.md`**.
+Release-tooling rationale lives in
+[`docs/decisions/RELEASE_TOOLING.md`](docs/decisions/RELEASE_TOOLING.md);
+the day-to-day flow is in [`RELEASE.md`](RELEASE.md).
 
-### When to Add a Changeset
+Short version:
 
-- Any change that affects package functionality
-- New features, bug fixes, performance improvements
-- API changes (breaking or not)
+- Commit subjects are **one sentence**, Conventional Commits format
+  (e.g. `feat(api): add template recommendation endpoint`).
+- Narrative for releases lives in [`CHANGELOG.md`](CHANGELOG.md), grouped by
+  version with SHA references.
+- Tags are cut manually from `main` for now; release-please will automate this
+  in task #23.
 
-### When NOT to Add a Changeset
-
-- Documentation-only changes
-- CI/CD configuration changes
-- Test-only changes (add `skip-changeset` label to PR)
-
-### Creating a Changeset
-
-```bash
-pnpm changeset
-```
-
-Select the packages you modified and the type of change:
-- **patch**: Bug fixes, minor improvements
-- **minor**: New features (backwards compatible)
-- **major**: Breaking changes
-
-See [RELEASE.md](RELEASE.md) for the full release process.
+You don't need to add changeset files — that tooling was removed in favor of
+the convention above.
 
 ## Pull Request Process
 
 1. **Update your branch** with the latest main:
+
    ```bash
    git fetch origin
    git rebase origin/main
    ```
 
-2. **Add a changeset** if your PR includes code changes:
-   ```bash
-   pnpm changeset
-   ```
+2. **Run all checks** before submitting:
 
-3. **Run all checks** before submitting:
    ```bash
    pnpm lint
    pnpm test
    ```
 
-4. **Create the PR** with:
+3. **Create the PR** with:
    - Clear title following commit conventions
    - Description of changes
    - Link to related issues
    - Screenshots for UI changes
 
-5. **Address review feedback** promptly
+4. **Address review feedback** promptly
 
-6. **Squash commits** if requested
+5. **Squash commits** if requested
 
 ### PR Checklist
 
 - [ ] Code follows project style guidelines
 - [ ] Tests pass locally
 - [ ] New code has test coverage
-- [ ] Changeset added (or `skip-changeset` label applied)
+- [ ] Commit messages follow Conventional Commits
 - [ ] Documentation updated if needed
 - [ ] No console.log or debug statements
 - [ ] No hardcoded secrets or credentials

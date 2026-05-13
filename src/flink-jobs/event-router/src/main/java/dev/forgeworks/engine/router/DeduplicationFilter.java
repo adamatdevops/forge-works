@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DeduplicationFilter extends RichFilterFunction<EventEnvelope> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(DeduplicationFilter.class);
     private transient ValueState<Boolean> seenState;
 

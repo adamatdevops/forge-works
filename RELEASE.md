@@ -1,157 +1,109 @@
 # Release Process
 
-ForgeWorks uses [Changesets](https://github.com/changesets/changesets) for automated versioning and releases.
+forge-works uses **Conventional Commits + a hand-curated `CHANGELOG.md` +
+manual `git tag`** as its current release process.
 
-## How It Works
+This is an **interim** process. The target state is automated tag + changelog
+generation via [release-please](https://github.com/googleapis/release-please-action),
+landing as part of task #23 (SDLC strategy + automations).
 
-### Automatic Flow
+For the rationale behind moving away from Changesets, see
+[`docs/decisions/RELEASE_TOOLING.md`](docs/decisions/RELEASE_TOOLING.md).
 
-1. **During Development**: Contributors add changesets with their PRs
-2. **On Merge**: Changesets accumulate in `.changeset/`
-3. **Release PR**: Changesets bot opens "Version Packages" PR
-4. **On Merge of Release PR**: Packages are versioned and tagged
-5. **GitHub Releases**: Created automatically with changelogs
+## How it works today
 
-### Version Bumps
+### Authoring changes
 
-| Changeset Type | Version Bump | When to Use |
-|----------------|--------------|-------------|
-| `patch` | 0.0.X | Bug fixes, minor improvements |
-| `minor` | 0.X.0 | New features (backwards compatible) |
-| `major` | X.0.0 | Breaking changes |
+1. **Commit messages follow [Conventional Commits](https://conventionalcommits.org).**
+   Subject lines are **one sentence** — no multi-line bodies.
 
-## Creating a Release
+   Examples:
+   - `feat(normalizer): add Terraform source normalizer`
+   - `fix(ci): include security job in CI Success aggregate`
+   - `docs(release): rewrite for post-Changesets process`
+   - `chore(deps): bump next to 16.2.3`
+   - `ci(security): harden Snyk into a real PR gate`
 
-### 1. Ensure Changesets Exist
+2. **Narrative goes to `CHANGELOG.md`.** When you cut a release, add a section
+   with the version, date, and grouped entries that reference the commit SHAs:
 
-Check pending changesets:
+   ```markdown
+   ## [0.8.0] - 2026-05-10
 
-```bash
-pnpm changeset status
-```
+   ### Added
 
-### 2. Review the Release PR
+   - Terraform source normalizer with FW_EXPECTED_SOURCE isolation guard
+     (`abc1234`)
 
-When changesets are merged to main, the GitHub Action creates a "Version Packages" PR:
+   ### Fixed
 
-- Review the changelog entries
-- Verify version bumps are correct
-- Check for breaking changes
+   - Normalizer ModuleNotFoundError on dev cluster — switched pyproject.toml
+     to setuptools `find` directive (`def5678`)
+   ```
 
-### 3. Merge the Release PR
+3. **Tag the release.** From `main`:
 
-Merging triggers:
-1. Version updates in `package.json` files
-2. `CHANGELOG.md` updates
-3. Git tags (e.g., `@forge-works/frontend@0.4.0`)
-4. GitHub Releases with release notes
+   ```bash
+   git tag v0.9.0
+   git push origin v0.9.0
+   ```
 
-## Manual Release (Emergency)
+### Versioning policy
 
-For emergency releases without the automation:
+- **Single global semver today** (`v0.8.0` covers everything).
+- **Per-service semver in Phase 4** (ArgoCD per-namespace) — services will
+  release independently. release-please will manage per-service version bumps
+  in `pyproject.toml`, `pom.xml`, `package.json`, and Helm `Chart.yaml`.
+- Bumping rules until then:
+  - **MAJOR (`X.0.0`)** — breaking API/contract change for any user-facing
+    surface (HTTP API, CUE schema, Kafka topic shape).
+  - **MINOR (`0.X.0`)** — new feature, backwards-compatible.
+  - **PATCH (`0.0.X`)** — bug fix, no behavior change.
 
-```bash
-# 1. Create changeset if needed
-pnpm changeset
+### Branch strategy
 
-# 2. Version packages
-pnpm changeset:version
+GitHub Flow: short-lived feature branches → PR → squash-merge to `main`.
+Releases are tagged from `main`. No `develop` or `release/*` branches.
 
-# 3. Commit version changes
-git add .
-git commit -m "chore: version packages"
+To be codified in `docs/project/BRANCHING.md` (task #23).
 
-# 4. Build and publish
-pnpm changeset:publish
+## Future: release-please
 
-# 5. Push tags
-git push --follow-tags
-```
+When wired (task #23), release-please will:
 
-## Versioning Strategy
+1. Watch `main` for Conventional Commits.
+2. Open a single "Release Please" PR with proposed version bumps and a
+   pre-rendered `CHANGELOG.md` diff.
+3. On merge of that PR, push tags and create GitHub Releases.
 
-### Independent Versioning
+Multi-package config will cover:
 
-Each package is versioned independently:
+- `src/frontend/` → `node`
+- `src/backend/`, `src/normalizer/` → `python`
+- `src/flink-jobs/*` → `maven`
+- `infra/charts/*` → `helm`
+- root → aggregate
 
-- `@forge-works/frontend` - Frontend dashboard
-- `@forge-works/backend` - FastAPI backend
-- Future packages version separately
+## Reverting a release
 
-### Tag Format
-
-Tags follow the pattern:
-
-```
-@forge-works/<package>@<version>
-```
-
-Examples:
-- `@forge-works/frontend@0.4.0`
-- `@forge-works/backend@0.2.0`
-
-## Changelogs
-
-Changelogs are automatically generated from changesets:
-
-- `src/frontend/CHANGELOG.md`
-- `src/backend/CHANGELOG.md`
-
-Each entry includes:
-- Version number and date
-- Change description from changeset
-- PR link (via `@changesets/changelog-github`)
-
-## Pre-releases (Future)
-
-For pre-releases:
+Before the tag is pushed:
 
 ```bash
-# Enter pre-release mode
-pnpm changeset pre enter alpha
-
-# Create changesets as normal
-pnpm changeset
-
-# Version creates alpha versions
-pnpm changeset:version
-
-# Exit pre-release mode when ready
-pnpm changeset pre exit
+git tag -d v0.9.0
 ```
 
-## Troubleshooting
-
-### No Changesets Found
+After the tag is pushed (rare; ask before doing this — published tags are
+generally immovable):
 
 ```bash
-# Add a changeset manually
-pnpm changeset
+git push origin :refs/tags/v0.9.0
 ```
 
-### Wrong Version Bump
+Prefer fixing forward with a new patch release.
 
-Before merging the release PR:
-1. Edit the changeset file in `.changeset/`
-2. Change `patch` to `minor` or `major`
-3. Push the update
+## See also
 
-### Revert a Release
-
-```bash
-# Revert the version commit
-git revert <commit-sha>
-
-# Delete the tag
-git tag -d @forge-works/frontend@0.4.0
-git push origin :refs/tags/@forge-works/frontend@0.4.0
-```
-
-## Configuration
-
-See `.changeset/config.json` for settings:
-
-- `baseBranch`: main
-- `changelog`: GitHub-linked changelogs
-- `privatePackages`: Version even if private
-- `access`: restricted (not published to npm)
+- [`docs/decisions/RELEASE_TOOLING.md`](docs/decisions/RELEASE_TOOLING.md) —
+  full rationale for the Changesets → release-please decision.
+- [`CHANGELOG.md`](CHANGELOG.md) — the canonical changelog.
+- [Conventional Commits spec](https://conventionalcommits.org).

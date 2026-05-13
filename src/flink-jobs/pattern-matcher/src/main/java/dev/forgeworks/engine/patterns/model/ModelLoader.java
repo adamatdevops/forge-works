@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ModelLoader implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(ModelLoader.class);
     private static final long RELOAD_INTERVAL_MINUTES = 5;
 
@@ -187,7 +188,7 @@ public class ModelLoader implements Serializable {
                         "Hot-swapped all scorers from MLflow v{} (reload #{})",
                         trained.getVersion(),
                         reloads);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LOG.warn("MLflow reload failed for {}: {}", modelName, e.getMessage());
             }
         }
