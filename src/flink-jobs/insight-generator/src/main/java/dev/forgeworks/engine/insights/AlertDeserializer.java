@@ -3,6 +3,7 @@ package dev.forgeworks.engine.insights;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(AlertDeserializer.class);
     private transient ObjectMapper mapper;
 
@@ -51,7 +53,7 @@ public class AlertDeserializer implements DeserializationSchema<PatternAlert> {
                 sb.append(String.format("%02x", hash[i]));
             }
             return sb.toString();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             return "unknown";
         }
     }

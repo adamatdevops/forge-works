@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MLflowModelAdapter implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(MLflowModelAdapter.class);
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(5);
 

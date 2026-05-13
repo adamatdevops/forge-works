@@ -3,6 +3,7 @@ package dev.forgeworks.engine.router;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class EventDeserializer implements DeserializationSchema<EventEnvelope> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(EventDeserializer.class);
     private transient ObjectMapper mapper;
 
@@ -57,7 +59,7 @@ public class EventDeserializer implements DeserializationSchema<EventEnvelope> {
                 sb.append(String.format("%02x", hash[i]));
             }
             return sb.toString();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             return "unknown";
         }
     }

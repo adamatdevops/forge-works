@@ -1,5 +1,6 @@
 package dev.forgeworks.engine.insights;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.flink.api.common.state.StateTtlConfig;
 import org.apache.flink.api.common.state.ValueState;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class InsightAggregator extends KeyedProcessFunction<String, PatternAlert, Insight> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(InsightAggregator.class);
     private transient ValueState<Insight> lastInsightState;
 
@@ -57,7 +59,11 @@ public class InsightAggregator extends KeyedProcessFunction<String, PatternAlert
             existing.setAlertCount(existing.getAlertCount() + 1);
             existing.setLastSeen(alert.getTimestamp());
             if (alert.getTriggerEventIds() != null) {
-                existing.getTriggerEventIds().addAll(alert.getTriggerEventIds());
+                List<String> existingIds = existing.getTriggerEventIds();
+                List<String> combined =
+                        existingIds == null ? new ArrayList<>() : new ArrayList<>(existingIds);
+                combined.addAll(alert.getTriggerEventIds());
+                existing.setTriggerEventIds(combined);
             }
             lastInsightState.update(existing);
 

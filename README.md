@@ -1,7 +1,7 @@
 # ForgeWorks - Dynamic Reliability
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/) [![Java 21](https://img.shields.io/badge/java-21%20LTS-red.svg?logo=openjdk&logoColor=white)](https://adoptium.net/) [![Node.js 22](https://img.shields.io/badge/node-22%20LTS-green.svg?logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript 5+](https://img.shields.io/badge/TypeScript-5+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/) [![Kubernetes 1.31](https://img.shields.io/badge/Kubernetes-1.31-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Apache Kafka](https://img.shields.io/badge/Kafka-4.1%20(Strimzi)-231F20.svg?logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![Apache Flink](https://img.shields.io/badge/Flink-1.20-E6526F.svg?logo=apacheflink&logoColor=white)](https://flink.apache.org/) [![Airflow 3.1](https://img.shields.io/badge/Airflow-3.1-017CEE.svg?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/) [![MLflow 2.19](https://img.shields.io/badge/MLflow-2.19-0194E2.svg?logo=mlflow&logoColor=white)](https://mlflow.org/) [![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/) [![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/) [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/) [![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/) [![asdf](https://img.shields.io/badge/asdf-managed-blue.svg)](https://asdf-vm.com/)
+[![Apache Kafka](<https://img.shields.io/badge/Kafka-4.1%20(Strimzi)-231F20.svg?logo=apachekafka&logoColor=white>)](https://kafka.apache.org/) [![Apache Flink](https://img.shields.io/badge/Flink-1.20-E6526F.svg?logo=apacheflink&logoColor=white)](https://flink.apache.org/) [![Airflow 3.1](https://img.shields.io/badge/Airflow-3.1-017CEE.svg?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/) [![MLflow 2.19](https://img.shields.io/badge/MLflow-2.19-0194E2.svg?logo=mlflow&logoColor=white)](https://mlflow.org/) [![ArgoCD](https://img.shields.io/badge/ArgoCD-2.9+-EF7B4D.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/) [![Snyk](https://img.shields.io/badge/Snyk-protected-4C4A73.svg?logo=snyk&logoColor=white)](https://snyk.io/) [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Turborepo](https://img.shields.io/badge/built%20with-Turborepo-blue.svg)](https://turbo.build/) [![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/) [![asdf](https://img.shields.io/badge/asdf-managed-blue.svg)](https://asdf-vm.com/) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/adamatdevops/forge-works?utm_source=oss&utm_medium=github&utm_campaign=adamatdevops%2Fforge-works&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 > **AI-Powered Real-Time Data Intelligence Platform**
 
@@ -20,7 +20,7 @@
 Before diving in, let's clarify scope:
 
 - **NOT a deployment tool** - ForgeWorks doesn't deploy your infrastructure. It provides templates and recommendations; actual provisioning is handled by your existing CI/CD (ArgoCD, GitHub Actions).
-- **NOT a replacement for Kubernetes** - It's an orchestration layer that sits *above* your cluster, providing developer-facing workflows.
+- **NOT a replacement for Kubernetes** - It's an orchestration layer that sits _above_ your cluster, providing developer-facing workflows.
 - **NOT a full PaaS** - It's a catalog + recommendation engine, not a Heroku-style managed platform.
 
 **ForgeWorks IS:** An Internal Developer Platform (IDP) that standardizes service creation through ML-guided golden path templates and provides visibility into your service ecosystem.
@@ -49,7 +49,7 @@ ForgeWorks is an Internal Developer Platform (IDP) that acts as an orchestration
 - [x] **Anomaly API** - [Detection routes](src/backend/app/api/routes/anomalies.py)
 - [x] **Metrics API** - [DORA metrics](src/backend/app/api/routes/metrics.py)
 - [x] **API docs** - Auto-generated at `/docs` endpoint
-- [x] **Versioning** - [Changesets config](.changeset/config.json)
+- [x] **Versioning** - Conventional Commits + manual `git tag`; release-please planned, see [docs/decisions/RELEASE_TOOLING.md](docs/decisions/RELEASE_TOOLING.md)
 - [x] **Unit tests** - 159 tests ([test suite](src/backend/tests/unit/))
 - [x] **Auth backend** - [JWT security](src/backend/app/core/security.py), [Auth routes](src/backend/app/api/routes/auth.py)
 
@@ -80,36 +80,36 @@ cd src/frontend && pnpm dev
 
 ForgeWorks processes data through a modern streaming architecture:
 
-| Stage | Component | Purpose |
-|-------|-----------|---------|
-| **Ingest** | API Gateway, Schema Registry | Validate, enrich, normalize incoming data |
-| **Stream** | Apache Kafka | Distributed event streaming backbone |
-| **Process** | Apache Flink | Real-time stream processing |
-| **AI/ML** | Custom Models | Anomaly detection, predictions, classification |
-| **Orchestrate** | Apache Airflow | Workflow scheduling and coordination |
-| **Output** | APIs, Dashboards, Alerts | Actionable insights delivery |
+| Stage           | Component                    | Purpose                                        |
+| --------------- | ---------------------------- | ---------------------------------------------- |
+| **Ingest**      | API Gateway, Schema Registry | Validate, enrich, normalize incoming data      |
+| **Stream**      | Apache Kafka                 | Distributed event streaming backbone           |
+| **Process**     | Apache Flink                 | Real-time stream processing                    |
+| **AI/ML**       | Custom Models                | Anomaly detection, predictions, classification |
+| **Orchestrate** | Apache Airflow               | Workflow scheduling and coordination           |
+| **Output**      | APIs, Dashboards, Alerts     | Actionable insights delivery                   |
 
 **Infrastructure:** Kubernetes • AWS EKS • Terraform • GitOps
 
 ### Design Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Agentless** | No agents deployed - all connectivity via REST APIs |
+| Principle                | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| **Agentless**            | No agents deployed - all connectivity via REST APIs  |
 | **Governance by Design** | Standards encoded in templates, not policy documents |
-| **ML as Advisor** | Recommendations to guide, not mandates to enforce |
-| **Golden Paths** | Opinionated defaults that teams can extend |
+| **ML as Advisor**        | Recommendations to guide, not mandates to enforce    |
+| **Golden Paths**         | Opinionated defaults that teams can extend           |
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Python 3.11+ / FastAPI |
-| Frontend | TypeScript / Next.js / Tailwind |
-| Database | PostgreSQL |
-| Cache | Redis |
-| ML | scikit-learn |
-| Container | Docker |
+| Layer     | Technology                      |
+| --------- | ------------------------------- |
+| Backend   | Python 3.11+ / FastAPI          |
+| Frontend  | TypeScript / Next.js / Tailwind |
+| Database  | PostgreSQL                      |
+| Cache     | Redis                           |
+| ML        | scikit-learn                    |
+| Container | Docker                          |
 
 ## Project Structure
 
@@ -138,53 +138,53 @@ The following endpoints are implemented and available in the current build.
 
 ### Services (`/api/v1/services`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | List services (pagination, filtering, search) |
-| GET | `/stats` | Service statistics for dashboard |
-| GET | `/{id}` | Get service by ID |
-| GET | `/slug/{slug}` | Get service by slug |
-| POST | `/` | Create new service |
-| PUT | `/{id}` | Update service |
-| DELETE | `/{id}` | Delete service |
+| Method | Endpoint       | Description                                   |
+| ------ | -------------- | --------------------------------------------- |
+| GET    | `/`            | List services (pagination, filtering, search) |
+| GET    | `/stats`       | Service statistics for dashboard              |
+| GET    | `/{id}`        | Get service by ID                             |
+| GET    | `/slug/{slug}` | Get service by slug                           |
+| POST   | `/`            | Create new service                            |
+| PUT    | `/{id}`        | Update service                                |
+| DELETE | `/{id}`        | Delete service                                |
 
 ### Templates (`/api/v1/templates`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | List templates (filter by workload/language) |
-| GET | `/{id}` | Get template details |
-| GET | `/slug/{slug}` | Get template by slug |
-| POST | `/recommend` | Get ML-powered template recommendations |
+| Method | Endpoint       | Description                                  |
+| ------ | -------------- | -------------------------------------------- |
+| GET    | `/`            | List templates (filter by workload/language) |
+| GET    | `/{id}`        | Get template details                         |
+| GET    | `/slug/{slug}` | Get template by slug                         |
+| POST   | `/recommend`   | Get ML-powered template recommendations      |
 
 ### Anomalies (`/api/v1/anomalies`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | List anomalies (filter by severity, type, status) |
-| GET | `/stats` | Anomaly statistics |
-| GET | `/{id}` | Get anomaly details |
-| POST | `/` | Create anomaly (from detection systems) |
-| PATCH | `/{id}` | Update anomaly |
-| POST | `/{id}/acknowledge` | Acknowledge anomaly |
-| POST | `/{id}/resolve` | Resolve anomaly |
-| DELETE | `/{id}` | Delete anomaly |
+| Method | Endpoint            | Description                                       |
+| ------ | ------------------- | ------------------------------------------------- |
+| GET    | `/`                 | List anomalies (filter by severity, type, status) |
+| GET    | `/stats`            | Anomaly statistics                                |
+| GET    | `/{id}`             | Get anomaly details                               |
+| POST   | `/`                 | Create anomaly (from detection systems)           |
+| PATCH  | `/{id}`             | Update anomaly                                    |
+| POST   | `/{id}/acknowledge` | Acknowledge anomaly                               |
+| POST   | `/{id}/resolve`     | Resolve anomaly                                   |
+| DELETE | `/{id}`             | Delete anomaly                                    |
 
 ### Metrics (`/api/v1/metrics`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Comprehensive metrics dashboard |
-| GET | `/dora` | DORA metrics only |
-| GET | `/health` | Service health metrics |
-| GET | `/deployment` | Deployment statistics |
+| Method | Endpoint      | Description                     |
+| ------ | ------------- | ------------------------------- |
+| GET    | `/`           | Comprehensive metrics dashboard |
+| GET    | `/dora`       | DORA metrics only               |
+| GET    | `/health`     | Service health metrics          |
+| GET    | `/deployment` | Deployment statistics           |
 
 ### Health (`/health`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Basic health check |
-| GET | `/health/detailed` | Component health status |
+| Method | Endpoint           | Description             |
+| ------ | ------------------ | ----------------------- |
+| GET    | `/health`          | Basic health check      |
+| GET    | `/health/detailed` | Component health status |
 
 ## Getting Started
 
@@ -236,7 +236,9 @@ See [LOCAL_DEV.md](docs/LOCAL_DEV.md) for detailed setup instructions.
 ## Key Features
 
 ### Frontend Dashboard (Layers Architecture)
+
 A Figma-inspired composable UI built with:
+
 - **Layer Panel** - Toggle visibility and reorder dashboard layers
 - **GlueBus** - Pub/sub pattern for cross-layer communication
 - **Service Catalog Layer** - Grid view with health indicators
@@ -245,14 +247,18 @@ A Figma-inspired composable UI built with:
 - **Anomalies Layer** - Deployment pattern alerts
 
 ### Service Catalog
+
 Central registry showing all services with:
+
 - Health status (healthy, degraded, unhealthy)
 - Ownership (team assignment)
 - Deployment metrics (deploys today, rollbacks this week)
 - Links to documentation, dashboards, runbooks
 
 ### Golden Path Templates
+
 Pre-configured service blueprints including:
+
 - **Python API** - FastAPI + PostgreSQL + async
 - **Go Microservice** - High-performance services
 - **Stream Processor** - Kafka + event-driven
@@ -262,14 +268,18 @@ Pre-configured service blueprints including:
 Each template is designed to include CI/CD pipelines, monitoring, tests, and documentation as part of the Golden Path standard.
 
 ### ML Template Recommender
+
 Intelligent matching based on:
+
 - Workload type (api, batch, stream, ml)
 - Programming language preference
 - Capability requirements
 - Team usage patterns (future)
 
 ### Anomaly Detection Panel
+
 Surfaces potential issues:
+
 - High deploy frequency (>5 deploys/day)
 - Consecutive rollbacks
 - Pipeline failures
@@ -291,4 +301,4 @@ MIT
 
 ---
 
-*Built as a portfolio demonstration of Internal Developer Platform concepts and Platform Engineering practices.*
+_Built as a portfolio demonstration of Internal Developer Platform concepts and Platform Engineering practices._

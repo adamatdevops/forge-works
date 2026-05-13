@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 public class PatternWindowFunction
         extends KeyedProcessFunction<String, EventEnvelope, PatternAlert> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(PatternWindowFunction.class);
     private static final long WINDOW_DURATION_MS = 10 * 60 * 1000; // 10 minutes
     private static final int MAX_EVENT_IDS = 50;
@@ -40,13 +41,10 @@ public class PatternWindowFunction
     private transient ModelLoader modelLoader;
 
     private static final Map<String, String> PATTERN_TO_MODEL =
-            new HashMap<>() {
-                {
-                    put("PAT-DEPLOY-001", "rapid-deploy-scorer");
-                    put("PAT-K8S-001", "crash-loop-scorer");
-                    put("PAT-CI-001", "ci-skip-scorer");
-                }
-            };
+            Map.of(
+                    "PAT-DEPLOY-001", "rapid-deploy-scorer",
+                    "PAT-K8S-001", "crash-loop-scorer",
+                    "PAT-CI-001", "ci-skip-scorer");
 
     @Override
     public void open(Configuration parameters) {
@@ -139,12 +137,7 @@ public class PatternWindowFunction
                             c.syncCount,
                             10,
                             new ArrayList<>(c.eventIds),
-                            new HashMap<>() {
-                                {
-                                    put("threshold", 3);
-                                    put("actual", c.syncCount);
-                                }
-                            }));
+                            Map.of("threshold", 3, "actual", c.syncCount)));
         }
 
         if (c.crashCount > 3) {
@@ -159,12 +152,7 @@ public class PatternWindowFunction
                             c.crashCount,
                             5,
                             new ArrayList<>(c.eventIds),
-                            new HashMap<>() {
-                                {
-                                    put("threshold", 3);
-                                    put("actual", c.crashCount);
-                                }
-                            }));
+                            Map.of("threshold", 3, "actual", c.crashCount)));
         }
 
         if (c.mergeCount > 0 && c.testCount == 0) {
@@ -179,12 +167,7 @@ public class PatternWindowFunction
                             c.mergeCount,
                             10,
                             new ArrayList<>(c.eventIds),
-                            new HashMap<>() {
-                                {
-                                    put("merge_count", c.mergeCount);
-                                    put("tests_detected", false);
-                                }
-                            }));
+                            Map.of("merge_count", c.mergeCount, "tests_detected", false)));
         }
 
         return alerts;
@@ -200,10 +183,13 @@ public class PatternWindowFunction
         Map<String, Double> features = c.toFeatures();
         double score = model.score(features);
 
-        alert.getContext().put("model_score", score);
-        alert.getContext().put("model_id", model.getModelId());
-        alert.getContext().put("model_version", model.getVersion());
-        alert.getContext().put("features", new HashMap<>(features));
+        Map<String, Object> existing = alert.getContext();
+        Map<String, Object> enriched = existing == null ? new HashMap<>() : new HashMap<>(existing);
+        enriched.put("model_score", score);
+        enriched.put("model_id", model.getModelId());
+        enriched.put("model_version", model.getVersion());
+        enriched.put("features", new HashMap<>(features));
+        alert.setContext(enriched);
     }
 
     /**
@@ -211,6 +197,7 @@ public class PatternWindowFunction
      * windowing semantics. eventIds capped at MAX_EVENT_IDS to prevent unbounded growth.
      */
     public static class EventCounters implements Serializable {
+        private static final long serialVersionUID = 1L;
         public int eventCount = 0;
         public int syncCount = 0;
         public int crashCount = 0;

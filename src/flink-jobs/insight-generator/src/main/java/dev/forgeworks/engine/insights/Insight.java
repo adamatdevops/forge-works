@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ import java.util.UUID;
  * <p>Consumers: UI dashboard, Slack notifications, automated remediation (Phase 4)
  */
 public class Insight implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("insight_id")
     private String insightId;
@@ -154,11 +157,11 @@ public class Insight implements Serializable {
     }
 
     public List<String> getRecommendations() {
-        return recommendations;
+        return recommendations == null ? null : Collections.unmodifiableList(recommendations);
     }
 
     public void setRecommendations(List<String> recommendations) {
-        this.recommendations = recommendations;
+        this.recommendations = recommendations == null ? null : new ArrayList<>(recommendations);
     }
 
     public int getAlertCount() {
@@ -194,19 +197,19 @@ public class Insight implements Serializable {
     }
 
     public List<String> getTriggerEventIds() {
-        return triggerEventIds;
+        return triggerEventIds == null ? null : Collections.unmodifiableList(triggerEventIds);
     }
 
     public void setTriggerEventIds(List<String> triggerEventIds) {
-        this.triggerEventIds = triggerEventIds;
+        this.triggerEventIds = triggerEventIds == null ? null : new ArrayList<>(triggerEventIds);
     }
 
     public Map<String, Object> getContext() {
-        return context;
+        return context == null ? null : Collections.unmodifiableMap(context);
     }
 
     public void setContext(Map<String, Object> context) {
-        this.context = context;
+        this.context = context == null ? null : new HashMap<>(context);
     }
 
     @Override

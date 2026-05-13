@@ -1,0 +1,82 @@
+# PR Status Lifecycle Labeler
+#
+# Maintains a single active `pr status:*` label on every PR, following the
+# 4-state lifecycle:
+#
+#   opened → review → (merged | closed)
+#
+# For a "blocked" PR, use the orthogonal work-state label `status:blocked`
+# (defined in .github/labels.yml); this workflow doesn't touch it.
+#
+# Convention sync: see .github/labels.yml (PR Status Labels section).
+
+name: PR Status Labeler
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - converted_to_draft
+      - ready_for_review
+      - review_requested
+      - closed
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    name: Set lifecycle label
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { action, pull_request } = context.payload;
+
+            // Decide target lifecycle state.
+            let target;
+            if (action === 'closed') {
+              target = pull_request.merged ? 'pr status:merged' : 'pr status:closed';
+            } else if (action === 'ready_for_review' || action === 'review_requested') {
+              target = 'pr status:review';
+            } else {
+              // opened, reopened, converted_to_draft
+              target = 'pr status:opened';
+            }
+
+            const allLifecycle = [
+              'pr status:opened',
+              'pr status:review',
+              'pr status:merged',
+              'pr status:closed',
+            ];
+
+            const current = (pull_request.labels || []).map(l => l.name);
+            const toRemove = current.filter(n => allLifecycle.includes(n) && n !== target);
+
+            for (const name of toRemove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pull_request.number,
+                  name,
+                });
+              } catch (e) {
+                // 404 = already gone (race with another run). Ignore.
+                if (e.status !== 404) throw e;
+              }
+            }
+
+            if (!current.includes(target)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_request.number,
+                labels: [target],
+              });
+            }
+
+            core.info(`PR #${pull_request.number}: ${action} → ${target}`);
