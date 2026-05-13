@@ -88,7 +88,7 @@
   description: "Nice to have, can wait"
 
 # =============================================================================
-# Status Labels
+# Status Labels (work-state — review intent)
 # =============================================================================
 - name: "status:wip"
   color: "FEF2C0"
@@ -107,12 +107,39 @@
   description: "Changes requested in review"
 
 # =============================================================================
+# PR Status Labels (lifecycle — auto-transitioned by .github/workflows/pr-status-labeler.yml)
+# =============================================================================
+# Single-active-label scheme: every PR carries exactly one of these. The
+# labeler workflow transitions opened → review → merged/closed on PR events.
+# For "blocked" use the work-state label `status:blocked` above (one source of truth).
+- name: "pr status:opened"
+  color: "1AC7B3"
+  description: "Pull Request open, not yet under review"
+
+- name: "pr status:review"
+  color: "CBC29B"
+  description: "Pull Request under review"
+
+- name: "pr status:merged"
+  color: "B1C061"
+  description: "Pull Request merged"
+
+- name: "pr status:closed"
+  color: "EF09A1"
+  description: "Pull Request closed without merging"
+
+# =============================================================================
 # Special Labels
 # =============================================================================
 - name: "dependencies"
   color: "0366D6"
   description: "Dependency updates"
 
-- name: "breaking-change"
-  color: "B60205"
-  description: "Contains breaking changes"
+# `security` is a GitHub default label, but we keep it because renovate.json5
+# applies it to vulnerabilityAlerts PRs. All other GitHub defaults (bug,
+# documentation, duplicate, enhancement, good first issue, help wanted,
+# invalid, question, wontfix) were deleted from the repo since `type:*` covers
+# the overlapping ones and the rest are unused on a solo project.
+- name: "security"
+  color: "EE0701"
+  description: "Security-related (vulnerability fix, CVE patch)"

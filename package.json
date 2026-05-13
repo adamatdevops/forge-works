@@ -10,8 +10,8 @@
   "author": "Adam Keinan",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=20.0.0 <22.0.0",
+    "pnpm": ">=9.0.0 <10.0.0"
   },
   "packageManager": "pnpm@9.15.0",
   "scripts": {
