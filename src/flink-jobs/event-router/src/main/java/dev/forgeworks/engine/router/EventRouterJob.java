@@ -117,6 +117,8 @@ public class EventRouterJob {
      */
     static class RoutingFunction extends ProcessFunction<EventEnvelope, EventEnvelope> {
 
+        private static final long serialVersionUID = 1L;
+
         @Override
         public void processElement(EventEnvelope event, Context ctx, Collector<EventEnvelope> out) {
             String source = event.getSource();

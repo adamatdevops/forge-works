@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class InsightSerializer implements SerializationSchema<Insight> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(InsightSerializer.class);
     private transient ObjectMapper mapper;
 
