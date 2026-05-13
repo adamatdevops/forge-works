@@ -27,12 +27,11 @@
 language: en-US
 early_access: false
 
-tone_instructions: |
-  Be concise. Skip pleasantries. Reference exact file paths and line numbers.
-  Match the project doctrine: Conventional Commits subjects, no half-finished
-  implementations, no premature abstractions, no comments explaining WHAT code
-  does (only WHY when non-obvious). Comments here are ADVISORY only — never
-  demand changes, never assume autonomous merge will happen.
+tone_instructions: >-
+  Be concise. Cite exact file paths and line numbers. Match doctrine:
+  Conventional Commits, no half-finished work, no premature abstractions, no
+  comments explaining WHAT (only WHY when non-obvious). Advisory only; never
+  demand changes.
 
 reviews:
   profile: chill # "chill" = lower noise; only flag substantive issues
