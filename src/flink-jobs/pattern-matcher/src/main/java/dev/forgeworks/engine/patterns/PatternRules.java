@@ -62,12 +62,7 @@ public class PatternRules {
                     syncEventIds.size(),
                     10,
                     syncEventIds,
-                    new HashMap<String, Object>() {
-                        {
-                            put("threshold", 3);
-                            put("actual", syncEventIds.size());
-                        }
-                    });
+                    Map.of("threshold", 3, "actual", syncEventIds.size()));
         }
         return null;
     }
@@ -149,12 +144,7 @@ public class PatternRules {
                     mergeEventIds.size(),
                     10,
                     mergeEventIds,
-                    new HashMap<String, Object>() {
-                        {
-                            put("merge_count", mergeEventIds.size());
-                            put("tests_detected", false);
-                        }
-                    });
+                    Map.of("merge_count", mergeEventIds.size(), "tests_detected", false));
         }
         return null;
     }

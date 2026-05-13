@@ -4,23 +4,24 @@
 
 ## Overview
 
-| Category | Frontend (TypeScript) | Backend (Python) | Repo-Wide |
-|----------|----------------------|------------------|-----------|
-| Linting | ESLint | Ruff | - |
-| Formatting | Prettier | Ruff (formatter) | - |
-| Type Checking | TypeScript | mypy | - |
-| Git Hooks | - | - | Husky + lint-staged |
-| Commit Linting | - | - | commitlint |
-| Security | Snyk, Socket.dev | bandit, Snyk | Trivy |
-| Dependency Updates | - | - | Dependabot |
-| Testing | Vitest | pytest | - |
-| Coverage | v8 | pytest-cov | - |
+| Category           | Frontend (TypeScript) | Backend (Python) | Repo-Wide           |
+| ------------------ | --------------------- | ---------------- | ------------------- |
+| Linting            | ESLint                | Ruff             | -                   |
+| Formatting         | Prettier              | Ruff (formatter) | -                   |
+| Type Checking      | TypeScript            | mypy             | -                   |
+| Git Hooks          | -                     | -                | Husky + lint-staged |
+| Commit Linting     | -                     | -                | commitlint          |
+| Security           | Snyk, Socket.dev      | bandit, Snyk     | Trivy               |
+| Dependency Updates | -                     | -                | Dependabot          |
+| Testing            | Vitest                | pytest           | -                   |
+| Coverage           | v8                    | pytest-cov       | -                   |
 
 ---
 
 ## Linters
 
 ### ESLint (Frontend)
+
 **Purpose:** Static analysis for JavaScript/TypeScript to find problems and enforce code style.
 
 **Why:** Industry standard for JS/TS. Integrates with Next.js out of the box. Catches bugs, enforces best practices, and ensures consistent code style.
@@ -33,6 +34,7 @@ pnpm lint --fix        # Auto-fix issues
 ```
 
 ### Ruff (Backend)
+
 **Purpose:** Extremely fast Python linter written in Rust. Replaces Flake8, isort, pyupgrade, and more.
 
 **Why:** 10-100x faster than traditional Python linters. Single tool replaces multiple. Used by major projects (FastAPI, Pandas, Airflow).
@@ -49,6 +51,7 @@ ruff check . --fix     # Auto-fix issues
 ## Formatters
 
 ### Prettier (Frontend)
+
 **Purpose:** Opinionated code formatter for JavaScript, TypeScript, JSON, CSS, Markdown.
 
 **Why:** Industry standard. Eliminates style debates. Consistent formatting across the team. Integrates with all major editors.
@@ -61,6 +64,7 @@ pnpm format --check    # Check without writing
 ```
 
 ### Ruff Formatter (Backend)
+
 **Purpose:** Fast Python formatter (Black-compatible) built into Ruff.
 
 **Why:** Same speed benefits as Ruff linter. Drop-in replacement for Black. Single tool for linting + formatting.
@@ -77,6 +81,7 @@ ruff format --check .  # Check without writing
 ## Type Checking
 
 ### TypeScript (Frontend)
+
 **Purpose:** Static type checking for JavaScript/TypeScript.
 
 **Why:** Catches type errors at compile time. Improves IDE support. Self-documenting code. Already part of Next.js.
@@ -88,6 +93,7 @@ pnpm typecheck         # Run type checking
 ```
 
 ### mypy (Backend)
+
 **Purpose:** Static type checker for Python.
 
 **Why:** Catches type errors before runtime. Works with Python type hints. Used by major Python projects.
@@ -103,6 +109,7 @@ mypy app/              # Check types
 ## Git Hooks
 
 ### Husky
+
 **Purpose:** Modern Git hooks manager. Runs scripts on git events (pre-commit, pre-push, etc.).
 
 **Why:** Industry standard for Git hooks in JS/Node projects. Easy setup. Works with any scripting language.
@@ -115,6 +122,7 @@ mypy app/              # Check types
 ```
 
 ### lint-staged
+
 **Purpose:** Run linters only on staged git files.
 
 **Why:** Fast feedback loop. Only checks files you're committing. Works with Husky.
@@ -131,13 +139,15 @@ mypy app/              # Check types
 ## Commit Standards
 
 ### commitlint
+
 **Purpose:** Lint commit messages against Conventional Commits specification.
 
-**Why:** Enforces consistent commit messages. Enables automatic changelog generation. Works with semantic versioning (Changesets).
+**Why:** Enforces consistent commit messages. Feeds release-please for automatic changelog generation and semver bumps (planned, task #23). See `docs/decisions/RELEASE_TOOLING.md`.
 
 **Status:** To be installed
 
 **Format:**
+
 ```
 type(scope): description
 
@@ -153,6 +163,7 @@ docs(readme): update installation instructions
 ## Security Scanning
 
 ### Snyk (Frontend + Backend)
+
 **Purpose:** Find and fix vulnerabilities in dependencies, containers, and code.
 
 **Why:** Industry leader in security scanning. Better coverage than npm audit. CI/CD integration. Used by Fortune 500 companies.
@@ -165,6 +176,7 @@ snyk monitor           # Monitor for new vulnerabilities
 ```
 
 ### Socket.dev (Frontend)
+
 **Purpose:** Detect supply chain attacks and malicious npm packages.
 
 **Why:** Goes beyond CVEs - detects typosquatting, malicious code, protestware. GitHub integration.
@@ -172,6 +184,7 @@ snyk monitor           # Monitor for new vulnerabilities
 **Status:** To be configured (Phase 2)
 
 ### Trivy (Containers)
+
 **Purpose:** Comprehensive vulnerability scanner for containers, filesystems, and git repos.
 
 **Why:** Fast, accurate, supports multiple targets. Used by major cloud providers. Open source.
@@ -184,6 +197,7 @@ trivy image <image>    # Scan container image
 ```
 
 ### bandit (Backend)
+
 **Purpose:** Security-focused static analysis for Python code.
 
 **Why:** Finds common security issues (SQL injection, hardcoded passwords, etc.). Used in enterprise Python projects.
@@ -195,6 +209,7 @@ bandit -r app/         # Scan for security issues
 ```
 
 ### Dependabot / Renovate (Repo-Wide)
+
 **Purpose:** Automated dependency updates via pull requests.
 
 **Why:** Keeps dependencies current. Automatic security patches. Industry standard for GitHub repos.
@@ -220,6 +235,7 @@ updates:
 ## Testing
 
 ### Vitest (Frontend)
+
 **Purpose:** Fast Vite-native testing framework for JavaScript/TypeScript.
 
 **Why:** Blazing fast. Compatible with Jest API. Native ESM support. Works great with React.
@@ -233,6 +249,7 @@ pnpm test:coverage     # Run with coverage
 ```
 
 ### pytest (Backend)
+
 **Purpose:** Python testing framework.
 
 **Why:** Industry standard for Python. Simple yet powerful. Extensive plugin ecosystem.
@@ -250,6 +267,7 @@ pytest --cov=app       # With coverage
 ## Code Coverage
 
 ### v8 (Frontend)
+
 **Purpose:** Native V8 coverage provider for Vitest.
 
 **Why:** Fast. Accurate. Built into Vitest.
@@ -257,6 +275,7 @@ pytest --cov=app       # With coverage
 **Status:** Configured in vitest.config.mts
 
 ### pytest-cov (Backend)
+
 **Purpose:** Coverage plugin for pytest.
 
 **Why:** Integrates with pytest. Supports multiple output formats. Can enforce coverage thresholds.
@@ -268,6 +287,7 @@ pytest --cov=app       # With coverage
 ## Bundle Analysis (Frontend)
 
 ### @next/bundle-analyzer
+
 **Purpose:** Visualize and analyze Next.js bundle sizes.
 
 **Why:** Identify large dependencies. Optimize bundle size. Improve load times.
@@ -283,6 +303,7 @@ ANALYZE=true pnpm build  # Generate bundle analysis
 ## Implementation Priority
 
 ### Phase 1: Core Quality (Now)
+
 - [x] ESLint (frontend)
 - [x] TypeScript (frontend)
 - [x] Vitest (frontend)
@@ -292,6 +313,7 @@ ANALYZE=true pnpm build  # Generate bundle analysis
 - [ ] commitlint
 
 ### Phase 2: Security & Optimization (Later)
+
 - [ ] bandit (backend)
 - [ ] mypy (backend)
 - [ ] Dependabot
@@ -299,6 +321,7 @@ ANALYZE=true pnpm build  # Generate bundle analysis
 - [ ] pytest-cov thresholds
 
 ### Phase 3: Advanced (Future)
+
 - [ ] CodeQL / Snyk
 - [ ] SonarQube
 - [ ] Lighthouse CI
@@ -308,16 +331,16 @@ ANALYZE=true pnpm build  # Generate bundle analysis
 
 ## Configuration Files
 
-| Tool | Config File |
-|------|-------------|
-| ESLint | `eslint.config.mjs` |
-| Prettier | `.prettierrc` |
-| Ruff | `ruff.toml` |
-| TypeScript | `tsconfig.json` |
-| Husky | `.husky/` |
-| lint-staged | `.lintstagedrc` |
-| commitlint | `commitlint.config.js` |
-| Dependabot | `.github/dependabot.yml` |
+| Tool        | Config File              |
+| ----------- | ------------------------ |
+| ESLint      | `eslint.config.mjs`      |
+| Prettier    | `.prettierrc`            |
+| Ruff        | `ruff.toml`              |
+| TypeScript  | `tsconfig.json`          |
+| Husky       | `.husky/`                |
+| lint-staged | `.lintstagedrc`          |
+| commitlint  | `commitlint.config.js`   |
+| Dependabot  | `.github/dependabot.yml` |
 
 ---
 
@@ -334,10 +357,7 @@ ANALYZE=true pnpm build  # Generate bundle analysis
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
     "dev:backend": "turbo run dev --filter=@forge-works/backend",
-    "dev:frontend": "turbo run dev --filter=@forge-works/frontend",
-    "changeset": "changeset",
-    "changeset:version": "changeset version",
-    "release": "pnpm changeset:version && pnpm changeset:publish"
+    "dev:frontend": "turbo run dev --filter=@forge-works/frontend"
   }
 }
 ```
@@ -354,6 +374,7 @@ All tools have excellent VS Code / Cursor integration:
 - **Python:** `ms-python.python`
 
 Recommended `.vscode/settings.json`:
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -370,4 +391,4 @@ Recommended `.vscode/settings.json`:
 
 ---
 
-*Last Updated: January 2025*
+_Last Updated: January 2025_

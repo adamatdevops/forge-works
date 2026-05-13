@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 /** Serializes EventEnvelope objects to JSON bytes for Kafka output. */
 public class EventSerializer implements SerializationSchema<EventEnvelope> {
 
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(EventSerializer.class);
     private transient ObjectMapper mapper;
 

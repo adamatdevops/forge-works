@@ -3,6 +3,9 @@ package dev.forgeworks.engine.insights;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +16,8 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatternAlert implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("alert_id")
     private String alertId;
@@ -125,19 +130,19 @@ public class PatternAlert implements Serializable {
     }
 
     public List<String> getTriggerEventIds() {
-        return triggerEventIds;
+        return triggerEventIds == null ? null : Collections.unmodifiableList(triggerEventIds);
     }
 
     public void setTriggerEventIds(List<String> triggerEventIds) {
-        this.triggerEventIds = triggerEventIds;
+        this.triggerEventIds = triggerEventIds == null ? null : new ArrayList<>(triggerEventIds);
     }
 
     public Map<String, Object> getContext() {
-        return context;
+        return context == null ? null : Collections.unmodifiableMap(context);
     }
 
     public void setContext(Map<String, Object> context) {
-        this.context = context;
+        this.context = context == null ? null : new HashMap<>(context);
     }
 
     /** Dedup key: same pattern + same group = same logical alert */
