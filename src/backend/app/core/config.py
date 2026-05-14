@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     kubernetes_context: str | None = None  # Kubernetes context to use
     kubernetes_in_cluster: bool = False  # Whether running inside K8s cluster
 
+    # Sentry / Observability
+    sentry_dsn: str | None = None  # Empty/None disables Sentry init (local dev default)
+    sentry_environment: str | None = None  # Overrides `environment` for Sentry tags
+    sentry_release: str | None = None  # Falls back to app_version when unset
+
 
 @lru_cache
 def get_settings() -> Settings:

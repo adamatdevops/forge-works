@@ -3,6 +3,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,6 +21,17 @@ from app.api.routes import (
     websocket,
 )
 from app.core.config import settings
+
+# Initialize Sentry BEFORE FastAPI() is called. No-op when SENTRY_DSN is unset
+# (local dev default). FastAPI integration auto-enables because `fastapi` is
+# already in the dependency tree.
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment or settings.environment,
+        release=settings.sentry_release or settings.app_version,
+        send_default_pii=False,  # Auth headers / JWTs would otherwise leak into events
+    )
 
 
 @asynccontextmanager
