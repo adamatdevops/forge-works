@@ -10,6 +10,15 @@
 
 **forge-works** is an Internal Developer Platform (IDP) that orchestrates service creation through ML-guided golden-path templates and provides visibility into a service ecosystem. It is NOT a deployment tool, NOT a Kubernetes replacement, NOT a full PaaS.
 
+**Intent.** Portfolio-grade demonstration of platform engineering, governance-through-design, and ML-assisted decision support. The platform's posture is _agentless_ (no autonomous agents in the runtime loop) and _orchestration-not-replacement_ (we coordinate existing tools; we don't reimplement them).
+
+**Explicit scope denials** (these are out-of-scope, not "future work"):
+
+- ❌ Infrastructure provisioning (Terraform/Pulumi/Crossplane orchestration is not the platform's job)
+- ❌ Cluster management (we run _on_ Kubernetes, we don't manage Kubernetes)
+- ❌ GitOps control plane (no ArgoCD / Flux orchestration role)
+- ❌ Autonomous ML (no agent loops making unsupervised production decisions)
+
 **Stack surfaces** (one-line each):
 
 - **Backend** (`src/backend/`) — FastAPI · Python 3.11+ · uv lockfile (`uv.lock`) · ruff (lint+format) authority · pytest + Codecov flags
@@ -70,6 +79,27 @@ Per `GITHUB_ACTIONS.md` §4 and `GITHUB_APPS.md` §4:
 - **Tier 3** — deployment / privileged. Allowed only on critical release path; first-party or Verified Creator; OIDC over static creds.
 
 Most tools should be Tier 1. Tier 3 is limited to a handful (cloud auth, registry login, release publishing, image signing).
+
+### 3.5 ML posture — Decision Engine outputs
+
+The platform's _own_ ML outputs (golden-path recommendations, decision support, scoring) follow a strict advisory posture — distinct from §3.2 which governs AI _dev tools_:
+
+- **Assistive, not autonomous** — ML proposes, humans dispose. No model output executes without an explicit user action.
+- **Explainable required** — every recommendation surfaces inputs + confidence + reasoning. Black-box models do not ship.
+- **Override required** — every recommendation is overridable. UI/UX makes override a first-class action, not a hidden affordance.
+- **Confidence required** — recommendations carry a confidence signal; low-confidence outputs are flagged, not hidden.
+- **No production serving** — the platform does not host model serving in the production critical path. Inference is offline / advisory / pre-computed.
+
+Governance model: **design, not policy.** Constraints are baked into the platform's affordances (what the UI/API lets you do); they are not enforced via after-the-fact policy engines.
+
+### 3.6 External authoritative docs
+
+Architecture, planning, and platform doctrine live in an external design workspace outside this repository (ADRs, planning, roadmap, vendor evaluations). Rules:
+
+- **External docs are canonical.** When local code or agent suggestions conflict with external docs, external docs win.
+- **Don't copy external content into the repo.** Reference and cite; do not duplicate. External docs are the source of truth; copies rot.
+- **Don't infer missing requirements.** If a constraint isn't in the external docs or this file, ask before assuming. Especially when changes touch architecture, ML posture, or platform boundaries.
+- **Warn on overclaim.** Don't describe in-progress work as shipped, and don't describe demonstrations as production-grade. Match the artifact's actual maturity.
 
 ---
 
@@ -148,10 +178,14 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 - **Don't write multi-paragraph docstrings or comment-blocks.** One short line max. Default to no comments.
 - **Don't create documentation files (`*.md`, READMEs) unless explicitly requested.** Prefer editing existing files.
 - **Don't add features, refactors, or abstractions beyond what the task requires.** A bug fix doesn't need surrounding cleanup; a one-shot operation doesn't need a helper. Three similar lines beats a premature abstraction.
+- **Don't infer missing requirements beyond documented scope.** If the external design workspace + this file don't specify it, ask. Especially for architecture, ML posture, or platform-boundary changes (§3.6).
+- **Don't copy external doc content into the repo.** Reference and cite. Copies rot; the external workspace is canonical (§3.6).
+- **Don't describe in-progress work as shipped, or demos as production-grade.** Match the artifact's actual maturity (§3.6 warn-on-overclaim).
 
 ---
 
 ## 7. Provenance
 
 - **Created:** 2026-05-14 — driven by Codex CLI adoption + the establishment of the `/codex-review` feedback loop. Doctrine codification was identified as the highest-leverage Codex setup item (alongside `[profile.review]` and `codex-finding-schema.json`).
+- **Updated:** 2026-05-15 — folded the platform-doctrine content from the (Codex-invisible) repo `.codex/config.toml` into §1 (intent + scope denials), §3.5 (ML posture), §3.6 (external authoritative docs), and §6 (3 new anti-patterns). Repo `.codex/config.toml` deleted in the same change; user-level `[profile.review]` remains the only Codex CLI config.
 - **Maintenance:** any doctrine change here should also update `research/github_actions/GITHUB_ACTIONS.md`, `research/github_apps/GITHUB_APPS.md`, `research/mcp/MCP_SERVERS.md`, and auto-memory entries as applicable. Sister-doc propagation is non-negotiable per §4.2 quality bar.
