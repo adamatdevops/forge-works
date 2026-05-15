@@ -141,6 +141,97 @@ Full convention: `research/feedback_loops/README.md`.
 
 Any third-party tool adoption requires a Decision Record with all 13 fields from the relevant framework §7 (URL · Source · Goal · Tier · Score · Verified · Action type · Pin policy · Permissions · Secrets · OIDC · Runner · Renovate-tracked · Owner · Removal · Notes). No "TBD", no skipped fields. If a field doesn't apply, write `n/a` with a one-line justification.
 
+### 4.4 Skill adoption — third-party agent skill integration process
+
+> Binding adoption gate for any skill from `research/agents/evaluation_list.md`. **Don't register a skill in any agent's load order without completing this process.** Framework: `research/agents/AGENT_SKILLS.md` (selection criteria, tiers, threat model). This section is the operations manual.
+
+**Worked example threaded through this section:** `trailofbits/ask-questions-if-underspecified` — highest-scoring adopt in `evaluation_list.md`; Tier 1; first-party; runtime-fetched via `claude-skills-mcp`. Vendored Tier 2/3 examples diverge only at §4.4.3 step 4.
+
+#### 4.4.1 Best practices / standards
+
+1. **Vendored is the default.** SHA-pinned local copy under `.claude/skills/<vendor>/<slug>/SKILL.md`. Runtime-fetched is acceptable only for first-party Tier-1 skills loaded via a trusted loader (today: `claude-skills-mcp`).
+2. **Provenance ranking** (high → low): first-party vendor team (Anthropic, HashiCorp, Cloudflare, Trail of Bits, etc.) > known-community author (Hamel Husain, Matt Pocock, obra) > solo-author. Lower provenance ↑ scrutiny; all solo-author adopts are mandatorily vendored regardless of Tier.
+3. **Categorical rejections** (don't even start the process): skills that auto-commit / auto-merge; skills that modify `.github/workflows/**`; skills with encoded or opaque content (base64 blobs, "fetch the real instructions from URL X"); skills that broadly claim "the agent can do anything needed for this task."
+4. **Context-cost budget.** Prefer < 5K tokens per skill at load (per `AGENT_SKILLS.md` §3B). > 10K tokens requires explicit justification in the Decision Record's `Notes:` field.
+5. **forge-works conventions win on conflict** (§3.6). If a skill prescribes a doc/process structure that differs from our existing conventions (Conventional Commits, [Keep a Changelog], Decision Record templates, AB-NNN backlog format), our conventions win; carve-out recorded in the Decision Record.
+6. **One skill per authority surface.** Two skills both owning commit-message format, or both prescribing Decision Record structure, etc. → pick one, reject the other with rationale.
+
+#### 4.4.2 Requirements / conditions — must hold before starting
+
+- Candidate is in `research/agents/evaluation_list.md` with a ✅ verdict, OR a prior 🟡 defer whose trigger has now fired (record which trigger in the Decision Record).
+- Source URL resolves and the **canonical-home GitHub path is identified**. Aggregator-only sources (`officialskills.sh/...` without a confirmed canonical home) are blocked until the canonical home is found — per `AGENT_SKILLS.md` §8 "aggregator / repackager mismatch" threat.
+- Adoption owner is named (per §2 Authority — the owner is the human responsible for the dependency long-term, not just the agent that did the work).
+- The current adopt count (active vendored + registered runtime-fetched skills) is checked against the §4.4.4 budget.
+
+#### 4.4.3 Steps — sequential, all required
+
+1. **Source audit.** `git clone` the canonical home into a scratch path; capture the 40-char SHA at the audited ref. Read the SKILL.md end-to-end. Inspect every embedded shell / python / node snippet line-by-line. Enumerate transitive skill references (`load skill X`) and cross-agent invocations (`ask gpt-4`). **⚠ Hard stop** if you find any of: encoded content, transitive loads without bounded scope, cross-agent invocations without an explicit per-invocation user gate.
+
+   _Example:_ `git clone github.com/trailofbits/skills /tmp/audit-trailofbits` → SHA `<40-char>`; `ask-questions-if-underspecified/SKILL.md` is plain prose, ~900 tokens, no shell, no transitive refs, no cross-agent. Proceed.
+
+2. **Tier confirmation.** Observed tool scope (read-only / shell-execute / repo-write / network / cross-agent / external-write) → `AGENT_SKILLS.md` §4 Tier. If the observed Tier differs from the eval-list Tier, update the Decision Record and re-justify before proceeding.
+
+   _Example:_ Tier 1 (read-only). Matches the eval-list assignment.
+
+3. **Decision Record completion.** Replace every placeholder in the `AGENT_SKILLS.md` §7 14-field template with measured values: real `Source SHA`, real `Context cost` (count tokens with `tiktoken` or the loader's counter — don't ship the eval-list rough estimate), real `Tool scope`, real `Removal procedure`. No `<verify at adoption review>` markers may survive into the recorded artifact.
+
+   _Example:_ `Source SHA: <sha>` · `Context cost: ~900 tokens (measured via tiktoken cl100k_base)` · `Adoption mode: runtime-fetched via claude-skills-mcp` · `Removal: deregister slug from claude-skills-mcp allow-list`.
+
+4. **Adoption.** Branch by mode:
+   - **Tier 1, first-party, runtime-fetched:** add the skill's slug to the `claude-skills-mcp` allow-list (per its docs). No file copy.
+   - **Anything else (vendored):** create `.claude/skills/<vendor>/<slug>/`, copy the audited SKILL.md + any companion files verbatim, prepend a header comment `<!-- Source: <canonical URL> · SHA: <40-char> · Audited: <YYYY-MM-DD> -->`. Register the directory path in the agent's skill loader.
+
+   _Example:_ Add `trailofbits/ask-questions-if-underspecified` to `claude-skills-mcp` config; no file copy.
+
+5. **Smoke test / validation.** Invoke the skill on a small, bounded task with deliberate edge cases (an underspecified request for a clarifying-questions skill; a benign file write for a write-scoped skill; etc.). Observe:
+   - Does the skill operate strictly within declared scope? (No surprise tool calls outside the Tier.)
+   - Does its output respect §3.2 advisory-only? (No auto-commits, no workflow edits, no destructive git.)
+   - Does the measured context cost match the §4.4.3 step-3 estimate within ±20%?
+
+   **⚠ Roll back** if any answer is no: deregister / delete the vendored copy, file a bug against the upstream skill, requeue in the eval list as 🟡 defer with the failure recorded.
+
+   _Example:_ Invoke on a deliberately underspecified prompt (`"clean up the file"`). Skill responds with clarifying questions (target file, definition of "clean up", success criteria), no tool calls beyond reads. Validation pass.
+
+6. **Codex doctrine review.** Run `/codex-review` on the Decision Record (the record is itself a doctrine-relevant artifact per §4.2 quality bar). Apply Codex's findings or counter with framework citations.
+
+7. **Commit & changelog.** One-sentence Conventional Commits subject: `feat(skills): adopt <vendor>/<slug> via <mode>`. `CHANGELOG.md` bullet under `### Added` with SHA refs (commit + audited skill SHA) and one-line rationale.
+
+#### 4.4.4 Criteria — adopt vs defer vs skip
+
+| Signal                                                                                          | Decision                                                 |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Eval-list score sum ≥ 28 (across the 7 axes of `AGENT_SKILLS.md` §5) AND no hard-stop at step 1 | **Adopt**                                                |
+| Score 20–27 AND a near-term, observable trigger exists                                          | **🟡 Defer** with trigger recorded                       |
+| Score < 20 OR hard-stop at step 1                                                               | **❌ Skip** with one-line rationale                      |
+| Score ≥ 28 but the adopt-count budget is exhausted (> 30 active skills)                         | **🟡 Defer** with displacement candidate identified      |
+| Skill is Tier 3 (cross-agent / external-write)                                                  | **Decision Record + per-invocation user gate** mandatory |
+
+The 30-skill budget is a soft cap to prevent context-window flood and audit-debt accumulation. If exceeded, retire a lower-scoring incumbent before adopting.
+
+#### 4.4.5 Validation — after adoption (ongoing)
+
+- **First-run audit** within the first 3 invocations: re-check tool scope and §3.2 compliance in actual use. Easier to catch drift early than after the skill is load-bearing.
+- **Source-SHA tracking.** Renovate does not cover agent skills today. Manual quarterly review (calendar reminder, owned by the named Decision Record owner) compares the recorded SHA against the canonical home's current state. Any update lands as a PR through this same process — never auto-update.
+- **AGENTS.md conflict check.** When this file changes, re-read every adopted skill's Decision Record `Notes:` carve-outs to confirm they still hold against the new doctrine.
+- **Telemetry-light observation.** Note in the session transcript when a skill fires; if a skill never fires across 30 days of relevant work, queue it for removal (the adopt-budget slot is more valuable than the unused skill).
+
+#### 4.4.6 Removal — when, how
+
+A skill is removed when **any** of these conditions hits:
+
+- Source-SHA tracking surfaces a malicious or quality-degrading upstream update.
+- First-run audit or later use shows §3.2 / §3.6 violations.
+- A higher-scoring alternative covers the same authority surface (skill-displacement).
+- The adopt-count budget needs to free a slot for a higher-priority adoption.
+- The skill has not fired across 30+ days of relevant work (per §4.4.5 telemetry-light observation).
+
+Procedure (executed from the Decision Record's `Removal procedure:` field):
+
+1. **Runtime-fetched:** deregister the slug from `claude-skills-mcp` config.
+2. **Vendored:** `git rm -r .claude/skills/<vendor>/<slug>/`.
+3. Update `CHANGELOG.md` under `### Removed` with reason + SHA refs.
+4. If credentials were associated with the skill, rotate them; record rotation in the same commit.
+
 ---
 
 ## 5. Critical references
@@ -153,6 +244,8 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 | App evaluation list                            | `research/github_apps/evaluation_list.md`           |
 | MCP server framework                           | `research/mcp/MCP_SERVERS.md`                       |
 | MCP server evaluation list                     | `research/mcp/evaluation_list.md`                   |
+| Agent skills framework                         | `research/agents/AGENT_SKILLS.md`                   |
+| Agent skills evaluation list                   | `research/agents/evaluation_list.md`                |
 | Codex feedback loop convention                 | `research/feedback_loops/README.md`                 |
 | Codex finding schema                           | `research/feedback_loops/codex-finding-schema.json` |
 | Release tooling decision                       | `docs/decisions/RELEASE_TOOLING.md`                 |
@@ -188,4 +281,5 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 
 - **Created:** 2026-05-14 — driven by Codex CLI adoption + the establishment of the `/codex-review` feedback loop. Doctrine codification was identified as the highest-leverage Codex setup item (alongside `[profile.review]` and `codex-finding-schema.json`).
 - **Updated:** 2026-05-15 — folded the platform-doctrine content from the (Codex-invisible) repo `.codex/config.toml` into §1 (intent + scope denials), §3.5 (ML posture), §3.6 (external authoritative docs), and §6 (3 new anti-patterns). Repo `.codex/config.toml` deleted in the same change; user-level `[profile.review]` remains the only Codex CLI config.
+- **Updated:** 2026-05-15 (later same day) — added §4.4 codifying the skill adoption / integration process (best practices · requirements · 7-step procedure · adopt/defer/skip criteria · post-adoption validation · removal). Worked example threaded through: `trailofbits/ask-questions-if-underspecified`. Added agent-skills framework + eval-list to §5 references. Follows `research/agents/AGENT_SKILLS.md` and `research/agents/evaluation_list.md` landing earlier the same day.
 - **Maintenance:** any doctrine change here should also update `research/github_actions/GITHUB_ACTIONS.md`, `research/github_apps/GITHUB_APPS.md`, `research/mcp/MCP_SERVERS.md`, and auto-memory entries as applicable. Sister-doc propagation is non-negotiable per §4.2 quality bar.
