@@ -44,6 +44,19 @@ def test_categorically_rejected_scope_helper() -> None:
     assert not is_categorically_rejected("network")
 
 
+def test_accepts_compound_shell_execute_repo_write_scope() -> None:
+    # PR 5 §H (trailofbits/differential-review) declares both shell-execute
+    # (git/gh/find/grep invocations) and repo-write (writes a markdown report
+    # file). Tier 2 in both halves. Loader must accept the compound enum.
+    compound = VALID_FRONTMATTER.replace(
+        "tool-scope: read-only",
+        "tool-scope: shell-execute+repo-write",
+    )
+    fm, _ = parse_frontmatter(compound + "\nbody\n")
+    assert fm.tool_scope == "shell-execute+repo-write"
+    assert not is_categorically_rejected(fm.tool_scope)
+
+
 def test_categorically_rejected_skill_still_parses() -> None:
     """The dangerous skill should parse fine (so we can refuse explicitly with
     a descriptive error rather than dropping it silently)."""

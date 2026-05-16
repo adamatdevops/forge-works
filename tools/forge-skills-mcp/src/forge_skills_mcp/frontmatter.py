@@ -17,6 +17,7 @@ ToolScope = Literal[
     "read-only",
     "read-only+transform",
     "shell-execute",
+    "shell-execute+repo-write",
     "repo-write",
     "network",
     "cross-agent",
