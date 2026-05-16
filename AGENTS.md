@@ -179,6 +179,8 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 
 3. **Decision Record completion.** Replace every placeholder in the `AGENT_SKILLS.md` §7 14-field template with measured values: real `Source SHA`, real `Context cost` (count tokens with `tiktoken` or the loader's counter — don't ship the eval-list rough estimate), real `Tool scope`, real `Removal procedure`. No `<verify at adoption review>` markers may survive into the recorded artifact.
 
+   **Additionally (per §4.5.5 atomic co-edit doctrine, added 2026-05-16):** add a row to the §4.5.1 trigger table for the newly-adopted skill with a specific trigger condition + tier + pairing; add a per-skill entry to the §4.5.3 Policy Gates Index listing all load-bearing gates (use "no policy gates" for Tier-1 skills with no special constraints). Both edits land in the SAME PR as the Decision Record update — no defer.
+
    _Example:_ `Source SHA: <sha>` · `Context cost: ~900 tokens (measured via tiktoken cl100k_base)` · `Adoption mode: vendored via forge-skills` · `Removal: delete .skills/trailofbits/ask-questions-if-underspecified/ directory`.
 
 4. **Adoption.** The forge-skills loader serves vendored skills from `.skills/<vendor>/<slug>/SKILL.md` to both agents over MCP. Phase 1 is **file-vendored only** (runtime fetch lands in Phase 3 — see `roadmap/ACTION_PLAN_SKILL_LOADERS.md`).
@@ -234,7 +236,103 @@ Procedure (executed from the Decision Record's `Removal procedure:` field):
 
 1. `git rm -r .skills/<vendor>/<slug>/` — both Claude and Codex stop seeing the skill on next `list_skills` call (the forge-skills scanner rescans per request).
 2. Update `CHANGELOG.md` under `### Removed` with reason + SHA refs.
-3. If credentials were associated with the skill, rotate them; record rotation in the same commit.
+3. **Remove the corresponding §4.5.1 trigger-table row + §4.5.3 Policy Gates Index entry** (per §4.5.5 atomic co-edit). Same PR; no defer.
+4. If credentials were associated with the skill, rotate them; record rotation in the same commit.
+
+### 4.5 Skill invocation triggers — runtime rules for adopted skills
+
+§4.4 governs **adoption** (selection, vendoring, scoring, validation, removal). This section governs **runtime invocation** — when an agent should call `mcp__forge-skills__get_skill(<slug>)` on a skill that's already been adopted. Adoption alone does not invoke a skill: the forge-skills MCP loader serves content on demand; agents must deliberately fetch.
+
+**When a trigger condition listed below fires, the agent MUST consult the named skill before proceeding.** "MUST" matches the hardness of surrounding doctrine (§3.6 "don't infer", §4.4.3 "all required") — skipping a fired trigger silently is a doctrine breach catchable in `evaluation_list.md` Codex review or §4.4.5 first-run audit.
+
+**Exception (single, narrow):** when running under `codex exec --profile review` (read-only sandbox + approval=never), Codex 0.130.0 auto-cancels `mcp__forge-skills__*` calls by design (per the §4.4 preamble Codex constraint note). In that path, the agent MUST:
+
+1. Cite the constraint in the session transcript explicitly ("Skill X unavailable under codex review profile per AGENTS.md §4.4 preamble + §4.5 exception").
+2. **Read the vendored skill content directly from `.skills/<vendor>/<slug>/` via the agent's Read tool** — these files are in the read-only sandbox and are the same content the MCP loader would have served. Quote the specific section(s) used so the reviewer can verify which doctrine was applied.
+
+The fallback is NOT "derive the workflow from `AGENT_SKILLS.md` inline" — `AGENT_SKILLS.md` is the selection framework, not per-skill content. Workflow detail lives in the vendored `methodology.md` / companion files.
+
+Interactive Claude Code and interactive `codex` TUI sessions invoke normally — the exception applies only to the non-interactive `codex exec --profile review` path.
+
+#### 4.5.1 Trigger table
+
+| Trigger condition                                                                                                                                                               | Skill                                            | Tier | Pairing                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---- | --------------------------------------- |
+| User request is underspecified — missing inputs, multiple plausible interpretations, or assumes context the agent doesn't have (e.g., "fix the bug", "make the API better")     | §F `trailofbits/ask-questions-if-underspecified` | 1    | lifecycle bookend with §AF (task-start) |
+| About to declare a task complete (e.g., "shipped", "done", "PR ready", "✅ tests pass", "ready to commit")                                                                      | §AF `obra/verification-before-completion`        | 1    | lifecycle bookend with §F (task-end)    |
+| About to read or review sensitive code (auth boundaries, IAM, crypto, normalizer redaction, ML advisory paths, Sentry PII handling, any code touching secrets-bearing surfaces) | §G `trailofbits/audit-context-building`          | 1    | precedes §H (chained, when both apply)  |
+| PR / commit / diff security review (e.g., "review PR #N", "is this safe to merge", "security-review the changes since X", "Flink 1.20→2.0 version-bump review")                 | §H `trailofbits/differential-review`             | 2    | follows §G (chained, when both apply)   |
+
+Policy-gates column intentionally omitted from the trigger table; gates live in §4.5.3 (Policy Gates Index) — per-skill, with explicit cite-backs to source doctrine.
+
+#### 4.5.2 Invocation pattern (canonical, both agents)
+
+1. **Recognize trigger** (per §4.5.1 table). Multiple triggers can fire in a single session — invoke each named skill at the moment the trigger condition is met, not in a batch at session start (see §4.5.6 anti-pattern 1).
+2. **Fetch** via `mcp__forge-skills__get_skill(<slug>)`. (Or, under the §4.5 lead-in Codex exception, Read the vendored `.skills/<vendor>/<slug>/` files directly.)
+3. **Read** the returned SKILL.md guidance + follow any relative companion-file references it directs (e.g., §G's `resources/*.md`, §H's sibling `methodology.md` / `adversarial.md` / `patterns.md` / `reporting.md`). Worst-case archive load is metered per `AGENT_SKILLS.md` §3B.
+4. **Apply** the skill's workflow by tier:
+   - **Tier 1** (§F, §AF, §G in current adoption set): advisory only — no tool calls beyond Read/Grep equivalents. No user confirmation gate required (Tier 1 has no shell-execute, no repo-write, no network).
+   - **Tier 2** (§H in current adoption set): split into two phases by the inputs available at invocation time.
+     - **Phase A (no gate)** applies ONLY when the inputs the skill needs (e.g., for §H: a diff, a file list, a commit range) are ALREADY in session context — e.g., the user pasted the diff inline, or a prior session step ran `git diff` and the output is captured. In that case, the agent can apply the skill's analysis without further shell-execute or file-write.
+     - **Phase B (gated by in-session user confirmation)** applies whenever the agent needs to COLLECT inputs via the skill's declared shell binaries (`git`, `gh`, `find`, `grep` for §H) OR produce a tool-write artifact (e.g., `DIFFERENTIAL_REVIEW_REPORT.md` for §H). **In practice, most §H invocations are Phase B from step 1** — §H's Phase 0 triage starts with `git diff <base>..<head>`, so the gate fires at the first command unless the diff is pre-supplied.
+     - **Phase A vs Phase B boundary — distinguishing skill-content reads from workload reads:** "inputs already in session context" refers to the **workload inputs** — the data the skill operates on (for §H: the diff content, the file list, the commit range). Reading the SKILL'S OWN CONTENT (via `mcp__forge-skills__get_skill` or via the §4.5 lead-in Codex-exception fallback to Read `.skills/<vendor>/<slug>/` files) is admin-level loading of instructions, NOT Phase B execution — it does not count as a workload read. A new Read-tool open of a workload-input file (e.g., the agent Reads `src/auth.py` to apply §H's analysis because the diff isn't already in session) IS Phase B and triggers the gate. The distinguishing test: "is this file the skill's INSTRUCTIONS, or the DATA the skill is meant to operate on?"
+     - Confirmation MUST use a neutral choice prompt, not a yes-leaning question. Example for §H:
+       > How would you like §H to proceed on PR #N?
+       > (1) Phase A only — read-only summary using diff content already in session context, NO shell commands.
+       > (2) Phase B — run `git`/`gh` commands to collect inputs and write `DIFFERENTIAL_REVIEW_REPORT.md`.
+       > (3) Cancel — skip §H invocation.
+     - **Ambiguous-response handling:** if the user's response does not explicitly select 1/2/3 (e.g., "yes", "sure", "go ahead"), the agent MUST ask a single clarification question (e.g., "To confirm: Phase A only, Phase B, or Cancel?") and MUST NOT execute either phase until the selection is explicit. This prevents ungated execution-path drift from interpretation variance.
+     - The agent proceeds only on an explicit affirmative choice. This satisfies §3.2 advisory-only at the Tier-2 boundary.
+5. **Honor policy gates** from §4.5.3 (Policy Gates Index). Gates **override** the upstream's prescriptive language where they conflict — example: §H's vendored SKILL.md L137-139 gives a concrete `issue-writer --input ... --format audit-report` command, but the §H Gates Index entry gates that invocation behind per-instance user approval until `issue-writer` is adopted.
+6. **Log invocation** in the session transcript per §4.4.5 telemetry-light observation. Specifically: cite which skill fired, on what trigger, and (for Tier 2) which phases the user approved.
+
+**Codex review-profile constraint (re-stated from lead-in for discoverability):** `codex exec --profile review` cannot invoke `mcp__forge-skills__*` calls. The agent in that path Reads the vendored skill files directly from `.skills/<vendor>/<slug>/`, cites the file paths used, and applies the workflow inline. Interactive Claude Code and interactive `codex` TUI sessions invoke normally.
+
+#### 4.5.3 Policy Gates Index
+
+Per-skill gates that supersede the upstream's prescriptive content. The trigger table (§4.5.1) routes the agent to a skill; this index routes the agent to the constraints on how that skill is invoked. Absence of a skill from this index after adoption is a doctrine breach catchable at §4.4.3 step 3 review.
+
+**§F `trailofbits/ask-questions-if-underspecified`** — no policy gates beyond standard Tier-1 advisory rules (§3.2).
+
+**§AF `obra/verification-before-completion`** — no policy gates beyond standard Tier-1 advisory rules (§3.2). Reinforces §3.6.
+
+**§G `trailofbits/audit-context-building`** — policy gates:
+
+1. `function-analyzer` subagent referenced in upstream §8: covered by `AGENT_SKILLS.md` §2E same-model bounded-subagent carve-out (same Claude model family, child tool grants ⊆ parent, no external API/network, fail-closed if not installed in `~/.claude/agents/`). Spawning the subagent is in-set delegation, NOT cross-agent per the carve-out.
+
+**§H `trailofbits/differential-review`** — policy gates:
+
+1. **Tier-2 user-confirmation gate** — Phase A (read-only critique on inputs already in session context) requires no gate; Phase B (shell-execute and/or repo-write) requires in-session user confirmation via the §4.5.2 step 4 neutral 3-option prompt. In practice §H is usually Phase B from step 1; do not pretend a no-shell Phase A precedes the gate when shell access is needed to collect inputs.
+2. **`issue-writer` forward-reference gate (Tier-3 default)** — upstream SKILL.md L137-139 + reporting.md L344/L349-354 include prescriptive `issue-writer --input ... --format audit-report` command syntax under an "Integration" heading. The skill is NOT adopted in our loader; per `AGENT_SKILLS.md` §2E "Conditional load of an UN-adopted target" clause, the agent MUST NOT invoke `issue-writer` without per-invocation user approval (Tier 3) until/unless `issue-writer` is itself adopted via §4.4.3. See `research/agents/evaluation_list.md` §H Notes for full rationale.
+3. **`shell-execute` binary list is observed-not-enforced** — upstream `allowed-tools: Read Write Grep Glob Bash` gives the agent the full Bash tool grant at runtime; the binary list (`git`, `gh`, `find`, `grep`) recorded in `evaluation_list.md` §H is observed-in-upstream documentation, NOT a runtime allowlist (Phase 1 forge-skills loader provides no per-binary enforcement). Runtime restriction relies on §3.2 + §6 no-destructive-ops doctrine. See `AGENT_SKILLS.md` §2E "observed vs. enforced" note.
+4. **`adversarial-modeler` subagent (upstream SKILL.md L81, L100)** — same-model bounded-subagent carve-out per `AGENT_SKILLS.md` §2E (Claude family; child tool grants `Read Grep Glob Bash` ⊆ parent grants `Read Write Grep Glob Bash`; no external API; fail-closed if not installed). Same treatment as §G's `function-analyzer`.
+
+#### 4.5.4 Pairing doctrine
+
+Two pairing patterns are recognized:
+
+**Chained pairing — §G → §H:** §G builds a baseline mental model of the codebase under review (call graphs, trust boundaries, invariants, validation patterns). §H consumes that context to evaluate a specific diff. Running §H without prior §G context produces shallower reviews — §G is the Pre-Analysis phase §H's `methodology.md` explicitly recommends. The composition is governed by `AGENT_SKILLS.md` §2E "Cross-skill composition carve-out": §G is already adopted in our loader, so calling it from §H's workflow is in-set delegation, not supply-chain expansion (and §H's "if `audit-context-building` skill is available... if NOT available, manually perform..." conditional satisfies the carve-out's graceful-degradation condition). When the user triggers both — e.g., "security-review PR #123" on a file touching auth — the agent runs §G first (Pre-Analysis), then §H (Phases 0-6) consuming §G's output.
+
+**Lifecycle bookend pairing — §F + §AF:** §F triggers when a task's requirements are underspecified at task start; §AF triggers before declaring the task complete. The pair forms an honesty bookend across the AGENTS.md §4.1 lifecycle (plan → implementation → validation). Unlike §G → §H, the pair is **not chained** (§F's output doesn't feed §AF); both apply opportunistically at their respective lifecycle moments. For trivially small tasks where neither trigger fires, neither is invoked — the doctrine is not "invoke both on every task" but "invoke the start-bookend if ambiguity at start, invoke the end-bookend if non-trivial work preceded the completion claim."
+
+#### 4.5.5 Update procedure (atomic with §4.4.3 / §4.4.6)
+
+This trigger table + Gates Index are **co-edited atomically** with `research/agents/evaluation_list.md` in the SAME PR as any adoption (§4.4.3 step 3) or removal (§4.4.6). The §4.4.3 step 3 substep "add §4.5.1 row + §4.5.3 entry" and the §4.4.6 procedure step 3 "remove §4.5.1 row + §4.5.3 entry" make this enforceable — both callsite edits landed atomically with §4.5 in the PR that introduced this section.
+
+The per-adoption Codex review of `evaluation_list.md` (existing per-PR pattern) is the deterministic drift check — the reviewer compares the §4.5.1 table against `evaluation_list.md`'s "active adopted" count + tier mix and flags any mismatch as a HIGH finding.
+
+**Audit-gap acknowledgment (per Codex Round-2 Finding 3):** the "MUST cite the unavailability in session transcript" rule (§4.5 lead-in) and the §4.5.2 step 6 transcript-logging rule are observance-based: the doctrine demands citation but the per-adoption Codex review of `evaluation_list.md` is a STATIC artifact review and does NOT include session transcripts. Verification depends on first-run audit per §4.4.5 (where the adopter watches the skill's first 3 invocations) and ad-hoc post-hoc spot checks. A future telemetry mechanism (suggested: a session-transcript log file under `research/skill_invocations/<timestamp>/`) could close this audit gap; **filed as backlog AB-025** (gitignored). Until then, treat the MUST as agent-discipline best-effort + adopter spot-checks.
+
+#### 4.5.6 Anti-patterns (do NOT do)
+
+- **Auto-loading every adopted skill into context at session start.** Loading all 4 currently-adopted skills' SKILL.md content as a block consumes ~5.7K tokens (884 §F + 987 §AF + 2133 §G + 1668 §H); auto-loading worst-case archives (SKILL.md + all referenced companion files for multi-file skills) consumes ~17.5K tokens (adds 7549 §G worst-case + 8087 §H worst-case). Per `AGENT_SKILLS.md` §3B, individual skills > 5K are flagged and > 10K require justification; the full set already crosses both thresholds with zero corresponding work performed. Selective invocation per §4.5.1 triggers is the budget-honest path.
+- **Skipping discovery when triggers fire.** The user shouldn't have to type "use skill X" every time. If a trigger condition listed in §4.5.1 fires, the agent MUST proactively call `get_skill` (the lead-in exception covers the only acceptable skip path — Codex review-profile sandbox unavailability with explicit citation + direct vendored-file read).
+- **Treating upstream's prescriptive language as the final policy.** Decision Records in `research/agents/evaluation_list.md` carry policy gates that supersede the vendored SKILL.md content (the §4.5.3 Gates Index lifts the load-bearing gates into AGENTS.md for discoverability; the eval_list Notes carry the full rationale). When the SKILL.md and the Decision Record disagree, the Decision Record wins.
+- **Listing not-yet-adopted skills in the trigger table.** Only skills with a full §4.4.3 Decision Record + active adoption status belong in §4.5.1. Forward references (skills mentioned by an adopted skill but not themselves adopted) belong in the referring skill's §4.5.3 Gates Index entry as forward-reference gates (e.g., §H's `issue-writer` gate), with the full rationale in `evaluation_list.md` Notes.
+- **Executing Tier-2 actions (shell-execute, repo-write) without in-session user confirmation.** Tier-2 invocation is split into read-only critique (Phase A, no gate) and the declared tool-scope phases (Phase B, gated). Even if the skill's upstream content describes Phase B as a default execution path, the §3.2 advisory-only doctrine + the §4.5.2 step 4 gate override. Note: for §H specifically, the Tier-2 gate fires at step 1 of Phase 0 triage. Do not pretend a no-shell Phase A precedes the gate when shell access is needed to collect inputs.
+- **Invoking a triggered skill while bypassing its §4.5.3 Policy Gates Index entry.** The trigger table routes the agent to a skill; the Gates Index routes the agent to constraints on HOW that skill is invoked. Running §H's Phase B without honoring the `issue-writer` Tier-3 gate, or treating §H's `Bash` grant as a binary allowlist instead of the full shell surface, are bypass patterns — they invoke the skill correctly but ignore the policy layer that overrides upstream prescription.
+- **Citing AGENT_SKILLS.md as the equivalent-doctrine source under the Codex review-profile exception when the skill's actual content lives in vendored companion files.** `AGENT_SKILLS.md` is the selection framework, not per-skill workflow content. Under the §4.5 lead-in exception, Read the vendored `.skills/<vendor>/<slug>/` files directly via the agent's Read tool and cite the file paths used.
+- **Assuming Claude / Codex symmetric MCP invocation.** Codex 0.130.0 under `codex exec --profile review` auto-cancels `mcp__forge-skills__*` calls. The agent in that path cites the constraint per §4.5 lead-in exception and Reads the vendored files directly. Treating both agents as symmetric in this context misstates the runtime.
 
 ---
 
