@@ -89,6 +89,7 @@ repos:
           (?x)^(
             node_modules/|
             \.history/|
+            \.skills/|
             .*/CHANGELOG\.md$
           )
 
