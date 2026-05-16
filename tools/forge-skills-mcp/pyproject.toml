@@ -1,0 +1,44 @@
+[project]
+name = "forge-skills-mcp"
+version = "0.1.0"
+description = "Dual-agent MCP skill loader for forge-works (Claude Code + Codex CLI)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "adamatdevops" }]
+license = { text = "Proprietary" }
+dependencies = [
+    "mcp>=1.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+forge-skills-mcp = "forge_skills_mcp.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/forge_skills_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"

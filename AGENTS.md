@@ -144,12 +144,16 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 ### 4.4 Skill adoption — third-party agent skill integration process
 
 > Binding adoption gate for any skill from `research/agents/evaluation_list.md`. **Don't register a skill in any agent's load order without completing this process.** Framework: `research/agents/AGENT_SKILLS.md` (selection criteria, tiers, threat model). This section is the operations manual.
+>
+> **Dual-agent skill delivery.** Skills are shared between Claude Code and Codex CLI — same content, same Source SHA, both agents load identically. The mechanism: register the **`forge-skills`** MCP server (built in-house under `tools/forge-skills-mcp/`; supersedes the upstream `claude-skills-mcp` which is broken in v1.0.0) in **both** `~/.codex/config.toml` (under `[mcp_servers.forge-skills]`) and Claude Code's MCP config (via `claude mcp add forge-skills -- ...`). Once registered in both places, "served via forge-skills" in a Decision Record's `Adoption mode:` field means **both agents** see the skill — not Claude only. Hierarchy: Claude Code is senior on implementation + analysis; Codex is the independent reviewer (see §4.2). The user is decision authority on adoption + commit.
+>
+> **Codex sandbox constraint** (documented 2026-05-16): forge-skills MCP tool calls work in Claude Code, in interactive Codex TUI (under any sandbox), and in `codex exec --sandbox danger-full-access`. They **do not** work in `codex exec --profile review` (sandbox=read-only, approval=never) or other sandboxed non-interactive runs — Codex auto-cancels MCP tool calls in those modes by design (`error: "user cancelled MCP tool call"`). This is fine for current workflow because the review loop reviews diffs and doesn't need skills; see `tools/forge-skills-mcp/README.md` § "Codex sandbox constraint" for full details and the shell-exec fallback if a future review task needs skills.
 
-**Worked example threaded through this section:** `trailofbits/ask-questions-if-underspecified` — highest-scoring adopt in `evaluation_list.md`; Tier 1; first-party; runtime-fetched via `claude-skills-mcp`. Vendored Tier 2/3 examples diverge only at §4.4.3 step 4.
+**Worked example threaded through this section:** `trailofbits/ask-questions-if-underspecified` — highest-scoring adopt in `evaluation_list.md`; Tier 1; first-party; served via `forge-skills` (dual-agent). Vendored Tier 2/3 examples diverge only at §4.4.3 step 4.
 
 #### 4.4.1 Best practices / standards
 
-1. **Vendored is the default.** SHA-pinned local copy under `.claude/skills/<vendor>/<slug>/SKILL.md`. Runtime-fetched is acceptable only for first-party Tier-1 skills loaded via a trusted loader (today: `claude-skills-mcp`).
+1. **Vendored is the default.** SHA-pinned local copy under `.skills/<vendor>/<slug>/SKILL.md` (repo-root, agent-neutral path — served to both Claude and Codex via the `forge-skills` MCP loader once registered in both MCP configs). Runtime-fetched is **not currently supported** by the forge-skills v0.1.0 loader (Phase 1 is file-vendored only; runtime fetch lands in Phase 3 per `roadmap/ACTION_PLAN_SKILL_LOADERS.md`). **Migration note:** Decision Records authored before Phase 1 may reference `.claude/skills/<vendor>/<slug>/` or `claude-skills-mcp` — both are historical naming. New adoptions use `.skills/` + forge-skills; prior records get rebased when first actually adopted.
 2. **Provenance ranking** (high → low): first-party vendor team (Anthropic, HashiCorp, Cloudflare, Trail of Bits, etc.) > known-community author (Hamel Husain, Matt Pocock, obra) > solo-author. Lower provenance ↑ scrutiny; all solo-author adopts are mandatorily vendored regardless of Tier.
 3. **Categorical rejections** (don't even start the process): skills that auto-commit / auto-merge; skills that modify `.github/workflows/**`; skills with encoded or opaque content (base64 blobs, "fetch the real instructions from URL X"); skills that broadly claim "the agent can do anything needed for this task."
 4. **Context-cost budget.** Prefer < 5K tokens per skill at load (per `AGENT_SKILLS.md` §3B). > 10K tokens requires explicit justification in the Decision Record's `Notes:` field.
@@ -175,13 +179,14 @@ Any third-party tool adoption requires a Decision Record with all 13 fields from
 
 3. **Decision Record completion.** Replace every placeholder in the `AGENT_SKILLS.md` §7 14-field template with measured values: real `Source SHA`, real `Context cost` (count tokens with `tiktoken` or the loader's counter — don't ship the eval-list rough estimate), real `Tool scope`, real `Removal procedure`. No `<verify at adoption review>` markers may survive into the recorded artifact.
 
-   _Example:_ `Source SHA: <sha>` · `Context cost: ~900 tokens (measured via tiktoken cl100k_base)` · `Adoption mode: runtime-fetched via claude-skills-mcp` · `Removal: deregister slug from claude-skills-mcp allow-list`.
+   _Example:_ `Source SHA: <sha>` · `Context cost: ~900 tokens (measured via tiktoken cl100k_base)` · `Adoption mode: vendored via forge-skills` · `Removal: delete .skills/trailofbits/ask-questions-if-underspecified/ directory`.
 
-4. **Adoption.** Branch by mode:
-   - **Tier 1, first-party, runtime-fetched:** add the skill's slug to the `claude-skills-mcp` allow-list (per its docs). No file copy.
-   - **Anything else (vendored):** create `.claude/skills/<vendor>/<slug>/`, copy the audited SKILL.md + any companion files verbatim, prepend a header comment `<!-- Source: <canonical URL> · SHA: <40-char> · Audited: <YYYY-MM-DD> -->`. Register the directory path in the agent's skill loader.
+4. **Adoption.** The forge-skills loader serves vendored skills from `.skills/<vendor>/<slug>/SKILL.md` to both agents over MCP. Phase 1 is **file-vendored only** (runtime fetch lands in Phase 3 — see `roadmap/ACTION_PLAN_SKILL_LOADERS.md`).
+   - **All skills (Tier 1-3):** create `.skills/<vendor>/<slug>/`, copy the audited `SKILL.md` + any companion files verbatim with YAML frontmatter conforming to `tools/forge-skills-mcp/README.md` § "SKILL.md frontmatter schema" (name, vendor, slug, source-url, source-canonical, source-sha, audited, goal, tier, tool-scope, target-agents, context-cost-tokens, owner). The loader rescans on each `list_skills` call — no service restart needed.
 
-   _Example:_ Add `trailofbits/ask-questions-if-underspecified` to `claude-skills-mcp` config; no file copy.
+   _Example:_ Vendor `trailofbits/ask-questions-if-underspecified` at `.skills/trailofbits/ask-questions-if-underspecified/SKILL.md` with the audited 40-char SHA in frontmatter. Both Claude Code (`mcp__forge-skills__list_skills`) and interactive Codex (after Allow prompt) see the new skill on next call — no session restart needed because the scanner re-walks on each invocation.
+
+   **Dual-agent verification:** after adoption, confirm Claude sees the skill via `mcp__forge-skills__list_skills` (it should appear in the `skills` array). For Codex, use **interactive `codex` TUI** with a probe like _"Call forge-skills list_skills and tell me which skills are registered"_ — `codex exec --profile review` is not a valid verification path because MCP auto-cancels under read-only sandbox (see §4.4 preamble Codex constraint note). Asymmetric visibility means the MCP server is registered on only one side, or the SKILL.md frontmatter failed validation — fix before declaring step 4 complete.
 
 5. **Smoke test / validation.** Invoke the skill on a small, bounded task with deliberate edge cases (an underspecified request for a clarifying-questions skill; a benign file write for a write-scoped skill; etc.). Observe:
    - Does the skill operate strictly within declared scope? (No surprise tool calls outside the Tier.)
@@ -227,10 +232,9 @@ A skill is removed when **any** of these conditions hits:
 
 Procedure (executed from the Decision Record's `Removal procedure:` field):
 
-1. **Runtime-fetched:** deregister the slug from `claude-skills-mcp` config.
-2. **Vendored:** `git rm -r .claude/skills/<vendor>/<slug>/`.
-3. Update `CHANGELOG.md` under `### Removed` with reason + SHA refs.
-4. If credentials were associated with the skill, rotate them; record rotation in the same commit.
+1. `git rm -r .skills/<vendor>/<slug>/` — both Claude and Codex stop seeing the skill on next `list_skills` call (the forge-skills scanner rescans per request).
+2. Update `CHANGELOG.md` under `### Removed` with reason + SHA refs.
+3. If credentials were associated with the skill, rotate them; record rotation in the same commit.
 
 ---
 
@@ -282,4 +286,6 @@ Procedure (executed from the Decision Record's `Removal procedure:` field):
 - **Created:** 2026-05-14 — driven by Codex CLI adoption + the establishment of the `/codex-review` feedback loop. Doctrine codification was identified as the highest-leverage Codex setup item (alongside `[profile.review]` and `codex-finding-schema.json`).
 - **Updated:** 2026-05-15 — folded the platform-doctrine content from the (Codex-invisible) repo `.codex/config.toml` into §1 (intent + scope denials), §3.5 (ML posture), §3.6 (external authoritative docs), and §6 (3 new anti-patterns). Repo `.codex/config.toml` deleted in the same change; user-level `[profile.review]` remains the only Codex CLI config.
 - **Updated:** 2026-05-15 (later same day) — added §4.4 codifying the skill adoption / integration process (best practices · requirements · 7-step procedure · adopt/defer/skip criteria · post-adoption validation · removal). Worked example threaded through: `trailofbits/ask-questions-if-underspecified`. Added agent-skills framework + eval-list to §5 references. Follows `research/agents/AGENT_SKILLS.md` and `research/agents/evaluation_list.md` landing earlier the same day.
+- **Updated:** 2026-05-15 (final pass) — §4.4 made dual-agent. Skills are now delivered to both Claude Code and Codex CLI via `claude-skills-mcp` registered in both MCP configs (Claude's + `~/.codex/config.toml` `[mcp_servers.claude-skills]`). Vendored canonical path migrated from `.claude/skills/` to `.skills/` (agent-neutral). §4.4 preamble, best-practice #1, and step-4 adoption all updated; dual-agent verification step added. Hierarchy clarified: Claude senior on implementation/analysis, Codex independent reviewer, user decision authority. Driven by user clarification that the agents-evaluation skills should serve both agents identically and that the Codex feedback loop is part of the broader dev workflow (not isolated to skill evaluation).
+- **Updated:** 2026-05-16 — §4.4 swapped `claude-skills-mcp` → in-house `forge-skills` loader (AB-022 Phase 1; upstream `claude-skills-mcp` v1.0.0 broken). Phase 1 is file-vendored only — runtime fetch deferred to Phase 3. Added Codex sandbox constraint note: MCP tool calls auto-cancel under `codex exec --profile review` (read-only sandbox + approval=never); skills work in Claude Code and interactive Codex TUI but not in the non-interactive review loop. Verification step changed from `codex exec --profile review` probe to interactive TUI probe. Removal procedure simplified (Phase 1 is file-only, no runtime registration to deregister).
 - **Maintenance:** any doctrine change here should also update `research/github_actions/GITHUB_ACTIONS.md`, `research/github_apps/GITHUB_APPS.md`, `research/mcp/MCP_SERVERS.md`, and auto-memory entries as applicable. Sister-doc propagation is non-negotiable per §4.2 quality bar.
