@@ -19,7 +19,8 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "format": "turbo run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
     "dev:backend": "turbo run dev --filter=@forge-works/backend",
@@ -30,6 +31,7 @@
     "lint:frontend": "turbo run lint --filter=@forge-works/frontend"
   },
   "devDependencies": {
+    "prettier": "3.6.2",
     "turbo": "^2.3.0"
   }
 }

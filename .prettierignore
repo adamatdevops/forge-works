@@ -1,0 +1,64 @@
+# =============================================================================
+# .prettierignore — paths excluded from prettier formatting
+# =============================================================================
+# Pre-commit's mirrors-prettier picks this up automatically.
+# `pnpm format` (root script: `prettier --write .`) also honors this file.
+# Mirrors the pre-commit hook's `exclude` block plus vendored/generated paths.
+
+# -----------------------------------------------------------------------------
+# Vendored content — preserved verbatim with Source SHA pin per AGENTS.md §4.4
+# Prettier-normalized vendored skills would diverge from upstream byte-for-byte.
+# -----------------------------------------------------------------------------
+.skills/**
+
+# -----------------------------------------------------------------------------
+# Auto-generated build artifacts
+# -----------------------------------------------------------------------------
+.next/
+.turbo/
+.vercel/
+dist/
+build/
+coverage/
+htmlcov/
+.coverage
+**/*.egg-info/
+node_modules/
+
+# -----------------------------------------------------------------------------
+# Lock files (managed by their respective package managers)
+# -----------------------------------------------------------------------------
+pnpm-lock.yaml
+uv.lock
+package-lock.json
+yarn.lock
+
+# -----------------------------------------------------------------------------
+# Python sources — formatted by ruff, not prettier
+# -----------------------------------------------------------------------------
+src/backend/
+src/normalizer/
+src/webhook-gateway/
+src/job-dispatcher/
+
+# -----------------------------------------------------------------------------
+# Infra YAML — handled by yamllint, not prettier
+# -----------------------------------------------------------------------------
+infra/
+.github/workflows/
+
+# -----------------------------------------------------------------------------
+# Tool workspaces — own venv, separate format rules
+# -----------------------------------------------------------------------------
+tools/forge-skills-mcp/.venv/
+
+# -----------------------------------------------------------------------------
+# Gitignored working directories (BIBLE DOCS per .gitignore)
+# Defensive duplication — these would never reach the prettier hook anyway
+# because they aren't tracked, but `pnpm format` from a checkout could.
+# -----------------------------------------------------------------------------
+research/
+roadmap/
+planning/
+decisions/
+adr/
