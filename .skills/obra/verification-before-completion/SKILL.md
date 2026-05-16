@@ -8,7 +8,7 @@ source-sha: f2cbfbefebbfef77321e4c9abc9e949826bea9d7
 audited: 2026-05-16
 goal: 1
 tier: 1
-tool-scope: read-only
+tool-scope: read-only+transform
 target-agents: [claude-code, codex]
 context-cost-tokens: 987
 owner: adamatdevops
