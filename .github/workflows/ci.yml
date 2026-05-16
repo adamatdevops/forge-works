@@ -91,7 +91,8 @@ jobs:
         run: |
           npm install -g markdownlint-cli
           markdownlint '**/*.md' --ignore node_modules --ignore .history \
-            --ignore '**/node_modules/**' --ignore '**/venv/**' --ignore '**/.venv/**'
+            --ignore '**/node_modules/**' --ignore '**/venv/**' --ignore '**/.venv/**' \
+            --ignore .skills --ignore '**/.skills/**'
 
       - name: Run hadolint (Dockerfile linting)
         uses: hadolint/hadolint-action@v3.1.0
