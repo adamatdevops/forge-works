@@ -19,6 +19,8 @@ ignore: |
   # Helm charts often have template syntax
   **/templates/*.yaml
   **/templates/*.yml
+  # Vendored third-party agent skills (byte-verbatim upstream content)
+  .skills/
 
 rules:
   # Line length - allow longer lines for URLs and complex values

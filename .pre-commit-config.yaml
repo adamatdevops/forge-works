@@ -21,13 +21,21 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: \.(svg|patch|diff)$
+        exclude: |
+          (?x)^(
+            \.skills/|
+            .*\.(svg|patch|diff)$
+          )
       - id: end-of-file-fixer
-        exclude: \.(svg|patch|diff)$
+        exclude: |
+          (?x)^(
+            \.skills/|
+            .*\.(svg|patch|diff)$
+          )
       - id: check-yaml
         # Allow Helm/templates with custom tags
         args: [--unsafe]
-        exclude: ^(infra/.*/templates/|.*charts/.*/templates/)
+        exclude: ^(infra/.*/templates/|.*charts/.*/templates/|\.skills/)
       - id: check-json
         exclude: \.jsonc$
       - id: check-toml
@@ -38,6 +46,7 @@ repos:
       - id: check-symlinks
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: ^\.skills/
 
   # ---------------------------------------------------------------------------
   # Tier 1 — Python lint + format (mirrors CI)
