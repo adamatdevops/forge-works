@@ -23,6 +23,8 @@ paths = [
     '''build/''',
     '''\.next/''',
     '''node_modules/''',
+    # Vendored third-party agent skills (byte-verbatim upstream content)
+    '''\.skills/''',
     # Environment examples (not actual secrets)
     '''\.env\.example$''',
     '''\.env\.sample$''',
