@@ -10,7 +10,7 @@ goal: 3
 tier: 2
 tool-scope: repo-write
 target-agents: [claude-code, codex]
-context-cost-tokens: 4127
+context-cost-tokens: 4076
 owner: adamatdevops
 ---
 
