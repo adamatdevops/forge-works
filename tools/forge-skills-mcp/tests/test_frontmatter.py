@@ -57,6 +57,21 @@ def test_accepts_compound_shell_execute_repo_write_scope() -> None:
     assert not is_categorically_rejected(fm.tool_scope)
 
 
+def test_accepts_triple_shell_execute_network_cross_agent_scope() -> None:
+    # PR 9 §V (coderabbitai/code-review) declares shell-execute (coderabbit
+    # CLI invocation), network (CLI -> CodeRabbit API egress), and cross-agent
+    # (CodeRabbit's AI models analyze the diffs). Highest-tier component wins =
+    # Tier 3. First Tier 3 adoption + first triple-compound enum value. Loader
+    # must accept the triple compound.
+    triple = VALID_FRONTMATTER.replace(
+        "tool-scope: read-only",
+        "tool-scope: shell-execute+network+cross-agent",
+    )
+    fm, _ = parse_frontmatter(triple + "\nbody\n")
+    assert fm.tool_scope == "shell-execute+network+cross-agent"
+    assert not is_categorically_rejected(fm.tool_scope)
+
+
 def test_categorically_rejected_skill_still_parses() -> None:
     """The dangerous skill should parse fine (so we can refuse explicitly with
     a descriptive error rather than dropping it silently)."""
