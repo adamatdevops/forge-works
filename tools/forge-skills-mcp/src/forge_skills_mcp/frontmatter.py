@@ -19,6 +19,8 @@ ToolScope = Literal[
     "shell-execute",
     "shell-execute+repo-write",
     "shell-execute+network+cross-agent",  # §V coderabbitai/code-review (first Tier 3)
+    # §AR coderabbitai/autofix (Tier 3 — gh pr comment + git push)
+    "shell-execute+repo-write+external-write",
     "repo-write",
     "network",
     "cross-agent",
