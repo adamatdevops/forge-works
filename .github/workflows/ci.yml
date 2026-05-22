@@ -117,6 +117,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # AB-008 Phase 2 (2026-05-22): Gate Snyk steps on actual dependency
+      # manifest changes to keep Free-tier OSS test quota viable
+      # (~200/month cap; per-PR every-push scans burned 600+ tests/month).
+      # See research/github_apps/snyk_app_migration.md for context.
+      - name: Detect dependency manifest changes
+        id: deps
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d  # v4.0.1
+        with:
+          filters: |
+            python:
+              - '**/pyproject.toml'
+              - '**/requirements*.txt'
+              - '**/setup.cfg'
+              - '**/setup.py'
+            maven:
+              - '**/pom.xml'
+
       # Snyk PR gate — HIGH/CRITICAL fail the PR. Severity below that is
       # reported but doesn't block. Vulns the codebase has accepted (with
       # rationale) live in .snyk and are filtered out automatically.
@@ -124,8 +141,10 @@ jobs:
       # Note on --policy-path: with --all-projects, a root .snyk file only
       # auto-applies to manifests at the repo root. Our Flink poms live under
       # src/flink-jobs/<module>/, so we must point Snyk at the root .snyk
-      # explicitly. See https://docs.snyk.io/manage-risk/policies/the-.snyk-file
+      # explicitly. (Per-module .snyk mirrors also exist for Snyk App parity
+      # — see commit c8b086e.) Docs: https://docs.snyk.io/manage-risk/policies/the-.snyk-file
       - name: Snyk test — Python (all projects)
+        if: steps.deps.outputs.python == 'true'
         uses: snyk/actions/python@9cf6ca713d71123d2d229cc3d7f145b96ea3c518  # master 2026-05-21 (AB-008)
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -137,6 +156,7 @@ jobs:
             --exclude=tests,frontend,node_modules,.venv,venv
 
       - name: Snyk test — Maven (all Flink modules)
+        if: steps.deps.outputs.maven == 'true'
         uses: snyk/actions/maven@9cf6ca713d71123d2d229cc3d7f145b96ea3c518  # master 2026-05-21 (AB-008)
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
