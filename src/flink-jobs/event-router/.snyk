@@ -1,22 +1,15 @@
-# Snyk (https://snyk.io) policy file — repo-root source-of-truth
+# Snyk (https://snyk.io) policy file — Maven module mirror
 # Learn more: https://snyk.io/docs/policy-file
 #
-# This file is consumed by:
-#   - the in-CI Snyk CLI via `--policy-path=.snyk` (see .github/workflows/ci.yml)
-#   - documentation / human readers — single canonical view of all deferrals
+# MIRROR of /.snyk at the repo root. The root file is the source-of-truth
+# and carries the same 8 transitive CVE deferrals; this per-module copy
+# exists because the Snyk Marketplace App auto-detects `.snyk` next to
+# each scanned manifest (pom.xml) — it does not honor `--policy-path`
+# the way the in-CI CLI does (AB-008 / `research/github_apps/snyk_app_migration.md`).
 #
-# It is NOT auto-read by the Snyk Marketplace App for nested Maven manifests
-# under src/flink-jobs/<module>/pom.xml. The App scans each manifest
-# independently and only auto-detects a `.snyk` file co-located with it.
-# To keep CLI + App in lockstep, three per-module mirrors exist:
-#
-#   src/flink-jobs/pattern-matcher/.snyk
-#   src/flink-jobs/event-router/.snyk
-#   src/flink-jobs/insight-generator/.snyk
-#
-# When you change anything below (add/remove/extend an ignore), update ALL
-# FOUR files in the same commit. Background: AB-008 / Snyk Marketplace App
-# migration parity gap — see research/github_apps/snyk_app_migration.md.
+# Keep this file byte-identical to the other two Maven mirrors and in
+# semantic lockstep with /.snyk. When you change one, update all four
+# in the same commit.
 #
 # Each `ignore` entry must include:
 #   - reason     why we're not fixing right now (link an issue when possible)
