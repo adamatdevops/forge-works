@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OWASP Dependency-Check suppressions for forge-works.
+
+  ====================================================================
+  KEEP IN SYNC WITH .snyk files (parallel ignore list, different format):
+    .snyk                                        (root, Snyk source-of-truth)
+    src/flink-jobs/pattern-matcher/.snyk         (Maven module mirror)
+    src/flink-jobs/event-router/.snyk            (Maven module mirror)
+    src/flink-jobs/insight-generator/.snyk       (Maven module mirror)
+
+  When a CVE is deferred, add a matching <suppress> here AND add the
+  SNYK-JAVA-* entry to all 4 .snyk files in the same commit.
+  ====================================================================
+
+  Notes on the 8 entries below:
+    - All are HIGH severity (CVSS 8.x). At our CRITICAL-only failure
+      threshold (CVSS at or above 9) they would not fail the build even
+      unsuppressed. The suppressions exist to keep the GitHub Security
+      tab clean for reviewers and to maintain suppression discipline.
+    - All require Flink 1.20 → 2.0 to remediate at the source (task #24).
+    - Per-CVE rationale + in-context mitigation lives in the matching
+      .snyk entry — don't duplicate the narrative here.
+
+  Schema: https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd
+  Background: AB-023 multi-scanner OSS security architecture
+              (research/github_apps/multi_scanner_architecture.md).
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!-- =====================================================================
+       Apache Kafka clients (transitive via flink-connector-kafka 3.3.0-1.20)
+       ===================================================================== -->
+
+  <suppress until="2026-08-10Z">
+    <notes>SSRF — CVE-2025-27817 / SNYK-JAVA-ORGAPACHEKAFKA-10336719. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
+    <cve>CVE-2025-27817</cve>
+  </suppress>
+
+  <suppress until="2026-08-10Z">
+    <notes>Deserialization of untrusted data — CVE-2025-27819 / SNYK-JAVA-ORGAPACHEKAFKA-10350513. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
+    <cve>CVE-2025-27819</cve>
+  </suppress>
+
+  <suppress until="2026-08-10Z">
+    <notes>Deserialization of untrusted data — CVE-2025-27818 / SNYK-JAVA-ORGAPACHEKAFKA-10350567. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
+    <cve>CVE-2025-27818</cve>
+  </suppress>
+
+  <suppress until="2026-08-10Z">
+    <notes>Auth algorithm impl flaw — CVE-2024-56128 / SNYK-JAVA-ORGAPACHEKAFKA-8528112. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
+    <cve>CVE-2024-56128</cve>
+  </suppress>
+
+  <suppress until="2026-08-10Z">
+    <notes>Sensitive info in log file — CVE-2026-33558 / SNYK-JAVA-ORGAPACHEKAFKA-16300072. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
+    <cve>CVE-2026-33558</cve>
+  </suppress>
+
+  <!-- =====================================================================
+       Apache Commons Lang3 (transitive via flink-streaming-java 1.20.3)
+       ===================================================================== -->
+
+  <suppress until="2026-08-10Z">
+    <notes>Uncontrolled recursion — CVE-2025-48924 / SNYK-JAVA-ORGAPACHECOMMONS-10734078. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons-lang3@.*$</packageUrl>
+    <cve>CVE-2025-48924</cve>
+  </suppress>
+
+  <!-- =====================================================================
+       lz4-java (transitive via flink-streaming-java 1.20.3)
+       ===================================================================== -->
+
+  <suppress until="2026-08-10Z">
+    <notes>Out-of-bounds read — CVE-2025-12183 / SNYK-JAVA-ORGLZ4-14151788. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
+    <cve>CVE-2025-12183</cve>
+  </suppress>
+
+  <suppress until="2026-08-10Z">
+    <notes>Sensitive info in sent data — CVE-2025-66566 / SNYK-JAVA-ORGLZ4-14219384. See .snyk for rationale and mitigation.</notes>
+    <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
+    <cve>CVE-2025-66566</cve>
+  </suppress>
+
+</suppressions>

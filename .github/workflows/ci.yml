@@ -168,6 +168,101 @@ jobs:
             --exclude=tests,frontend,node_modules,.venv,venv
 
   # ==========================================================================
+  # OSS CVE Scan - OWASP Dependency-Check (Python, Maven, JavaScript)
+  # ==========================================================================
+  # AB-023 Step 2 (2026-05-23): Always-on OSS CVE gate. Default OSS scanner
+  # across every PR — Snyk is reserved for high-stakes events
+  # (breaking-change / hotfix / production labels + release-branch pushes;
+  # see AB-023 Step 4 for the gating logic, to land after this job has
+  # baked for ~1 week).
+  #
+  # CLI invoked directly from a pinned upstream GitHub Release rather than
+  # the `dependency-check/Dependency-Check_Action` wrapper, which has been
+  # unmaintained since 2021-04 (v1.1.0). Pinning the CLI via DC_VERSION
+  # keeps it Renovate-friendly via a custom-regex manager.
+  #
+  # Suppressions in /dependency-check-suppressions.xml — parallel ignore
+  # list to .snyk (same 8 transitive HIGH-severity CVEs, different format).
+  # At --failOnCVSS 9 (CRITICAL only) none of those 8 would fail the build
+  # even unsuppressed; the suppressions keep the GitHub Security tab clean
+  # for reviewers and maintain discipline for future CRITICAL CVEs.
+  #
+  # See research/github_apps/multi_scanner_architecture.md for the full
+  # multi-scanner design (OWASP DC + Mend Bolt + event-gated Snyk).
+  owasp-dc:
+    name: OSS CVE Scan (OWASP DC)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    permissions:
+      contents: read
+      security-events: write   # required for SARIF upload to Security tab
+    env:
+      DC_VERSION: "12.1.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      # NVD database is ~600 MB. Cache it weekly (key includes ISO year+week
+      # so cache rolls over each Monday, picking up new CVE entries without
+      # re-downloading on every PR).
+      - name: Compute cache key suffix (ISO week)
+        id: cache-key
+        shell: bash
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache NVD database
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        with:
+          path: ~/.dependency-check/data
+          key: nvd-${{ env.DC_VERSION }}-${{ runner.os }}-${{ steps.cache-key.outputs.week }}
+          restore-keys: |
+            nvd-${{ env.DC_VERSION }}-${{ runner.os }}-
+
+      # TODO(supply-chain hardening): verify GPG signature of release zip
+      # (.asc available alongside the download) before unpacking. Tracked
+      # in AB-023 Step 6 follow-up.
+      - name: Install OWASP Dependency-Check CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o dc.zip \
+            "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
+          unzip -q dc.zip
+          ./dependency-check/bin/dependency-check.sh --version
+
+      - name: Run OWASP Dependency-Check
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          ./dependency-check/bin/dependency-check.sh \
+            --project "forge-works" \
+            --scan "src/backend" \
+            --scan "src/flink-jobs" \
+            --scan "src/frontend" \
+            --suppression dependency-check-suppressions.xml \
+            --failOnCVSS 9 \
+            --format SARIF \
+            --out reports \
+            --enableExperimental \
+            --exclude "**/node_modules/**" \
+            --exclude "**/.venv/**" \
+            --exclude "**/venv/**" \
+            --exclude "**/dist/**" \
+            --exclude "**/build/**" \
+            --exclude "**/target/**" \
+            --exclude "**/__tests__/**" \
+            --exclude "**/tests/**" \
+            --exclude "**/test/**"
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@458d36d7d4f47d0dd16ca424c1d3cda0060f1360  # v3
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+          category: owasp-dc
+
+  # ==========================================================================
   # IaC Scan - Checkov (Kubernetes manifests, Dockerfiles, GitHub Actions)
   # ==========================================================================
   # OSS path: runs the Checkov CLI directly rather than installing the
@@ -431,13 +526,14 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [lint, security, checkov, test-backend, test-frontend, build, java-build]
+    needs: [lint, security, owasp-dc, checkov, test-backend, test-frontend, build, java-build]
     if: always()
     steps:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.security.result }}" != "success" ]] || \
+             [[ "${{ needs.owasp-dc.result }}" != "success" ]] || \
              [[ "${{ needs.checkov.result }}" != "success" ]] || \
              [[ "${{ needs.test-backend.result }}" != "success" ]] || \
              [[ "${{ needs.test-frontend.result }}" != "success" ]] || \

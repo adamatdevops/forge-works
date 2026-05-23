@@ -8,8 +8,10 @@
 # the way the in-CI CLI does (AB-008 / `research/github_apps/snyk_app_migration.md`).
 #
 # Keep this file byte-identical to the other two Maven mirrors and in
-# semantic lockstep with /.snyk. When you change one, update all four
-# in the same commit.
+# semantic lockstep with /.snyk. There is also a parallel ignore list in
+# OWASP DC format at /dependency-check-suppressions.xml (AB-023 Step 2).
+# When you change one, update ALL FIVE files in the same commit
+# (4 .snyk + 1 suppressions.xml).
 #
 # Each `ignore` entry must include:
 #   - reason     why we're not fixing right now (link an issue when possible)
