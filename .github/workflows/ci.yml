@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 2 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -202,15 +204,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
+      # On PRs, skip the scan if no dependency manifests changed (saves ~5 min).
+      # On push-to-main and nightly schedule, always scan.
+      - name: Detect dependency manifest changes
+        id: deps
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d  # v4.0.1
+        with:
+          filters: |
+            manifests:
+              - '**/pom.xml'
+              - '**/pyproject.toml'
+              - '**/requirements*.txt'
+              - '**/setup.cfg'
+              - '**/setup.py'
+              - '**/package.json'
+              - '**/pnpm-lock.yaml'
+              - '**/poetry.lock'
+              - 'dependency-check-suppressions.xml'
+
+      - name: Decide whether to scan
+        id: should-scan
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.deps.outputs.manifests }}" == "true" ]]; then
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scan=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # NVD database is ~600 MB. Cache it weekly (key includes ISO year+week
       # so cache rolls over each Monday, picking up new CVE entries without
       # re-downloading on every PR).
       - name: Compute cache key suffix (ISO week)
+        if: steps.should-scan.outputs.scan == 'true'
         id: cache-key
         shell: bash
         run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
       - name: Cache NVD database
+        if: steps.should-scan.outputs.scan == 'true'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: ~/.dependency-check/data
@@ -222,6 +257,7 @@ jobs:
       # (.asc available alongside the download) before unpacking. Tracked
       # in AB-023 Step 6 follow-up.
       - name: Install OWASP Dependency-Check CLI
+        if: steps.should-scan.outputs.scan == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -230,21 +266,56 @@ jobs:
           unzip -q dc.zip
           ./dependency-check/bin/dependency-check.sh --version
 
-      - name: Run OWASP Dependency-Check
+      - name: Setup JDK 21
+        if: steps.should-scan.outputs.scan == 'true'
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9  # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Resolve Maven transitive dependencies
+        if: steps.should-scan.outputs.scan == 'true'
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p /tmp/maven-deps
+          for module in event-router insight-generator pattern-matcher; do
+            echo "--- Copying dependencies for $module ---"
+            mvn -B -f "src/flink-jobs/$module/pom.xml" \
+              dependency:copy-dependencies -DoutputDirectory=/tmp/maven-deps
+          done
+
+      - name: Run OWASP Dependency-Check
+        if: steps.should-scan.outputs.scan == 'true'
+        shell: bash
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          set -euo pipefail
           mkdir -p reports
+
+          EXTRA_ARGS=()
+          if [[ -n "${NVD_API_KEY:-}" ]]; then
+            EXTRA_ARGS+=(--nvdApiKey "${NVD_API_KEY}")
+          fi
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            EXTRA_ARGS+=(--noupdate)
+          fi
+
           ./dependency-check/bin/dependency-check.sh \
             --project "forge-works" \
             --scan "src/backend" \
             --scan "src/flink-jobs" \
             --scan "src/frontend" \
+            --scan "/tmp/maven-deps" \
             --suppression dependency-check-suppressions.xml \
             --failOnCVSS 9 \
             --format SARIF \
             --out reports \
             --enableExperimental \
+            --disableOssIndex \
+            "${EXTRA_ARGS[@]}" \
             --exclude "**/node_modules/**" \
             --exclude "**/.venv/**" \
             --exclude "**/venv/**" \
@@ -256,7 +327,7 @@ jobs:
             --exclude "**/test/**"
 
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        if: always() && steps.should-scan.outputs.scan == 'true'
         uses: github/codeql-action/upload-sarif@458d36d7d4f47d0dd16ca424c1d3cda0060f1360  # v3
         with:
           sarif_file: reports/dependency-check-report.sarif
