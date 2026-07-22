@@ -13,14 +13,18 @@
   SNYK-JAVA-* entry to all 4 .snyk files in the same commit.
   ====================================================================
 
-  Notes on the 8 entries below:
-    - All are HIGH severity (CVSS 8.x). At our CRITICAL-only failure
+  Notes on the entries below:
+    - 8 are HIGH severity (CVSS 8.x). At our CRITICAL-only failure
       threshold (CVSS at or above 9) they would not fail the build even
       unsuppressed. The suppressions exist to keep the GitHub Security
       tab clean for reviewers and to maintain suppression discipline.
+    - 1 is CRITICAL (CVSS 9.1) — CVE-2023-44981 in flink-shaded-zookeeper
+      — WOULD fail the build unsuppressed. Kept as a time-boxed exception
+      pending Flink 1.20 → 2.0 (see the per-entry <notes> for details).
     - All require Flink 1.20 → 2.0 to remediate at the source (task #24).
     - Per-CVE rationale + in-context mitigation lives in the matching
-      .snyk entry — don't duplicate the narrative here.
+      .snyk entry (where present — DC detects some CVEs via CPE that
+      Snyk's Maven index does not surface).
 
   Schema: https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd
   Background: AB-023 multi-scanner OSS security architecture
@@ -86,6 +90,33 @@
     <notes>Sensitive info in sent data — CVE-2025-66566 / SNYK-JAVA-ORGLZ4-14219384. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
     <cve>CVE-2025-66566</cve>
+  </suppress>
+
+  <!-- =====================================================================
+       Apache ZooKeeper (shaded inside flink-shaded-zookeeper-3, transitive
+       via flink-runtime 1.20.3)
+       ===================================================================== -->
+
+  <suppress until="2026-08-10Z">
+    <notes>
+      CVE-2023-44981 (CVSS 9.1, CRITICAL) — Apache ZooKeeper SASL
+      quorum-peer authentication bypass. Fixed in ZK 3.7.2 / 3.8.2 / 3.9.0.
+      Flink 1.20.3 still ships flink-shaded-zookeeper-3 built against ZK
+      3.7.1; upstream fix requires Flink 1.20 → 2.0 (task #24).
+
+      In-context mitigation: forge-works Flink jobs run in single-node /
+      HA-disabled mode within a private cluster network; the SASL quorum
+      auth code path is not exposed to untrusted callers. Kept as a
+      time-boxed exception at the same 2026-08-10Z review checkpoint as
+      the other Flink-transitive suppressions. Do NOT extend without a
+      fresh risk decision.
+
+      Not mirrored in .snyk — Snyk's Maven index tracks
+      org.apache.zookeeper:zookeeper, not org.apache.flink:flink-shaded-*,
+      so this CVE is only surfaced by OWASP DC's CPE matching.
+    </notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.flink/flink-shaded-zookeeper-3@.*$</packageUrl>
+    <cve>CVE-2023-44981</cve>
   </suppress>
 
 </suppressions>
