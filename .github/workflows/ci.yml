@@ -37,6 +37,11 @@ jobs:
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
@@ -474,6 +479,11 @@ jobs:
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
@@ -544,6 +554,11 @@ jobs:
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
