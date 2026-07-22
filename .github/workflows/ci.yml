@@ -15,7 +15,6 @@ concurrency:
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
-  PNPM_VERSION: "9"
 
 jobs:
   # ==========================================================================
@@ -44,9 +43,10 @@ jobs:
           package-manager-cache: false
 
       - name: Setup pnpm
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Install Python tools
         run: |
@@ -486,9 +486,10 @@ jobs:
           package-manager-cache: false
 
       - name: Setup pnpm
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Get pnpm store directory
         shell: bash
@@ -561,9 +562,10 @@ jobs:
           package-manager-cache: false
 
       - name: Setup pnpm
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Get pnpm store directory
         shell: bash
