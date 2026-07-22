@@ -245,6 +245,7 @@ jobs:
         run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
       - name: Cache NVD database
+        id: cache-nvd
         if: steps.should-scan.outputs.scan == 'true'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
@@ -299,7 +300,13 @@ jobs:
           if [[ -n "${NVD_API_KEY:-}" ]]; then
             EXTRA_ARGS+=(--nvdApiKey "${NVD_API_KEY}")
           fi
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          # Reuse cached NVD DB on PRs only if the cache actually restored.
+          # First-ever run (or any cache miss) falls through to a full update
+          # using the NVD API key — the nightly cron on main keeps subsequent
+          # PR runs fast.
+          event_name="${{ github.event_name }}"
+          cache_hit="${{ steps.cache-nvd.outputs.cache-hit }}"
+          if [[ "$event_name" == "pull_request" && "$cache_hit" == "true" ]]; then
             EXTRA_ARGS+=(--noupdate)
           fi
 
