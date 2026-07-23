@@ -190,10 +190,14 @@ jobs:
   # see AB-023 Step 4 for the gating logic, to land after this job has
   # baked for ~1 week).
   #
-  # CLI invoked directly from a pinned upstream GitHub Release rather than
-  # the `dependency-check/Dependency-Check_Action` wrapper, which has been
-  # unmaintained since 2021-04 (v1.1.0). Pinning the CLI via DC_VERSION
-  # keeps it Renovate-friendly via a custom-regex manager.
+  # CLI invoked directly from a version-selected, currently unverified
+  # GitHub release asset (chosen by DC_VERSION) rather than the
+  # `dependency-check/Dependency-Check_Action` wrapper, which has been
+  # unmaintained since 2021-04 (v1.1.0). DC_VERSION enables Renovate
+  # bumps via a custom-regex manager but does not provide cryptographic
+  # integrity verification of the ZIP — checksum / GPG-signature check
+  # is a documented follow-up (tracked as an AB-NNN candidate in the
+  # AB-023 retrospective's § Follow-up backlog).
   #
   # Suppressions in /dependency-check-suppressions.xml — parallel ignore
   # list to .snyk (same 8 transitive HIGH-severity CVEs, different format).
