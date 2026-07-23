@@ -11,6 +11,11 @@ on:
       - ".github/labels.yml"
   workflow_dispatch:
 
+# Minimal workflow-level permissions; the sync job elevates to issues: write.
+# Fixes Checkov CKV2_GHA_1.
+permissions:
+  contents: read
+
 jobs:
   sync:
     name: Sync Labels

@@ -12,6 +12,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Minimal workflow-level permissions. Jobs elevate as needed at the job level
+# (owasp-dc and checkov add security-events: write for SARIF upload). Fixes
+# Checkov CKV2_GHA_1 — without this, jobs inherit the repo default token,
+# which may include write scopes we do not intend to grant here.
+permissions:
+  contents: read
+
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"

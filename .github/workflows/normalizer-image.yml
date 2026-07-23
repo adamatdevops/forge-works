@@ -17,6 +17,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Minimal workflow-level permissions; build-push elevates to packages: write
+# for GHCR push. Fixes Checkov CKV2_GHA_1.
+permissions:
+  contents: read
+
 env:
   PYTHON_VERSION: "3.11"
   REGISTRY: ghcr.io
