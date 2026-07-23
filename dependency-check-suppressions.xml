@@ -21,6 +21,11 @@
     - 1 is CRITICAL (CVSS 9.1) — CVE-2023-44981 in flink-shaded-zookeeper
       — WOULD fail the build unsuppressed. Kept as a time-boxed exception
       pending Flink 1.20 → 2.0 (see the per-entry <notes> for details).
+    - 1 is a CPE-mismatch false positive against flink-rpc-akka
+      (CVE-2017-1000034 is against Akka HTTP; the JAR shades Akka Classic
+      and the "1.20.3" that DC matched is Flink's version, not Akka's).
+      Kept time-boxed at the same checkpoint since the module disappears
+      in the Flink 2.0 migration anyway.
     - All require Flink 1.20 → 2.0 to remediate at the source (task #24).
     - Per-CVE rationale + in-context mitigation lives in the matching
       .snyk entry (where present — DC detects some CVEs via CPE that
@@ -117,6 +122,38 @@
     </notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.flink/flink-shaded-zookeeper-3@.*$</packageUrl>
     <cve>CVE-2023-44981</cve>
+  </suppress>
+
+  <!-- =====================================================================
+       flink-rpc-akka / flink-rpc-akka-loader (transitive via flink-runtime
+       1.20.3) — CPE-mismatch false positive
+       ===================================================================== -->
+
+  <suppress until="2026-08-10Z">
+    <notes>
+      CVE-2017-1000034 — CPE-mismatch false positive.
+
+      DC's CPE matcher pairs the pkg:maven/org.apache.flink/flink-rpc-akka
+      artifact (and its -loader wrapper) with cpe:/a:akka:akka because the
+      artifact version "1.20.3" happens to match a CPE version pattern.
+      "1.20.3" is FLINK's version — Akka has never released a 1.20.x line
+      (Akka versions are 2.x). The underlying CVE is against Akka HTTP
+      (Http.singleRequest, fixed in akka-http 10.0.5), and flink-rpc-akka
+      shades Akka Classic (akka-actor / akka-remote / akka-stream) for
+      actor-based RPC — it does NOT bundle akka-http, so the
+      Http.singleRequest code path does not exist in this JAR.
+
+      Not applicable to forge-works. Kept as a time-boxed exception at the
+      same 2026-08-10Z review checkpoint as the other Flink-transitive
+      suppressions; the flink-rpc-akka module is replaced by
+      flink-rpc-pekko in Flink 2.0 (task #24), so this entry disappears
+      naturally at the migration.
+
+      Not mirrored in .snyk — Snyk's Maven index does not surface this
+      match; it is only produced by OWASP DC's CPE analyzer.
+    </notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.flink/flink-rpc-akka.*@.*$</packageUrl>
+    <cpe>cpe:/a:akka:akka</cpe>
   </suppress>
 
 </suppressions>
