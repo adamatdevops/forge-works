@@ -272,7 +272,8 @@ jobs:
 
       # TODO(supply-chain hardening): verify GPG signature of release zip
       # (.asc available alongside the download) before unpacking. Tracked
-      # in AB-023 Step 6 follow-up.
+      # as AB-025 in roadmap/AUTOMATIONS_BACKLOG.md (carved out of AB-023
+      # Step 6 as a dedicated backlog entry).
       - name: Install OWASP Dependency-Check CLI
         if: steps.should-scan.outputs.scan == 'true'
         shell: bash
