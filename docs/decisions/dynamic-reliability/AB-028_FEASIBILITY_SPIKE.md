@@ -345,6 +345,7 @@ Total: ~6 weeks of engineer-time, not necessarily 6 elapsed weeks (parallelism p
 ## 10. Related documents
 
 - [`README.md`](README.md) — corpus index.
+- [`AB-028_SCOPING_APPROVAL_AGENDA.md`](AB-028_SCOPING_APPROVAL_AGENDA.md) — companion agenda doc for the scoping-approval meeting; enumerates every RFC-mandated lock item (§B) and the round-2 over-concession probes (§C) so the meeting doesn't rubber-stamp authorial defaults. Closes and is superseded by the RFC's §11 provenance entry once the meeting outcome lands.
 - [`PREDICTION_CONTRACT.md`](PREDICTION_CONTRACT.md) §3.0 (worked estimand), §11 (graduation criteria consuming this spike).
 - [`DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md`](DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md) §4 (Terraform worked example; source shape for the spike's adapter).
 - [`GROUND_TRUTH_INTERVENTION_CONTRACT.md`](GROUND_TRUTH_INTERVENTION_CONTRACT.md) §2 (label stream contract; the spike is its first implementation), §5 (censoring), §6.2 (intervention join), §8 (worked example for this estimand).
@@ -358,3 +359,4 @@ Total: ~6 weeks of engineer-time, not necessarily 6 elapsed weeks (parallelism p
 
 - **2026-07-26:** RFC drafted at v0.1 as the natural next step after the corpus migration (fac4ea8, 2026-07-25). Predeclared thresholds are proposals awaiting scoping-approval lock.
 - **2026-07-26:** RFC bumped to v0.2. Nineteen methodological corrections from Codex round-2 critique loop applied — evidence integrity, calibration validity, baseline fairness, statistical power gating, causal-vs-observational estimand caveat, and cost-weighted decision framework. Round audit trail: `research/feedback_loops/dynamic-reliability-AB-028_FEASIBILITY_SPIKE/20260726T082924Z/` (local-only per repo `.gitignore` convention — `prompt.md`, `codex_response.md`, `reconciled.md`).
+- **2026-07-27:** Scoping-approval agenda companion doc drafted at `AB-028_SCOPING_APPROVAL_AGENDA.md`. Structured to force decisions on every RFC-mandated lock item (§B — thresholds, rules, features, volume) plus the three over-concessions from the round-2 post-application review (§C — §6.3 constraint stacking, invented severity weights + 30% bar, bootstrap machinery weight). Meeting outcome will edit-in-place here as v0.3 with scoping-approval attribution on each locked stanza.
