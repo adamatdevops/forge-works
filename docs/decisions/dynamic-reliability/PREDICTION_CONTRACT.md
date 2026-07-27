@@ -6,6 +6,8 @@
 > **Lifecycle note:** Same as sibling design docs — deletable pointer `IMPORTANT_IDEA.md` closes when this doc + the source contract graduate to v1.0.
 > **Scope:** what a Dynamic Reliability prediction looks like to a *consumer* under the v0 doctrine (T1/T2 only — advisory/shadow-mode), what the consumer must know to trust or ignore it, what the consumer classes are, how the consumer interface stays plugin-shaped so new consumers can subscribe without engine changes. Not the model architecture, not the wire format, not the ground-truth / intervention schema, not the arbitration protocol — each has its own sibling doc.
 > **v0.1 provenance:** Restructured 2026-07-24 after Codex round-1 loop; post-hoc dispositions review 2026-07-25 (reconciled.md retained locally under `research/feedback_loops/planning-dynamic_reliability_design/20260724T093159Z/` per the codex-review workflow — that path is repo-ignored by design). Major changes: authority-hierarchy doctrine replaces operator/reviewer (F11), v0 scope narrowed to shadow-mode/advisory-only (F1), new §3.0 worked estimand (F2), cross-pool modes removed from v0 (F5), namespaced identity claims replace flat correlation keys (F14), per-type confidence semantics (F13), explanation_ref replaces raw feature-contributions (F17), governance envelope required (F8), old §4.4 (disagreement signals) removed and replaced with new §4.5 (policy reference / arbitration handoff) (F7), lifecycle events emitted separately instead of field mutation (F16), topic partitioning fixed (F19), consumer classes narrowed to advisory-only (F1), confidence continuous monitoring + circuit breakers (F24), AP-6 rewritten with counterfactual protocol (F10), graduation criteria updated for shadow-mode + ground-truth dependency (F3, F20).
+>
+> **2026-07-27 (AB-033):** §3.0 worked estimand rewritten from causal wording ("the deployment *causes* an SLO breach") to observational form (`deploy_slo_breach_60m_association_v0` — `P(breach | deploy, eligibility)`). Estimand-form caveat block added. Sister-doc rewrites: §10 walkthrough estimand paraphrase updated; `GROUND_TRUTH_INTERVENTION_CONTRACT.md` §8 `estimand_id` aligned to the v0 association form; `README.md` v0-doctrine section carries an observational-form pointer. Surfaced by Codex round-2 critique loop on the AB-028 spike RFC (F10); backlog entry AB-033.
 
 ---
 
@@ -63,11 +65,11 @@ Every prediction carries these. Names parallel the source contract's six fields 
 
 ### 3.0 Worked estimand for v0 — the concrete question this contract predicts
 
-*(New in v0.1, per Codex F2.)* Predictions must be *about something specific*. The original v0 named the target as "Dynamic Reliability" without defining an operationally testable estimand — Codex correctly flagged that a portfolio-of-estimands framing needs at least one worked estimand to be legible.
+*(New in v0.1, per Codex F2. **Rewritten 2026-07-27 (AB-033) — causal wording replaced with observational form; see estimand-form caveat below.**)* Predictions must be *about something specific*. The original v0 named the target as "Dynamic Reliability" without defining an operationally testable estimand — Codex correctly flagged that a portfolio-of-estimands framing needs at least one worked estimand to be legible.
 
-**v0 worked estimand:** for a `(service, environment)` slice, predict:
+**v0 worked estimand — observational form (`deploy_slo_breach_60m_association_v0`):** for a `(service, environment)` slice, predict:
 
-> **P(the next deployment to this slice causes an SLO breach within 60 minutes of the deploy marker)**
+> **P(an SLO breach is observed within 60 minutes of the deploy marker | the next deployment to this slice is observed, conditional on the eligibility set below)**
 
 with:
 - **Eligibility:** a deployment event exists for the slice within the horizon; the slice has ≥30 days of observation history; `input_freshness` < 5 minutes.
@@ -77,7 +79,25 @@ with:
 - **Error costs:** asymmetric — false negatives (miss a real breach) cost ~10× false positives (unnecessary caution). Consumers use this to calibrate their thresholds.
 - **Decision informed:** at T2, a `deploy_at_risk` recommendation surfaces to the deploy author and to `#platform-oncall`. NO gating in v0.
 
-This is the estimand the AB-028 feasibility spike will target. Other estimands (rollback probability, incident-cluster probability, cost-anomaly probability) will follow the same shape: eligibility + label window + censoring + abstention + asymmetric costs + informed decision.
+**Estimand ID convention:** `<domain>_<outcome>_<window>_<form>_<version>`. `form` is `association` (observational, v0-shipped) or `ate` / `cate` / `att` (causal, v1+). Version bumps on any change to eligibility, label window, censoring rule, or form.
+
+**Estimand-form caveat — observational, not causal** *(AB-033, 2026-07-27; surfaced by Codex round-2 loop on AB-028 spike RFC, F10.)*
+
+The estimand above is **observational**: it measures the association `P(breach | deploy, eligibility)` in the ForgeWorks observation stream. It is **not** a causal claim about deployments causing breaches. Prior wordings ("the next deployment ... **causes** an SLO breach ...") implied `P(breach | do(deploy))`, an intervention-conditional distribution that requires counterfactual identification methodology (randomized holdback / propensity-score matching / instrumental variables / doubly-robust estimation) that v0's shadow-mode-only posture cannot provide. Under v0:
+
+- **No randomization.** Deployments are chosen by humans on non-random schedules (release calendars, incident-driven hotfixes, feature-flag rollouts). Deployment timing is confounded with the very risk factors the model tries to score.
+- **No counterfactual observation.** For every deployed slice-window, the "would-have-been-if-not-deployed" outcome is unobservable; v0 has no comparison cohort of matched non-deploys.
+- **Intervention-present outcomes segregated, not adjusted.** Per `GROUND_TRUTH_INTERVENTION_CONTRACT.md` §2.2, rollback / mute / deploy-pause events are labeled `intervention_present` and segregated from the primary training cohort. That prevents intervention-contaminated labels from biasing the observational estimate, but does not upgrade the estimate to causal.
+
+**What a v0 GO verdict on this estimand supports:**
+
+- ✅ **T1** evidence generation (audit sink logs association strength for calibration and drift monitoring).
+- ✅ **T2** advisory recommendations ("this deploy is at elevated observed risk; on-call, please look" — the human decides).
+- ❌ **T3/T4** gating, blocking, or actuation. Automated action against an observational risk score assumes the score would still hold under intervention, which the estimand cannot demonstrate. T3/T4 requires a causal-form estimand (`_ate_v1+` / `_cate_v1+`) and the counterfactual identification protocol in `GROUND_TRUTH_INTERVENTION_CONTRACT.md` AP-6.
+
+**Consumer discipline:** any consumer displaying or acting on `deploy_slo_breach_60m_association_v0` MUST NOT paraphrase it as "this deploy will cause a breach" in human-facing surfaces. Correct paraphrases: "elevated observed breach risk," "historical breach-association pattern matches," "similar deploys have been followed by breaches." The estimand ID makes the observational form explicit; drift into causal language in Slack messages, dashboards, or docs regresses the fix.
+
+This is the estimand the AB-028 feasibility spike will target — as an observational-association measurement, not a causal one. Other estimands (rollback association, incident-cluster association, cost-anomaly association) will follow the same shape: eligibility + label window + censoring + abstention + asymmetric costs + informed decision + explicit form suffix. Causal-form counterparts (`_ate_v1+`, etc.) are v1+ work gated on the identification protocol referenced above.
 
 ### 3.1 Scope
 
@@ -354,7 +374,7 @@ The full protocol is `GROUND_TRUTH_INTERVENTION_CONTRACT_v0.md`'s territory; thi
 
 Stress-test the v0.1 contract by walking one prediction through the shadow-mode consumers.
 
-**Setup:** the `runtime`-pool model consumes DataDog vocabulary (VOCABULARY §9 v0.1 namespaced tokens) plus Terraform vocabulary (SC §4 v0.1) plus GitHub deploy events. It's asked the v0 worked estimand (§3.0): "P(next deploy to `service:webhook-gateway env:prod` causes an SLO breach within 60 minutes)."
+**Setup:** the `runtime`-pool model consumes DataDog vocabulary (VOCABULARY §9 v0.1 namespaced tokens) plus Terraform vocabulary (SC §4 v0.1) plus GitHub deploy events. It's asked the v0 worked estimand `deploy_slo_breach_60m_association_v0` (§3.0): "P(SLO breach observed within 60 minutes of the next deploy to `service:webhook-gateway env:prod` | that deploy is observed, eligibility satisfied)." *(Observational form per §3.0 AB-033 rewrite — the T2 surface renders this as "elevated observed breach risk," not "will cause a breach.")*
 
 **Prediction emitted** (single event on `forge.predictions.v1`):
 

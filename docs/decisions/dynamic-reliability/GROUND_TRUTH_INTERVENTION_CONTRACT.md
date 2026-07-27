@@ -188,7 +188,7 @@ governance_envelope: {tenant_id: forge-works, ...}
 
 ```yaml
 label_id: lbl_2026-07-24T11:20:00Z_e11f92
-estimand_id: deploy_slo_breach_60m_v1
+estimand_id: deploy_slo_breach_60m_association_v0
 slice: {per_service: webhook-gateway, per_environment: prod}
 identity_claims:
   - {authority: git, key_type: commit_id, value: 8f3b21c, ...}
@@ -205,7 +205,7 @@ intervention_present: true
 intervention_ids: [intv_2026-07-24T10:23:00Z_c81a44]
 producing_system: label_derivation_service
 producing_version: 1.2.0
-logic_ref: mlflow://logic/deploy_slo_breach_60m_v1/derivation.py
+logic_ref: mlflow://logic/deploy_slo_breach_60m_association_v0/derivation.py
 governance_envelope: {tenant_id: forge-works, ...}
 ```
 

@@ -56,11 +56,13 @@ The authority hierarchy replaces the earlier "operator vs. reviewer" framing (wh
 
 Reasoning for the shadow-mode-only v0 posture: F10 (self-fulfilling prediction) — without shadow-mode accumulation of untreated outcomes, we cannot distinguish "the outcome that would have happened without intervention" from "the outcome that happened because of the intervention." Calibration is impossible without that separation. AB-028 (feasibility spike) has produced no evidence base yet to justify T3/T4 either.
 
+**Estimand form under v0 — observational, not causal** *(AB-033, 2026-07-27; surfaced by Codex round-2 loop on AB-028 spike RFC, F10.)* All v0 estimands are of the observational-association form (`_association_v0` suffix in the estimand ID; e.g. `deploy_slo_breach_60m_association_v0`). They measure `P(outcome | trigger, eligibility)` in the ForgeWorks observation stream, not `P(outcome | do(trigger))`. A T2 advisory recommendation ("this deploy is at elevated observed risk") is what a GO verdict supports; T3/T4 gating or actuation requires a causal-form estimand (`_ate_v1+`) whose identification protocol is defined in `GROUND_TRUTH_INTERVENTION_CONTRACT.md` AP-6. See `PREDICTION_CONTRACT.md` §3.0 estimand-form caveat for the full argument (no randomization → no counterfactual observation → intervention-present outcomes segregated, not adjusted).
+
 *(Note: an earlier draft cited `~/.codex/config.toml [ml]` as "binding project posture" for the advisory-only stance. That file is user-scoped Codex-agent behavior config, NOT repo-tracked ForgeWorks doctrine. Codifying "advisory-only v0" as a repo-tracked stance — in `planning/SCOPE.md`, `planning/VISION.md`, or a dedicated `ML_DOCTRINE.md` — is a v1 prerequisite; see SOURCE_CONTRACT §5 open questions.)*
 
-## Follow-ups — AB-028 through AB-032
+## Follow-ups — AB-028 through AB-033
 
-Codex round-1 flagged that the design corpus jumped to production-shaped graduation criteria without evidence. These 5 experimental backlog entries file BEFORE v1 (unblocking the planning deadlock) and produce the evidence v1 needs. **The full entries live in `roadmap/AUTOMATIONS_BACKLOG.md` — repo-ignored per the "BIBLE DOCS — Internal guidelines" convention. Summaries below.**
+Codex round-1 flagged that the design corpus jumped to production-shaped graduation criteria without evidence. These experimental backlog entries file BEFORE v1 (unblocking the planning deadlock) and produce the evidence v1 needs. **The full entries live in `roadmap/AUTOMATIONS_BACKLOG.md` — repo-ignored per the "BIBLE DOCS — Internal guidelines" convention. Summaries below.**
 
 | ID | Title | Priority | Why it exists |
 |---|---|---|---|
@@ -69,6 +71,7 @@ Codex round-1 flagged that the design corpus jumped to production-shaped graduat
 | AB-030 | `GROUND_TRUTH_INTERVENTION_CONTRACT.md` v0 → v1 | High | v0 drafted 2026-07-24; v1 requires live label + intervention streams, human-correction workflow, censoring emission, calibration measurement in MLflow. |
 | AB-031 | `DOCTRINE_INTERPLAY.md` v0 → v1 | Medium | v0 drafted 2026-07-24. **T3/T4 consumer prereq, NOT a PC/SC v0→v1 blocker** (downgraded 2026-07-25 post-hoc dispositions review — v0 is advisory-only, arbitration doesn't fire). |
 | AB-032 | MLflow production-readiness assessment | Medium | Existing `infra/mlflow/` serves tracking-server workload only. Registry governance / artifact durability / calibration serving / model promotion RBAC unverified. Blocks any calibrated-confidence predictor going to prod. |
+| AB-033 | `PREDICTION_CONTRACT.md` §3.0 estimand-wording clarification (observational vs. causal) | High | Filed 2026-07-26 (Codex round-2 loop on AB-028 spike RFC, F10). Corpus-level rewrite: PC §3.0 estimand wording from causal (`causes`) to observational (`P(breach \| deploy, eligibility)`), explicit estimand ID convention introduced (`_association_v0` / `_ate_v1+`), estimand-form caveat added. Sister-doc edits in GT §8 and this README v0-doctrine section. Precedes AB-028 execution so the spike report can quote correctly-worded estimand IDs. |
 
 ## Codex round-1 audit trail
 
@@ -101,3 +104,4 @@ Per each doc's §11 (or equivalent):
 - **2026-07-24:** All 5 docs drafted at v0 (SC, VOC, PC as full v0; GROUND_TRUTH, DOCTRINE_INTERPLAY as new siblings). Codex round-1 loop critique returned same day; 22 findings applied → v0.1 restructure across all 5 docs. AB-028..032 filed.
 - **2026-07-25:** Post-hoc dispositions review corrected 5 over-concessions from the round-1 application; corrections landed in-place in each doc (`Why shadow-mode` blocks, forward-declared caveats, downgraded blocking statuses).
 - **2026-07-25:** Design corpus migrated from `planning/` (repo-ignored) to `docs/decisions/dynamic-reliability/` (tracked). Filenames dropped `_v0` suffix to align with existing `docs/decisions/` convention. This README written as index + AB-028..032 summary + audit-trail pointer.
+- **2026-07-27 (AB-033):** PC §3.0 worked-estimand rewrite — causal wording ("deployment *causes* SLO breach") replaced with observational form (`P(breach | deploy, eligibility)`, ID `deploy_slo_breach_60m_association_v0`). Explicit estimand ID convention introduced. Estimand-form caveat added to PC §3.0. Sister-doc edits: GT §8 `estimand_id` aligned to the v0 association form; this README v0-doctrine section carries the observational-form pointer + AB-033 row added to the follow-ups table. Origin: Codex round-2 critique loop on AB-028 spike RFC (F10, 2026-07-26).
