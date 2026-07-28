@@ -28,7 +28,7 @@ Read in this order:
 | Doc | Status | Purpose |
 |-----|--------|---------|
 | [`AB-028_FEASIBILITY_SPIKE.md`](AB-028_FEASIBILITY_SPIKE.md) | v0.2 draft (Codex round-2 loop applied 2026-07-26) — awaiting scoping-approval | The evidence gate for `PREDICTION_CONTRACT.md` §11 v0 → v1 graduation. Single source pair (Terraform + DataDog), single slice (webhook-gateway prod), single estimand (deploy-SLO-breach 60m — observational form per AB-033), offline replay, predeclared metrics with lower-95%-CI-bound thresholds vs. rules + logistic regression baselines. Execution blocked on AB-030 `label_schema_validator` library. |
-| [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) | v0.1 draft (2026-07-28) — awaiting scoping-approval | Shared library that enforces `GROUND_TRUTH_INTERVENTION_CONTRACT.md` §2.1/§2.2/§3/§5 rules on every label event before emission. Blocks AB-028 spike execution per that RFC's §3 Schema-conformance block. |
+| [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) | v0.2 draft (Codex round-1 loop applied 2026-07-28) — awaiting scoping-approval; v0.2 → v1 gated on 3 GT amendments | Shared library that enforces `GROUND_TRUTH_INTERVENTION_CONTRACT.md` §2.1/§2.2/§3/§5 rules on every label event before emission. Blocks AB-028 spike execution per that RFC's §3 Schema-conformance block. |
 
 ## How the docs fit together
 
