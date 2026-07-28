@@ -14,9 +14,16 @@
 #   src/flink-jobs/event-router/.snyk
 #   src/flink-jobs/insight-generator/.snyk
 #
+# PARALLEL FILE (OWASP DC format, same 8 CVEs — AB-023 Step 2):
+#
+#   /dependency-check-suppressions.xml
+#
 # When you change anything below (add/remove/extend an ignore), update ALL
-# FOUR files in the same commit. Background: AB-008 / Snyk Marketplace App
-# migration parity gap — see research/github_apps/snyk_app_migration.md.
+# FIVE files in the same commit (4 .snyk + 1 suppressions.xml).
+# Background: AB-008 / Snyk Marketplace App migration parity gap +
+# AB-023 multi-scanner architecture — see
+# research/github_apps/snyk_app_migration.md and
+# research/github_apps/multi_scanner_architecture.md.
 #
 # Each `ignore` entry must include:
 #   - reason     why we're not fixing right now (link an issue when possible)

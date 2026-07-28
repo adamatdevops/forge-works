@@ -5,15 +5,23 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 2 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Minimal workflow-level permissions. Jobs elevate as needed at the job level
+# (owasp-dc and checkov add security-events: write for SARIF upload). Fixes
+# Checkov CKV2_GHA_1 — without this, jobs inherit the repo default token,
+# which may include write scopes we do not intend to grant here.
+permissions:
+  contents: read
+
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
-  PNPM_VERSION: "9"
 
 jobs:
   # ==========================================================================
@@ -24,22 +32,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b  # v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
+        uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
 
       - name: Install Python tools
         run: |
@@ -66,7 +80,7 @@ jobs:
         id: pnpm-cache
 
       - name: Cache pnpm modules
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5.0.2
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -108,12 +122,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,6 +182,182 @@ jobs:
             --exclude=tests,frontend,node_modules,.venv,venv
 
   # ==========================================================================
+  # OSS CVE Scan - OWASP Dependency-Check (Python, Maven, JavaScript)
+  # ==========================================================================
+  # AB-023 Step 2 (2026-05-23): Always-on OSS CVE gate. Default OSS scanner
+  # across every PR — Snyk is reserved for high-stakes events
+  # (breaking-change / hotfix / production labels + release-branch pushes;
+  # see AB-023 Step 4 for the gating logic, to land after this job has
+  # baked for ~1 week).
+  #
+  # CLI invoked directly from a version-selected, currently unverified
+  # GitHub release asset (chosen by DC_VERSION) rather than the
+  # `dependency-check/Dependency-Check_Action` wrapper, which has been
+  # unmaintained since 2021-04 (v1.1.0). DC_VERSION enables Renovate
+  # bumps via a custom-regex manager but does not provide cryptographic
+  # integrity verification of the ZIP — checksum / GPG-signature check
+  # is a documented follow-up (tracked as an AB-NNN candidate in the
+  # AB-023 retrospective's § Follow-up backlog).
+  #
+  # Suppressions in /dependency-check-suppressions.xml — parallel ignore
+  # list to .snyk (same 8 transitive HIGH-severity CVEs, different format).
+  # At --failOnCVSS 9 (CRITICAL only) none of those 8 would fail the build
+  # even unsuppressed; the suppressions keep the GitHub Security tab clean
+  # for reviewers and maintain discipline for future CRITICAL CVEs.
+  #
+  # See research/github_apps/multi_scanner_architecture.md for the full
+  # multi-scanner design (OWASP DC + Mend Bolt + event-gated Snyk).
+  owasp-dc:
+    name: OSS CVE Scan (OWASP DC)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    permissions:
+      contents: read
+      security-events: write   # required for SARIF upload to Security tab
+    env:
+      DC_VERSION: "12.1.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+
+      # On PRs, skip the scan if no dependency manifests changed (saves ~5 min).
+      # On push-to-main and nightly schedule, always scan.
+      - name: Detect dependency manifest changes
+        id: deps
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d  # v4.0.1
+        with:
+          filters: |
+            manifests:
+              - '**/pom.xml'
+              - '**/pyproject.toml'
+              - '**/requirements*.txt'
+              - '**/setup.cfg'
+              - '**/setup.py'
+              - '**/package.json'
+              - '**/pnpm-lock.yaml'
+              - '**/poetry.lock'
+              - 'dependency-check-suppressions.xml'
+
+      - name: Decide whether to scan
+        id: should-scan
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.deps.outputs.manifests }}" == "true" ]]; then
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scan=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # NVD database is ~600 MB. Cache it weekly (key includes ISO year+week
+      # so cache rolls over each Monday, picking up new CVE entries without
+      # re-downloading on every PR).
+      - name: Compute cache key suffix (ISO week)
+        if: steps.should-scan.outputs.scan == 'true'
+        id: cache-key
+        shell: bash
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache NVD database
+        id: cache-nvd
+        if: steps.should-scan.outputs.scan == 'true'
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5.0.2
+        with:
+          path: ~/.dependency-check/data
+          key: nvd-${{ env.DC_VERSION }}-${{ runner.os }}-${{ steps.cache-key.outputs.week }}
+          restore-keys: |
+            nvd-${{ env.DC_VERSION }}-${{ runner.os }}-
+
+      # TODO(supply-chain hardening): verify GPG signature of release zip
+      # (.asc available alongside the download) before unpacking. Tracked
+      # as AB-025 in roadmap/AUTOMATIONS_BACKLOG.md (carved out of AB-023
+      # Step 6 as a dedicated backlog entry).
+      - name: Install OWASP Dependency-Check CLI
+        if: steps.should-scan.outputs.scan == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o dc.zip \
+            "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
+          unzip -q dc.zip
+          ./dependency-check/bin/dependency-check.sh --version
+
+      - name: Setup JDK 21
+        if: steps.should-scan.outputs.scan == 'true'
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165  # v5.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Resolve Maven transitive dependencies
+        if: steps.should-scan.outputs.scan == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/maven-deps
+          for module in event-router insight-generator pattern-matcher; do
+            echo "--- Copying dependencies for $module ---"
+            mvn -B -f "src/flink-jobs/$module/pom.xml" \
+              dependency:copy-dependencies -DoutputDirectory=/tmp/maven-deps
+          done
+
+      - name: Run OWASP Dependency-Check
+        if: steps.should-scan.outputs.scan == 'true'
+        shell: bash
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+
+          EXTRA_ARGS=()
+          if [[ -n "${NVD_API_KEY:-}" ]]; then
+            EXTRA_ARGS+=(--nvdApiKey "${NVD_API_KEY}")
+          fi
+          # Reuse cached NVD DB on PRs only if the cache actually restored.
+          # First-ever run (or any cache miss) falls through to a full update
+          # using the NVD API key — the nightly cron on main keeps subsequent
+          # PR runs fast.
+          event_name="${{ github.event_name }}"
+          cache_hit="${{ steps.cache-nvd.outputs.cache-hit }}"
+          if [[ "$event_name" == "pull_request" && "$cache_hit" == "true" ]]; then
+            EXTRA_ARGS+=(--noupdate)
+          fi
+
+          ./dependency-check/bin/dependency-check.sh \
+            --project "forge-works" \
+            --scan "src/backend" \
+            --scan "src/flink-jobs" \
+            --scan "src/frontend" \
+            --scan "/tmp/maven-deps" \
+            --suppression dependency-check-suppressions.xml \
+            --failOnCVSS 9 \
+            --format SARIF \
+            --out reports \
+            --enableExperimental \
+            --disableOssIndex \
+            "${EXTRA_ARGS[@]}" \
+            --exclude "**/node_modules/**" \
+            --exclude "**/.venv/**" \
+            --exclude "**/venv/**" \
+            --exclude "**/dist/**" \
+            --exclude "**/build/**" \
+            --exclude "**/target/**" \
+            --exclude "**/__tests__/**" \
+            --exclude "**/tests/**" \
+            --exclude "**/test/**"
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always() && steps.should-scan.outputs.scan == 'true'
+        uses: github/codeql-action/upload-sarif@9e5b0f05baedb1bdd548380cf129d0dac19b77d1  # v4.30.9
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+          category: owasp-dc
+
+  # ==========================================================================
   # IaC Scan - Checkov (Kubernetes manifests, Dockerfiles, GitHub Actions)
   # ==========================================================================
   # OSS path: runs the Checkov CLI directly rather than installing the
@@ -185,7 +375,7 @@ jobs:
       security-events: write   # required for SARIF upload to Security tab
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
       # TODO(sha-pin): retrofit to commit SHA per
       # research/github_actions/GITHUB_ACTIONS.md §2D — tracked in follow-up.
@@ -202,7 +392,7 @@ jobs:
 
       - name: Upload SARIF to GitHub Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@458d36d7d4f47d0dd16ca424c1d3cda0060f1360  # v3
+        uses: github/codeql-action/upload-sarif@9e5b0f05baedb1bdd548380cf129d0dac19b77d1  # v4.30.9
         with:
           sarif_file: checkov.sarif
           category: checkov
@@ -230,19 +420,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           # Codecov needs HEAD + previous commit to compute diff coverage
           # and resolve the base ref.
           fetch-depth: 2
 
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache pip packages
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5.0.2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('src/backend/pyproject.toml') }}
@@ -268,7 +458,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://forge:forge@localhost:5432/forge_test
 
       - name: Upload coverage
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe  # v5
+        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f  # v5.5.1
         with:
           files: src/backend/coverage.xml
           flags: backend
@@ -277,11 +467,12 @@ jobs:
 
       - name: Upload test results to Codecov (Test Analytics)
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3  # v1
+        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f  # v5.5.1
         with:
           files: src/backend/junit.xml
           flags: backend
           token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
 
   # ==========================================================================
   # Test Job - Frontend Tests
@@ -291,20 +482,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           # Codecov needs HEAD + previous commit for diff coverage.
           fetch-depth: 2
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b  # v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
+        uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -312,7 +509,7 @@ jobs:
         id: pnpm-cache
 
       - name: Cache pnpm modules
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5.0.2
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -326,7 +523,7 @@ jobs:
         run: pnpm --filter @forge-works/frontend test:coverage
 
       - name: Upload frontend coverage
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe  # v5
+        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f  # v5.5.1
         with:
           files: src/frontend/coverage/lcov.info
           flags: frontend
@@ -335,11 +532,12 @@ jobs:
 
       - name: Upload test results to Codecov (Test Analytics)
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3  # v1
+        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f  # v5.5.1
         with:
           files: src/frontend/junit.xml
           flags: frontend
           token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
 
   # ==========================================================================
   # Build Job - Docker & Frontend Build Verification
@@ -350,13 +548,13 @@ jobs:
     needs: [lint, test-backend, test-frontend]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
 
       - name: Build Backend Image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25  # v5
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # v7.3.0
         with:
           context: src/backend
           file: src/backend/Dockerfile
@@ -366,14 +564,20 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+          # v5 defaults package-manager-cache: true, which auto-invokes pnpm
+          # (found via packageManager field in package.json) before pnpm has
+          # been installed by the later "Setup pnpm" step. Our workflow caches
+          # the pnpm store separately via actions/cache, so we disable this.
+          package-manager-cache: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b  # v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
+        # v5 rejects both `version:` input AND package.json `packageManager`
+        # being set. We defer to the packageManager field (single source of
+        # truth for pnpm version, currently "pnpm@9.15.0").
+        uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b  # v5.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -381,7 +585,7 @@ jobs:
         id: pnpm-cache
 
       - name: Cache pnpm modules
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5.0.2
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -407,14 +611,14 @@ jobs:
         module: [event-router, insight-generator, pattern-matcher]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
       # Run Maven on JDK 21. Required by google-java-format 1.33.0, which references
       # com/sun/tools/javac/tree/JCTree$JCAnyPattern (only present on JDK 21+).
       # Spotless 3.x plugin itself wants JVM 17+. JDK 21 satisfies both.
       # Bytecode still targets Java 11 via <maven.compiler.source/target>11</> in each pom.
       - name: Setup JDK 21
-        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9  # v4
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165  # v5.0.0
         with:
           distribution: temurin
           java-version: "21"
@@ -431,13 +635,14 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [lint, security, checkov, test-backend, test-frontend, build, java-build]
+    needs: [lint, security, owasp-dc, checkov, test-backend, test-frontend, build, java-build]
     if: always()
     steps:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.security.result }}" != "success" ]] || \
+             [[ "${{ needs.owasp-dc.result }}" != "success" ]] || \
              [[ "${{ needs.checkov.result }}" != "success" ]] || \
              [[ "${{ needs.test-backend.result }}" != "success" ]] || \
              [[ "${{ needs.test-frontend.result }}" != "success" ]] || \
