@@ -246,6 +246,7 @@ If instead the intervention had been `human.rollback`, the counterfactual (would
 - `docs/decisions/dynamic-reliability/DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md` *(v0.1)* — label events carry the same identity claims + governance envelope shape.
 - `docs/decisions/dynamic-reliability/DOCTRINE_INTERPLAY.md` *(drafted v0)* — arbitration protocol consumes prediction + gate verdicts + intervention history.
 - `docs/decisions/dynamic-reliability/VOCABULARY_DESIGN.md` *(v0.1)* — outcome vocabularies live under §5 canonical mapping; namespaced.
+- [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) *(v0.1 draft, 2026-07-28)* — shared library scoping RFC that enforces §2.1 required fields, §2.2 provenance, §3 eligibility, §5 censoring rules. Every label producer imports it; blocks AB-028 spike execution.
 - `planning/WIRE_PROTOCOL.md` — event serialization. Not yet drafted.
 - `roadmap/AUTOMATIONS_BACKLOG.md` — AB-030 tracks this doc's v0 → v1 lifecycle.
 
