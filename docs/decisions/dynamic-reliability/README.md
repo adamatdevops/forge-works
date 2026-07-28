@@ -23,6 +23,12 @@ Read in this order:
 | 4 | [`GROUND_TRUTH_INTERVENTION_CONTRACT.md`](GROUND_TRUTH_INTERVENTION_CONTRACT.md) | Label stream + intervention stream — what makes calibration, drift detection, and counterfactual evaluation possible. |
 | 5 | [`DOCTRINE_INTERPLAY.md`](DOCTRINE_INTERPLAY.md) | Operational rules of the authority hierarchy; decision-time arbitration envelope; how predictions coexist with deterministic gates. |
 
+### In-flight spike RFCs (v0.1 phase)
+
+| Doc | Status | Purpose |
+|-----|--------|---------|
+| [`AB-028_FEASIBILITY_SPIKE.md`](AB-028_FEASIBILITY_SPIKE.md) | v0.2 draft (Codex round-2 loop applied 2026-07-26) — awaiting scoping-approval | The evidence gate for `PREDICTION_CONTRACT.md` §11 v0 → v1 graduation. Single source pair (Terraform + DataDog), single slice (webhook-gateway prod), single estimand (deploy-SLO-breach 60m — observational form per AB-033), offline replay, predeclared metrics with lower-95%-CI-bound thresholds vs. rules + logistic regression baselines. Execution blocked on AB-030 `label_schema_validator` library. |
+
 ## How the docs fit together
 
 ```
@@ -104,4 +110,6 @@ Per each doc's §11 (or equivalent):
 - **2026-07-24:** All 5 docs drafted at v0 (SC, VOC, PC as full v0; GROUND_TRUTH, DOCTRINE_INTERPLAY as new siblings). Codex round-1 loop critique returned same day; 22 findings applied → v0.1 restructure across all 5 docs. AB-028..032 filed.
 - **2026-07-25:** Post-hoc dispositions review corrected 5 over-concessions from the round-1 application; corrections landed in-place in each doc (`Why shadow-mode` blocks, forward-declared caveats, downgraded blocking statuses).
 - **2026-07-25:** Design corpus migrated from `planning/` (repo-ignored) to `docs/decisions/dynamic-reliability/` (tracked). Filenames dropped `_v0` suffix to align with existing `docs/decisions/` convention. This README written as index + AB-028..032 summary + audit-trail pointer.
+- **2026-07-26:** [`AB-028_FEASIBILITY_SPIKE.md`](AB-028_FEASIBILITY_SPIKE.md) scoping RFC drafted at v0.1 — the load-bearing v0 → v1 evidence gate for the corpus. Awaiting scoping-approval meeting to lock predeclared thresholds before spike execution begins.
+- **2026-07-26:** AB-028 spike RFC bumped to v0.2. Codex round-2 critique loop (audit trail at `research/feedback_loops/dynamic-reliability-AB-028_FEASIBILITY_SPIKE/20260726T082924Z/` — local-only) returned `needs-revision` with 13 HIGH / 7 MEDIUM findings on evidence integrity, calibration validity, baseline fairness, statistical power gating, causal-vs-observational estimand wording, and cost-weighted decision framework. Nineteen of twenty findings applied in-place; F19 delegated to AB-030 (shared `label_schema_validator` library); F10 filed as AB-033 for the corpus-level PC §3.0 estimand-wording correction. Post-application over-concession review scheduled.
 - **2026-07-27 (AB-033):** PC §3.0 worked-estimand rewrite — causal wording ("deployment *causes* SLO breach") replaced with observational form (`P(breach | deploy, eligibility)`, ID `deploy_slo_breach_60m_association_v0`). Explicit estimand ID convention introduced. Estimand-form caveat added to PC §3.0. Sister-doc edits: GT §8 `estimand_id` aligned to the v0 association form; this README v0-doctrine section carries the observational-form pointer + AB-033 row added to the follow-ups table. Origin: Codex round-2 critique loop on AB-028 spike RFC (F10, 2026-07-26).
