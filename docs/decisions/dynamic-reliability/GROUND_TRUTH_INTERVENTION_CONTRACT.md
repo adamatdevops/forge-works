@@ -1,6 +1,7 @@
-# Ground-Truth + Intervention Contract (v0) — What Reality Says Happened
+# Ground-Truth + Intervention Contract (v0.2) — What Reality Says Happened
 
-> **Status:** Design stub (v0). Drafted 2026-07-24 in response to Codex round-1 loop findings F3 + F10 flagging that deferring this schema blocks calibration, drift measurement, retraction, and any credible baseline comparison.
+> **Status:** Design stub (v0.2 — 3 label-schema amendments applied 2026-07-29 unblocking AB-030 library v0.2 → v1 graduation). Originally drafted 2026-07-24 in response to Codex round-1 loop findings F3 + F10 flagging that deferring this schema blocks calibration, drift measurement, retraction, and any credible baseline comparison.
+> **v0.2 amendments (2026-07-29):** (i) §2.1 `outcome` presence conditional on `eligibility == eligible` — resolves the §2.1 / §3 contradiction that AB-030 Codex round-1 F3 surfaced. (ii) §8 worked-example slice expanded to full PC §3.5 shape (`dimensions` + `values` + `slice_id`) — resolves the §2.1 / §8 shape contradiction that AB-030 Codex round-1 F4 surfaced. (iii) §2.1 + §5: new conditionally-required field `original_horizon_end` on censored labels (`eligibility == censored`) — resolves the missing censored-label schema that AB-030 Codex round-1 F8 surfaced (RFC §3.3 CR4 previously invented this field; GT now defines it canonically). Amendments filed as a coordinated PR with the AB-030 RFC v0.2 → v0.3 lift per that RFC's §5.3 change process.
 > **Origin:** Sibling of `docs/decisions/dynamic-reliability/DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md` and `docs/decisions/dynamic-reliability/PREDICTION_CONTRACT.md`. Referenced from PREDICTION_CONTRACT §6.2, §8, §9 AP-6.
 > **Location note:** Migrated 2026-07-25 from `planning/GROUND_TRUTH_INTERVENTION_CONTRACT_v0.md` to this tracked path — see `docs/decisions/dynamic-reliability/README.md` for the corpus index.
 > **Scope:** the label stream (what really happened) and the intervention stream (what actions were taken because of predictions). Together they enable calibration, drift detection, retraction, and treatment-aware evaluation. Not the model architecture, not the wire format — those live in their own siblings.
@@ -32,12 +33,13 @@ Both streams need contracts. Otherwise ground truth arrives as an ad-hoc mess an
 
 ### 2.1 Required fields per label event
 
+**Unconditionally required (every label event, regardless of eligibility):**
+
 - `label_id` — unique per emission. Immutable.
 - `estimand_id` — which estimand this label is FOR. Every estimand (per PREDICTION_CONTRACT §3.0) has a stable identifier; labels carry it so the label stream doesn't need to guess which prediction it validates.
 - `slice` — same `dimensions` / `values` / `slice_id` shape as PREDICTION_CONTRACT §3.5. The label applies to this slice.
 - `identity_claims` — same shape as SC §3.4. Labels carry the same namespaced identity claims as source events, resolved through the same entity-resolution layer.
 - `observation_window` — the wall-clock window during which the outcome was observed (`start`, `end`).
-- `outcome` — the observed outcome, drawn from the estimand's namespaced outcome vocabulary (e.g., for the deploy-SLO-breach estimand: `slo_breach_occurred` / `slo_breach_absent`).
 - `outcome_source` — how the outcome was determined:
   - `direct_observation` — the outcome was directly observed on the source stream (e.g., a `datadog.slo_burning` event during the window).
   - `derived` — the outcome was computed from other events (e.g., "no SLO events during window AND no incident opened" → `slo_breach_absent`).
@@ -46,6 +48,12 @@ Both streams need contracts. Otherwise ground truth arrives as an ad-hoc mess an
 - `label_delay` — time from `observation_window.end` to `label_id` emission. Long delays affect calibration cadence.
 - `eligibility` — per §3.
 - `governance_envelope` — same shape as SC §3.6; label events inherit the strictest governance from any input.
+
+**Conditionally required (presence depends on `eligibility`):**
+
+- `outcome` — the observed outcome, drawn from the estimand's namespaced outcome vocabulary (e.g., for the deploy-SLO-breach estimand: `slo_breach_occurred` / `slo_breach_absent`). **Required when `eligibility == eligible`. Absent for non-eligible variants** (`censored` / `missing_data` / `manual_ineligible`) — those variants signal via `eligibility` that no confident outcome exists, so a fabricated placeholder would misinform calibration. *(v0.2 amendment — resolves the §2.1 unconditional-required vs. §3 "no confident outcome" contradiction surfaced by AB-030 Codex round-1 F3.)*
+- `original_horizon_end` — the wall-clock time at which the observation window would have naturally closed absent censoring. **Required when `eligibility == censored`; absent otherwise.** ISO-8601 datetime string. Enables consumers (and the label-schema validator, AB-030 RFC §3.3 CR4) to verify truncation: `observation_window.end < original_horizon_end`. *(v0.2 amendment — resolves the missing censored-label schema field surfaced by AB-030 Codex round-1 F8. RFC v0.1 CR4 invented this field name; GT now defines it canonically.)*
+- `ineligibility_reason` — free-text audit trail. **Required when `eligibility == manual_ineligible`; absent otherwise.** (Already implicit in §3's `manual_ineligible` definition; formalized here for schema-validator completeness.)
 
 ### 2.2 Label provenance
 
@@ -70,12 +78,21 @@ A prediction is *eligible for evaluation* only if a matching label event can exi
 - **Insufficient horizon:** the prediction's horizon hasn't elapsed yet — no label can exist until the observation window closes.
 
 **Label event MUST carry `eligibility`:**
-- `eligible` — outcome value is present, meaningful, evaluable.
-- `censored` — see §5.
-- `missing_data` — window closed but derivation failed; no confident outcome.
-- `manual_ineligible` — human declared uninformative; carries `ineligibility_reason` free-text (audited).
+- `eligible` — `outcome` value is present, meaningful, evaluable.
+- `censored` — see §5. Label MUST carry `original_horizon_end` (per §2.1) so truncation is verifiable; `outcome` is absent.
+- `missing_data` — window closed but derivation failed; no confident outcome; `outcome` is absent.
+- `manual_ineligible` — human declared uninformative; label carries `ineligibility_reason` free-text (audited, per §2.1); `outcome` is absent.
 
 **Calibration measurement uses `eligible` labels only.** Consumer libraries filter.
+
+**Conditional-field summary** *(v0.2 addition — cross-references §2.1 conditional-field rules):*
+
+| eligibility | outcome | original_horizon_end | ineligibility_reason |
+|---|---|---|---|
+| `eligible` | required | absent | absent |
+| `censored` | absent | required | absent |
+| `missing_data` | absent | absent | absent |
+| `manual_ineligible` | absent | absent | required |
 
 ---
 
@@ -105,8 +122,24 @@ Corrections are additive events on the same `forge.events.ground_truth.v1` strea
 
 **Censoring rules per estimand:**
 - Every estimand declares its censoring events (per PREDICTION_CONTRACT §3.0 estimand definition).
-- Censored labels are emitted with `eligibility: censored` and the truncated observation window.
-- Calibration excludes censored labels by default. Advanced consumers may use survival-analysis techniques (Kaplan-Meier estimators) that handle censoring properly — those consumers opt in explicitly.
+- Censored labels are emitted with `eligibility: censored`, the truncated `observation_window` (whose `end` is the censoring event time), AND `original_horizon_end` — the wall-clock time at which the window would have naturally closed absent censoring. *(v0.2 amendment — the `original_horizon_end` field was previously undefined; RFC AB-030 §3.3 CR4 needed it to verify truncation but had to invent it. Now canonical per §2.1.)*
+- The `outcome` field is absent on censored labels (per §2.1 conditional-field rule + §3 conditional-field summary) — a censored window has no confident outcome to record.
+- Calibration excludes censored labels by default. Advanced consumers may use survival-analysis techniques (Kaplan-Meier estimators) that handle censoring properly — those consumers opt in explicitly and use `original_horizon_end` to compute at-risk time.
+
+**Worked example (schema shape — v0.2):**
+
+For the deploy-SLO-breach estimand with a 60-minute horizon: prediction at T0 (10:15:03Z), new deployment D2 lands at T0+30m (10:45:03Z), the label for D1 is censored:
+
+```yaml
+eligibility: censored
+observation_window:
+  start: 2026-07-24T10:15:03Z
+  end:   2026-07-24T10:45:03Z         # truncated: censoring event time
+original_horizon_end: 2026-07-24T11:15:03Z   # would-have-been end absent censoring
+# outcome: <absent>
+```
+
+Truncation is verifiable: `observation_window.end (10:45:03) < original_horizon_end (11:15:03)` — a censored label with `observation_window.end == original_horizon_end` is malformed and rejected by the label-schema validator (RFC AB-030 §3.3 CR4).
 
 **Rule:** censoring is emitted on the label stream, not implicit. A label event with `eligibility: censored` is more informative than the absence of a label event.
 
@@ -189,7 +222,10 @@ governance_envelope: {tenant_id: forge-works, ...}
 ```yaml
 label_id: lbl_2026-07-24T11:20:00Z_e11f92
 estimand_id: deploy_slo_breach_60m_association_v0
-slice: {per_service: webhook-gateway, per_environment: prod}
+slice:                                    # full PC §3.5 shape (v0.2 — F4 amendment)
+  dimensions: [per_service, per_environment]
+  values: {per_service: webhook-gateway, per_environment: prod}
+  slice_id: webhook-gateway.prod
 identity_claims:
   - {authority: git, key_type: commit_id, value: 8f3b21c, ...}
   - {authority: internal_directory, key_type: service_id, value: webhook-gateway, ...}
@@ -246,7 +282,7 @@ If instead the intervention had been `human.rollback`, the counterfactual (would
 - `docs/decisions/dynamic-reliability/DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md` *(v0.1)* — label events carry the same identity claims + governance envelope shape.
 - `docs/decisions/dynamic-reliability/DOCTRINE_INTERPLAY.md` *(drafted v0)* — arbitration protocol consumes prediction + gate verdicts + intervention history.
 - `docs/decisions/dynamic-reliability/VOCABULARY_DESIGN.md` *(v0.1)* — outcome vocabularies live under §5 canonical mapping; namespaced.
-- [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) *(v0.1 draft, 2026-07-28)* — shared library scoping RFC that enforces §2.1 required fields, §2.2 provenance, §3 eligibility, §5 censoring rules. Every label producer imports it; blocks AB-028 spike execution.
+- [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) *(v0.3 draft, 2026-07-29)* — shared library scoping RFC that enforces §2.1 required fields (including v0.2 conditional-field rules), §2.2 provenance, §3 eligibility, §5 censoring rules (including `original_horizon_end` truncation check). Every label producer imports it; blocks AB-028 spike execution. RFC v0.3 landed alongside this GT v0.2 amendment PR.
 - `planning/WIRE_PROTOCOL.md` — event serialization. Not yet drafted.
 - `roadmap/AUTOMATIONS_BACKLOG.md` — AB-030 tracks this doc's v0 → v1 lifecycle.
 
