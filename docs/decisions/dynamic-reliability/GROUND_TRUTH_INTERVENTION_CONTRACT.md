@@ -1,7 +1,8 @@
-# Ground-Truth + Intervention Contract (v0.2) — What Reality Says Happened
+# Ground-Truth + Intervention Contract (v0.3) — What Reality Says Happened
 
-> **Status:** Design stub (v0.2 — 3 label-schema amendments applied 2026-07-29 unblocking AB-030 library v0.2 → v1 graduation). Originally drafted 2026-07-24 in response to Codex round-1 loop findings F3 + F10 flagging that deferring this schema blocks calibration, drift measurement, retraction, and any credible baseline comparison.
-> **v0.2 amendments (2026-07-29):** (i) §2.1 `outcome` presence conditional on `eligibility == eligible` — resolves the §2.1 / §3 contradiction that AB-030 Codex round-1 F3 surfaced. (ii) §8 worked-example slice expanded to full PC §3.5 shape (`dimensions` + `values` + `slice_id`) — resolves the §2.1 / §8 shape contradiction that AB-030 Codex round-1 F4 surfaced. (iii) §2.1 + §5: new conditionally-required field `original_horizon_end` on censored labels (`eligibility == censored`) — resolves the missing censored-label schema that AB-030 Codex round-1 F8 surfaced (RFC §3.3 CR4 previously invented this field; GT now defines it canonically). Amendments filed as a coordinated PR with the AB-030 RFC v0.2 → v0.3 lift per that RFC's §5.3 change process.
+> **Status:** Design stub (v0.3 — 3 additional amendments applied 2026-07-29 for AB-030 library v0.3 → v1 non-GT items). Originally drafted 2026-07-24 in response to Codex round-1 loop findings F3 + F10 flagging that deferring this schema blocks calibration, drift measurement, retraction, and any credible baseline comparison.
+> **v0.2 amendments (2026-07-29, morning):** (i) §2.1 `outcome` presence conditional on `eligibility == eligible` — resolves the §2.1 / §3 contradiction that AB-030 Codex round-1 F3 surfaced. (ii) §8 worked-example slice expanded to full PC §3.5 shape (`dimensions` + `values` + `slice_id`) — resolves the §2.1 / §8 shape contradiction that AB-030 Codex round-1 F4 surfaced. (iii) §2.1 + §5: new conditionally-required field `original_horizon_end` on censored labels (`eligibility == censored`) — resolves the missing censored-label schema that AB-030 Codex round-1 F8 surfaced (RFC §3.3 CR4 previously invented this field; GT now defines it canonically). Amendments filed as a coordinated PR with the AB-030 RFC v0.2 → v0.3 lift per that RFC's §5.3 change process.
+> **v0.3 amendments (2026-07-29, afternoon):** (iv) §2.2 `logic_ref` scheme enumeration — codifies allowed URI schemes `{mlflow://, git://, https://, s3://, arn:}` (per AB-030 Codex round-1 F13). (v) §6.2 `intervention_ids` bound — canonical bound = 10 (per AB-030 Codex round-1 F18; matches `alternatives_considered` default max 3 spirit, generous for post-hoc join). (vi) §9 estimand catalog governance — v0 minimal design: YAML catalog at `docs/decisions/dynamic-reliability/estimand_catalog.yaml`, PR-review change process, AP-C5 enforced via required `estimand_id` bump on outcome-vocabulary changes. Filed as coordinated PR with AB-030 RFC v0.3 → v0.4 lift.
 > **Origin:** Sibling of `docs/decisions/dynamic-reliability/DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md` and `docs/decisions/dynamic-reliability/PREDICTION_CONTRACT.md`. Referenced from PREDICTION_CONTRACT §6.2, §8, §9 AP-6.
 > **Location note:** Migrated 2026-07-25 from `planning/GROUND_TRUTH_INTERVENTION_CONTRACT_v0.md` to this tracked path — see `docs/decisions/dynamic-reliability/README.md` for the corpus index.
 > **Scope:** the label stream (what really happened) and the intervention stream (what actions were taken because of predictions). Together they enable calibration, drift detection, retraction, and treatment-aware evaluation. Not the model architecture, not the wire format — those live in their own siblings.
@@ -60,7 +61,14 @@ Both streams need contracts. Otherwise ground truth arrives as an ad-hoc mess an
 Every label event MUST carry:
 - `producing_system` — what emitted the label (a Flink job that watches `datadog.*` for slo_burning events; a manual-correction service; a specific integration).
 - `producing_version` — semver of the producing system.
-- `logic_ref` — pointer to the exact rule/query/model that produced the label. Enables audit.
+- `logic_ref` — pointer to the exact rule/query/model that produced the label. Enables audit. **v0.3 amendment (per AB-030 Codex round-1 F13):** MUST use one of the following URI schemes:
+  - `mlflow://logic/<name>/<path>` — MLflow-tracked artifacts (rules, models, transformations).
+  - `git://<host>/<repo>@<sha>#<path>` — code refs pinned to an immutable git SHA.
+  - `https://<host>/<path>` — general URLs (e.g., internal wiki refs, external doc pointers with permalinks).
+  - `s3://<bucket>/<key>` — object-store artifacts (e.g., serialized query plans, model archives).
+  - `arn:aws:<service>:...` — AWS resource ARNs (e.g., Lambda function ARN, StepFunctions ARN).
+
+  Schemes outside this list → the label-schema validator emits warning `LogicRefSchemeUnrecognized(scheme)` (AB-030 RFC §3.4 W5); label is currently schema-valid but the warning upgrades to hard-reject at library v1. New schemes may be added via GT §2.2 amendment PR.
 
 **Rule:** a label without provenance is not a label. Consumers reject.
 
@@ -167,7 +175,7 @@ Truncation is verifiable: `observation_window.end (10:45:03) < original_horizon_
 
 When a label event fires on the same `(estimand_id, slice, observation_window)` as a prior intervention event, the label MUST carry:
 - `intervention_present` — boolean.
-- `intervention_ids` — bounded list of intervention events that occurred within the observation window.
+- `intervention_ids` — bounded list of intervention events that occurred within the observation window. **v0.3 amendment (per AB-030 Codex round-1 F18):** canonical bound = 10 items. Rationale: `alternatives_considered` in intervention events defaults max 3 per §6.1; a 10-item bound on the post-hoc join list is generous. An observation window with >10 interventions is pathological and worth investigating. Element constraints: each entry MUST be a non-empty string matching a valid `intervention_id` format (`intv_<timestamp>_<hash>`); uniqueness enforced (no duplicate IDs). AB-030 RFC §3.4 W6 currently warns at count >10; upgrades to hard-reject at library v1.
 
 This is what turns naive accuracy into treatment-aware evaluation. A `slo_breach_absent` outcome that occurred in the presence of an intervention is not the same signal as the same outcome without intervention.
 
@@ -255,7 +263,13 @@ If instead the intervention had been `human.rollback`, the counterfactual (would
 
 ## 9. Open questions
 
-- [ ] **Estimand catalog governance** — who owns the `estimand_id` catalog? Where is it stored? Adding a new estimand is a design event; process needed.
+- [x] **Estimand catalog governance** *(RESOLVED 2026-07-29 v0.3 amendment per AB-030 Codex round-1 F2/F12.)* **v0 minimal design:**
+  - **Storage:** YAML file at `docs/decisions/dynamic-reliability/estimand_catalog.yaml` (repo-tracked). Each entry: `estimand_id` (required, unique per version), `outcome_vocabulary` (list of allowed outcome strings), `version` (matches the `_v<N>` suffix in `estimand_id`), `owner` (accountable data-owner role from the operating model per predictor, per VOCABULARY §8 AP-7), `superseded_by` (optional pointer to a newer `estimand_id`).
+  - **Change process:** any addition, modification, or supersession of an entry lands as a PR. AP-C5 enforcement (post-hoc estimand redefinition forbidden): the PR review MUST verify that outcome-vocabulary changes to an existing `estimand_id` are rejected — semantics changes require a new `estimand_id` with bumped `_v<N>` suffix + a `superseded_by` pointer on the old entry.
+  - **Library consumption:** AB-030 RFC v0.3 §4.1 `validate_label_event(event, estimand_catalog=…)` loads the catalog from this YAML file at validator init; when supplied, hard-rejects outcomes outside the vocabulary for the event's `estimand_id`.
+  - **Access control:** repo CODEOWNERS gate on this file (recommended: platform-team + data-owner group per predictor). Enforcement via GitHub branch protection.
+  - **Deferred to future work:** MLflow registry integration (AB-032 dependency); dedicated catalog service (v1+); cross-repo distribution (v1+).
+- [ ] **Manual-correction UX** — the "correction authority" is a role; how do humans actually apply corrections? A GitHub-issue-driven workflow? An MLflow annotation? A dedicated CLI?
 - [ ] **Manual-correction UX** — the "correction authority" is a role; how do humans actually apply corrections? A GitHub-issue-driven workflow? An MLflow annotation? A dedicated CLI?
 - [ ] **Counterfactual estimation defaults** — what's the default `counterfactual_estimation_method` for the first few v0 estimands, given we have no randomization mechanism yet? `not_estimated` and revisit at v1+?
 - [ ] **Label backfill on estimand version bump** — when an estimand's outcome semantics change (via version bump), do we backfill labels for historical predictions under the new semantics? Expensive; also arguably wrong (predictions were made under the old semantics).
@@ -282,7 +296,8 @@ If instead the intervention had been `human.rollback`, the counterfactual (would
 - `docs/decisions/dynamic-reliability/DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md` *(v0.1)* — label events carry the same identity claims + governance envelope shape.
 - `docs/decisions/dynamic-reliability/DOCTRINE_INTERPLAY.md` *(drafted v0)* — arbitration protocol consumes prediction + gate verdicts + intervention history.
 - `docs/decisions/dynamic-reliability/VOCABULARY_DESIGN.md` *(v0.1)* — outcome vocabularies live under §5 canonical mapping; namespaced.
-- [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) *(v0.3 draft, 2026-07-29)* — shared library scoping RFC that enforces §2.1 required fields (including v0.2 conditional-field rules), §2.2 provenance, §3 eligibility, §5 censoring rules (including `original_horizon_end` truncation check). Every label producer imports it; blocks AB-028 spike execution. RFC v0.3 landed alongside this GT v0.2 amendment PR.
+- [`AB-030_LABEL_SCHEMA_VALIDATOR.md`](AB-030_LABEL_SCHEMA_VALIDATOR.md) *(v0.4 draft, 2026-07-29)* — shared library scoping RFC that enforces §2.1 required fields (including v0.2 conditional-field rules), §2.2 provenance (including v0.3 `logic_ref` scheme enumeration), §3 eligibility, §5 censoring rules (including `original_horizon_end` truncation check), §6.2 `intervention_ids` bound. Every label producer imports it; blocks AB-028 spike execution. RFC v0.4 landed alongside this GT v0.3 amendment PR.
+- [`estimand_catalog.yaml`](estimand_catalog.yaml) *(v0, 2026-07-29)* — canonical estimand catalog per §9 resolution. Seeded with `deploy_slo_breach_60m_association_v0` (the AB-028 spike estimand).
 - `planning/WIRE_PROTOCOL.md` — event serialization. Not yet drafted.
 - `roadmap/AUTOMATIONS_BACKLOG.md` — AB-030 tracks this doc's v0 → v1 lifecycle.
 

@@ -1,0 +1,58 @@
+# Estimand Catalog — Dynamic Reliability (v0)
+#
+# Canonical source of truth for estimand identifiers, outcome vocabularies,
+# and ownership. Consumed by the AB-030 label_schema_validator library
+# (RFC v0.4 §4.1 `estimand_catalog` parameter) at validator init.
+#
+# Governance: per GROUND_TRUTH_INTERVENTION_CONTRACT.md §9 v0.3 amendment.
+# - Any addition, modification, or supersession of an entry lands as a PR.
+# - AP-C5 enforcement: outcome-vocabulary changes to an existing `estimand_id`
+#   are FORBIDDEN. Semantics changes require a new `estimand_id` with bumped
+#   `_v<N>` suffix + `superseded_by` pointer on the old entry.
+# - Access control: repo CODEOWNERS gate (platform-team + per-predictor owner).
+# - Change process: reviewer verifies AP-C5 compliance before merge.
+#
+# Schema per entry:
+#   estimand_id:         string (required, unique per version, matches
+#                        `<domain>_<outcome>_<window>_<form>_<version>` per
+#                        PREDICTION_CONTRACT §3.0 v0.1 convention)
+#   outcome_vocabulary:  list of strings (allowed outcome values for `eligible`
+#                        labels on this estimand; see GT §2.1 conditional-field
+#                        rule and RFC v0.4 §3.1 `outcome` row)
+#   version:             string (matches `_v<N>` suffix in estimand_id)
+#   owner:               string (role from operating model per predictor,
+#                        per VOCABULARY §8 AP-7)
+#   superseded_by:       string, optional (points to a newer estimand_id
+#                        when this one has been retired via version bump)
+#   notes:               string, optional (free-text audit trail)
+
+version: 1  # catalog file format version (bump on schema changes to this file)
+
+estimands:
+  - estimand_id: deploy_slo_breach_60m_association_v0
+    outcome_vocabulary:
+      - slo_breach_occurred
+      - slo_breach_absent
+    version: v0
+    owner: platform-team
+    notes: |
+      AB-028 feasibility spike estimand. Observational-association form
+      per PC §3.0 v0.1 estimand ID convention (introduced by AB-033
+      rewrite 2026-07-27). Deploy-SLO-breach within 60min of deploy marker.
+      Slice: (per_service, per_environment). First estimand in the catalog;
+      landed 2026-07-29 alongside GT §9 catalog governance resolution
+      (AB-030 Codex round-1 F2/F12).
+
+# Retired-estimand pattern (example — not currently used):
+#   - estimand_id: deploy_slo_breach_60m_association_v0_deprecated_example
+#     outcome_vocabulary:
+#       - slo_breach_occurred
+#       - slo_breach_absent
+#     version: v0_deprecated_example
+#     owner: platform-team
+#     superseded_by: deploy_slo_breach_60m_association_v1
+#     notes: |
+#       Example showing the supersession pattern. A vocabulary change or
+#       semantics change requires bumping version and setting
+#       `superseded_by` on the old entry — never editing outcome_vocabulary
+#       in place (AP-C5 in GROUND_TRUTH_INTERVENTION_CONTRACT.md §7).
