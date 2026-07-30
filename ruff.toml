@@ -105,6 +105,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "**/alembic/versions/*.py" = ["ALL"]
 # Scripts might have prints
 "**/scripts/*.py" = ["T201"]
+# ML/data code follows sklearn conventions (X for feature matrix), needs runtime pandas/sklearn imports
+"src/label-derivation-spike/**/*.py" = ["N803", "N806"]
 
 [lint.isort]
 # isort configuration

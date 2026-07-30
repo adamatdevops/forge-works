@@ -1,0 +1,39 @@
+[project]
+name = "label-derivation-spike"
+version = "0.1.0"
+description = "ForgeWorks AB-028 offline replay harness — feature pipeline, baselines, model, evaluation. Consumes AB-030 validated labels."
+requires-python = ">=3.11"
+
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scikit-learn>=1.4",
+    "label-schema-validator",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "hypothesis>=6.100.0",
+]
+mlflow = [
+    "mlflow>=2.10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: end-to-end integration test (~20s); runs by default",
+]
+filterwarnings = [
+    "ignore:'penalty' was deprecated:FutureWarning:sklearn.linear_model",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["forge_works*"]
+namespaces = true
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
