@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from forge_works.dr.label_schema_validator.types import CatalogEntry, EstimandCatalog
 
 

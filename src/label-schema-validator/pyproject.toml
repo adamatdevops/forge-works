@@ -20,6 +20,7 @@ testpaths = ["tests"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["forge_works*"]
+namespaces = true
 
 [build-system]
 requires = ["setuptools>=68.0"]
