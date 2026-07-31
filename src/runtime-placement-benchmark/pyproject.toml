@@ -1,0 +1,27 @@
+[project]
+name = "runtime-placement-benchmark"
+version = "0.1.0"
+description = "ForgeWorks AB-029 runtime placement benchmark framework — 5-option × 7-dimension comparison matrix + §6.2 weighted rubric + §6.3 disqualification."
+requires-python = ">=3.11"
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+]
+
+[project.scripts]
+ab029-benchmark = "forge_works.dr.ab029_spike.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["forge_works*"]
+namespaces = true
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
