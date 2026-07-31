@@ -346,6 +346,7 @@ Total: ~6 weeks of engineer-time, not necessarily 6 elapsed weeks (parallelism p
 
 - [`README.md`](README.md) — corpus index.
 - [`AB-028_SCOPING_APPROVAL_AGENDA.md`](AB-028_SCOPING_APPROVAL_AGENDA.md) — companion agenda doc for the scoping-approval meeting; enumerates every RFC-mandated lock item (§B) and the round-2 over-concession probes (§C) so the meeting doesn't rubber-stamp authorial defaults. Closes and is superseded by the RFC's §11 provenance entry once the meeting outcome lands.
+- [`AB-028_SCOPING_APPROVAL_REVIEWER_MEMO.md`](AB-028_SCOPING_APPROVAL_REVIEWER_MEMO.md) — one reviewer's recommendation per agenda §B/§C item. Straw-doc for the meeting to challenge; explicitly not a decision doc.
 - [`PREDICTION_CONTRACT.md`](PREDICTION_CONTRACT.md) §3.0 (worked estimand), §11 (graduation criteria consuming this spike).
 - [`DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md`](DYNAMIC_RELIABILITY_SOURCE_CONTRACT.md) §4 (Terraform worked example; source shape for the spike's adapter).
 - [`GROUND_TRUTH_INTERVENTION_CONTRACT.md`](GROUND_TRUTH_INTERVENTION_CONTRACT.md) §2 (label stream contract; the spike is its first implementation), §5 (censoring), §6.2 (intervention join), §8 (worked example for this estimand).
