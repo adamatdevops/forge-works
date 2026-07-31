@@ -4,6 +4,7 @@
 > **Purpose:** walk-in agenda for the AB-028 scoping-approval meeting. Every item is a decision the meeting must produce; each is scoped so the RFC can be edited in-place with the locked numbers + meeting date.
 > **Owner:** meeting chair (TBD). Recorder: TBD.
 > **Pre-read:** `AB-028_FEASIBILITY_SPIKE.md` (v0.2), `PREDICTION_CONTRACT.md` §3.0, `GROUND_TRUTH_INTERVENTION_CONTRACT.md` §2, `SC §4` (source contract vocabulary), `research/feedback_loops/dynamic-reliability-AB-028_FEASIBILITY_SPIKE/20260726T082924Z/reconciled.md` §"Post-application over-concession review" (repo-ignored — request separately if not on-machine).
+> **Straw-doc:** [`AB-028_SCOPING_APPROVAL_REVIEWER_MEMO.md`](AB-028_SCOPING_APPROVAL_REVIEWER_MEMO.md) — one reviewer's recommendation per §B/§C item. Read alongside this agenda so the meeting has a perspective to challenge rather than a blank page. Explicitly not a decision doc; the memo's own §E flags where the reviewer lacks domain input (§B2 SRE, §B4 real metadata, §C2 operating-model owner).
 
 ---
 
