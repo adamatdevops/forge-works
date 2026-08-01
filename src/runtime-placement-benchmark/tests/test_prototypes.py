@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from forge_works.dr.ab029_spike.dimensions import DIMENSIONS, MeasurementStatus
 from forge_works.dr.ab029_spike.prototypes import (
     ALL_STUB_PROTOTYPES,
@@ -8,6 +9,7 @@ from forge_works.dr.ab029_spike.prototypes import (
     InsightGeneratorExtensionStub,
     PatternMatcherExtensionStub,
     PlacementPrototype,
+    SiblingFlinkPrototype,
     SiblingFlinkStub,
     measure_all,
 )
@@ -56,3 +58,70 @@ def test_insight_generator_notes_scaling_profile() -> None:
 def test_dedicated_inference_notes_new_service() -> None:
     impls = DedicatedInferenceStub().contract_implications()
     assert any("service" in i.lower() for i in impls)
+
+
+# --- SiblingFlinkPrototype (real Option A prototype) ---
+
+
+def test_sibling_flink_prototype_satisfies_protocol() -> None:
+    assert isinstance(SiblingFlinkPrototype(), PlacementPrototype)
+
+
+def test_sibling_flink_prototype_option_code_is_a() -> None:
+    assert SiblingFlinkPrototype().option_code == "A"
+
+
+def test_sibling_flink_prototype_contract_implications_mention_topic_and_placeholder() -> None:
+    impls = SiblingFlinkPrototype().contract_implications()
+    blob = " ".join(impls).lower()
+    assert "topic" in blob
+    assert "placeholder" in blob
+    assert "estimand" in blob
+
+
+def test_sibling_flink_prototype_d1_is_ok_with_qualitative() -> None:
+    m = SiblingFlinkPrototype().measure("D1")
+    assert m.status is MeasurementStatus.OK
+    assert "savepoint" in m.qualitative.lower()
+    assert "kafka" in m.qualitative.lower()
+
+
+def test_sibling_flink_prototype_d3_is_ok_with_step_count() -> None:
+    m = SiblingFlinkPrototype().measure("D3")
+    assert m.status is MeasurementStatus.OK
+    assert "3-step" in m.qualitative or "savepoint" in m.qualitative.lower()
+
+
+def test_sibling_flink_prototype_d4_full_isolation_score() -> None:
+    m = SiblingFlinkPrototype().measure("D4")
+    assert m.status is MeasurementStatus.OK
+    assert m.value == 5.0
+
+
+def test_sibling_flink_prototype_d7_top_reuse_score_and_file_count() -> None:
+    m = SiblingFlinkPrototype().measure("D7")
+    assert m.status is MeasurementStatus.OK
+    assert m.value == 5.0
+    assert "Java file count:" in m.qualitative
+
+
+def test_sibling_flink_prototype_d2_d5_d6_not_applicable() -> None:
+    proto = SiblingFlinkPrototype()
+    for code in ("D2", "D5", "D6"):
+        m = proto.measure(code)
+        assert m.status is MeasurementStatus.NOT_APPLICABLE, code
+        assert m.note, code
+
+
+def test_sibling_flink_prototype_unknown_dimension_raises() -> None:
+    with pytest.raises(ValueError, match="unknown dimension code"):
+        SiblingFlinkPrototype().measure("D99")
+
+
+def test_sibling_flink_prototype_measure_all_shape() -> None:
+    ms = measure_all(SiblingFlinkPrototype())
+    assert set(ms.keys()) == {d.code for d in DIMENSIONS}
+    ok_codes = {c for c, m in ms.items() if m.status is MeasurementStatus.OK}
+    na_codes = {c for c, m in ms.items() if m.status is MeasurementStatus.NOT_APPLICABLE}
+    assert ok_codes == {"D1", "D3", "D4", "D7"}
+    assert na_codes == {"D2", "D5", "D6"}

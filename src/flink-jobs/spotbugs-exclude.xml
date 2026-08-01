@@ -54,6 +54,8 @@
             <Class name="dev.forgeworks.engine.insights.InsightSerializer"/>
             <Class name="dev.forgeworks.engine.patterns.EventDeserializer"/>
             <Class name="dev.forgeworks.engine.patterns.AlertSerializer"/>
+            <Class name="dev.forgeworks.engine.dr.EventDeserializer"/>
+            <Class name="dev.forgeworks.engine.dr.PredictionSerializer"/>
         </Or>
     </Match>
 
