@@ -523,7 +523,7 @@ Its own confidence must incorporate this prediction's confidence (AP-7 disciplin
 - [ ] Lifecycle event stream (§5) live and consumed by at least one projection.
 - [ ] `GROUND_TRUTH_INTERVENTION_CONTRACT_v0.md` at v0 (AB-030).
 - [ ] AB-028 feasibility spike produced evidence that the model lifts over the deterministic baseline on the predeclared metrics.
-- [ ] MLflow production-readiness assessment complete (AB-032).
+- [ ] MLflow production-readiness assessment complete (AB-032; [scoping RFC v0.1](AB-032_MLFLOW_READINESS.md)).
 - [ ] At least one worked "disagreement observation" documented — a shadow-mode prediction that would have disagreed with a deterministic gate had it been in the decision path, logged for post-hoc analysis. Full arbitration protocol exercise is a T3/T4 doctrine-change prereq (see AB-031), NOT a v0→v1 blocker.
 - [ ] Operating model per production predictor attested (VOCABULARY §8 AP-7).
 - [ ] Circuit-breaker mechanism (§8) exercised in a controlled drill.
@@ -534,7 +534,7 @@ Its own confidence must incorporate this prediction's confidence (AP-7 disciplin
 
 ## 12. Open questions
 
-- [ ] **Continuous calibration substrate** — is MLflow the right home for per-cohort continuous calibration? Or does the calibration store want to be separate (Prometheus / a custom store)? AB-032 addresses.
+- [ ] **Continuous calibration substrate** — is MLflow the right home for per-cohort continuous calibration? Or does the calibration store want to be separate (Prometheus / a custom store)? AB-032 addresses ([scoping RFC v0.1](AB-032_MLFLOW_READINESS.md); D5 capacity dimension explicitly scopes the calibration-write envelope).
 - [ ] **Retraction protocol precision** — the lifecycle stream fires `prediction_retracted` events. What triggers a retraction? Model discovers it was wrong after ground-truth arrival? A calibration circuit-breaker fires? A human tags a prediction as bad? All three?
 - [ ] **Cold-start handling for new models** — a new model has no calibration curve yet. §8 says consumers reject `model_native_uncalibrated` unless opted-in. What's the bootstrap protocol for the first N days of a new model?
 - [ ] **Cross-consumer coordination** — when two v0 consumers surface the same prediction differently (Slack says "at_risk 62%", dashboard says "at_risk"), how do humans reconcile? Is that a UX problem to solve, or a `human_readable_summary` discipline problem?

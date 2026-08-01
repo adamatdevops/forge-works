@@ -295,7 +295,7 @@ governance_envelope:
 - [ ] **Doctrine interplay** — `DOCTRINE_INTERPLAY.md` v0 drafted 2026-07-24. Its v0→v1 promotion is a **T3/T4 consumer prereq**, NOT an SC/PC v0→v1 blocker *(post-hoc dispositions review 2026-07-25)*. AB-031.
 - [ ] **Architecture placement** — Flink sibling vs. `pattern-matcher` extension vs. batch materialized view vs. dedicated inference service. AB-029 architecture spike.
 - [ ] **Feasibility spike** — one source pair, one slice, one binary outcome, one read-only consumer, offline replay against deterministic + logistic-regression baselines with predeclared AUCPR, calibration (ECE + Brier), latency, cost. AB-028. Blocks contract graduation to v1.
-- [ ] **MLflow readiness** — the design assumes MLflow serves calibration curves + model registry. Readiness assessment (auth, HA, backup/restore, promotion authority, artifact durability) needed before production. AB-032.
+- [ ] **MLflow readiness** — the design assumes MLflow serves calibration curves + model registry. Readiness assessment (auth, HA, backup/restore, promotion authority, artifact durability) needed before production. AB-032 ([scoping RFC v0.1](AB-032_MLFLOW_READINESS.md)).
 - [ ] **Wire protocol** — JSON on Kafka is the default; case for Avro/Protobuf for schema evolution deferred to `WIRE_PROTOCOL.md`.
 - [ ] **Vocabulary registration flow** — how does a new enum value get added? Manual PR / auto-register with review threshold / both?
 - [ ] **Cross-reference key governance** — who owns the canonical key-type list in §3.4? What's the process to add a new one?
