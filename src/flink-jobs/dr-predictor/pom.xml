@@ -16,7 +16,7 @@
         <java.version>11</java.version>
         <flink.version>1.20.3</flink.version>
         <kafka.connector.version>3.3.0-1.20</kafka.connector.version>
-        <jackson.version>2.18.7</jackson.version>
+        <jackson.version>2.18.9</jackson.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -15,7 +15,7 @@
   ====================================================================
 
   Notes on the entries below:
-    - 8 are HIGH severity (CVSS 8.x). At our CRITICAL-only failure
+    - 9 are HIGH severity (CVSS 7-8.x). At our CRITICAL-only failure
       threshold (CVSS at or above 9) they would not fail the build even
       unsuppressed. The suppressions exist to keep the GitHub Security
       tab clean for reviewers and to maintain suppression discipline.
@@ -102,28 +102,6 @@
     <notes>NULL pointer dereference / OOB read in XXHash native path — CVE-2026-59949 / SNYK-JAVA-ORGLZ4-18313067. No fixed lz4-java version exists yet; same reachability as -14151788/-14219384. See .snyk for rationale.</notes>
     <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
     <cve>CVE-2026-59949</cve>
-  </suppress>
-
-  <!-- =====================================================================
-       Jackson databind (pinned at 2.18.7 in each Flink module pom.xml)
-       ===================================================================== -->
-
-  <suppress until="2026-08-10Z">
-    <notes>Incorrect Authorization via combined @JsonView + @JsonUnwrapped — CVE-2026-59889 / SNYK-JAVA-COMFASTERXMLJACKSONCORE-17972608. Fix: bump jackson.version to 2.18.9 in all Flink poms. See .snyk for rationale and mitigation.</notes>
-    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson-databind@.*$</packageUrl>
-    <cve>CVE-2026-59889</cve>
-  </suppress>
-
-  <suppress until="2026-08-10Z">
-    <notes>Incomplete disallowed inputs in BasicPolymorphicTypeValidator.allowIfSubTypeIsArray — CVE-2026-54513 / SNYK-JAVA-COMFASTERXMLJACKSONCORE-17440366. Fix: bump jackson.version to 2.18.8+ in all Flink poms. See .snyk for rationale and mitigation.</notes>
-    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson-databind@.*$</packageUrl>
-    <cve>CVE-2026-54513</cve>
-  </suppress>
-
-  <suppress until="2026-08-10Z">
-    <notes>Deserialization of untrusted data via generic-type-argument bypass in DatabindContext._resolveAndValidateGeneric — CVE-2026-54512 / SNYK-JAVA-COMFASTERXMLJACKSONCORE-17440598. Fix: bump jackson.version to 2.18.8+ in all Flink poms. See .snyk for rationale and mitigation.</notes>
-    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson-databind@.*$</packageUrl>
-    <cve>CVE-2026-54512</cve>
   </suppress>
 
   <!-- =====================================================================
