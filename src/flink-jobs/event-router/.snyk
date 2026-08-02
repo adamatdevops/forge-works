@@ -2,7 +2,7 @@
 # Learn more: https://snyk.io/docs/policy-file
 #
 # MIRROR of /.snyk at the repo root. The root file is the source-of-truth
-# and carries the same 8 transitive CVE deferrals; this per-module copy
+# and carries the same 9 transitive CVE deferrals; this per-module copy
 # exists because the Snyk Marketplace App auto-detects `.snyk` next to
 # each scanned manifest (pom.xml) — it does not honor `--policy-path`
 # the way the in-CI CLI does (AB-008 / `research/github_apps/snyk_app_migration.md`).
@@ -112,53 +112,6 @@ ignore:
           (transitive). Same fix path and mitigation as -14151788.
         expires: "2026-08-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
-
-  # ===== NEW 2026-08-01 — jackson-databind (pinned at 2.18.7 in each Flink pom.xml) =====
-  # Fix path: bump jackson.version 2.18.7 → 2.18.9 in the pom.xml of every Flink
-  # module (pattern-matcher, event-router, insight-generator, dr-predictor).
-  # Small, non-Flink-version-dependent change. Aligned with the 2026-08-10Z
-  # Flink-transitive review checkpoint so all Flink-related deferrals are
-  # reconsidered together.
-
-  SNYK-JAVA-COMFASTERXMLJACKSONCORE-17972608:
-    - "*":
-        reason: >-
-          CVE-2026-59889 (High, CVSS 7.1) — Incorrect Authorization in
-          jackson-databind when @JsonView and @JsonUnwrapped are combined.
-          Fix: bump jackson.version to 2.18.9 in all Flink poms. Reachability:
-          forge-works Flink jobs use @JsonIgnoreProperties on flat POJOs with
-          no @JsonView or @JsonUnwrapped annotations, so the vulnerable code
-          path is not exercised. Same trust boundary as existing Kafka CVEs
-          (in-cluster producers only, no third-party JSON reaches Flink).
-        expires: "2026-08-10T00:00:00.000Z"
-        created: "2026-08-01T00:00:00.000Z"
-
-  SNYK-JAVA-COMFASTERXMLJACKSONCORE-17440366:
-    - "*":
-        reason: >-
-          CVE-2026-54513 (Critical, CVSS 9.2) — Incomplete List of Disallowed
-          Inputs in BasicPolymorphicTypeValidator.allowIfSubTypeIsArray().
-          Fix: bump jackson.version to 2.18.8+ in all Flink poms. Reachability:
-          forge-works Flink jobs do NOT enable polymorphic type validation on
-          any deserialization path (no @JsonTypeInfo, no PolymorphicTypeValidator
-          configured), so the vulnerable validator method is never invoked.
-        expires: "2026-08-10T00:00:00.000Z"
-        created: "2026-08-01T00:00:00.000Z"
-
-  SNYK-JAVA-COMFASTERXMLJACKSONCORE-17440598:
-    - "*":
-        reason: >-
-          CVE-2026-54512 (Critical, CVSS 9.2) — Deserialization of Untrusted
-          Data via generic type argument bypass in
-          DatabindContext._resolveAndValidateGeneric(). Fix: bump jackson.version
-          to 2.18.8+ in all Flink poms. Reachability: exploit requires (a)
-          polymorphic type validation enabled, (b) untrusted JSON input, (c) a
-          gadget class on classpath. Forge-works Flink jobs meet zero of these:
-          no polymorphic validators, no untrusted input (Kafka topics only
-          receive from in-cluster normalizers), shaded Jackson classpath is
-          minimal.
-        expires: "2026-08-10T00:00:00.000Z"
-        created: "2026-08-01T00:00:00.000Z"
 
   # ===== NEW 2026-08-01 — lz4-java (transitive via flink-streaming-java 1.20.3) =====
   SNYK-JAVA-ORGLZ4-18313067:
