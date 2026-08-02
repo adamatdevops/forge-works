@@ -55,7 +55,7 @@ These are the four items RFC §2.1 marks "must be locked at scoping-approval." E
 
 ### B2. Rule list lock — §5.1 rules baseline
 
-**RFC proposal (v0.2 §5.1):** 5 rules covering deploy-hour heuristics, plan-diff-size threshold (Rule 5, `P90(plan_diff_size)` from training window), rollback-recent, error-rate-recent, cross-service-dependency.
+**RFC proposal (v0.2 §5.1):** 5 rules — (1) `terraform.apply_failed` on the slice in the last 6h; (2) `datadog.slo_burning` on the slice in the last 1h; (3) DataDog monitor state `warning` or `alert` on any SLO monitor for the slice; (4) deploy touches IAM/security-group/network resources AND slice had ≥1 `apply_failed` in last 7d; (5) `plan_diff_size` > `P90(plan_diff_size)` from training window (data-derived per F7). *(2026-08-02: v0.2 agenda-sync correction — v0.1 agenda described a stale rule set (deploy-hour / rollback-recent / error-rate-recent / cross-service-dependency) that didn't match the RFC. Surfaced by Codex round-1 loop on the reviewer memo.)*
 
 **Decision question:** is the 5-rule list the honest deterministic baseline a rules-first team would actually deploy, or is it a strawman?
 
