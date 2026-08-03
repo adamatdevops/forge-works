@@ -13,12 +13,20 @@ import java.util.Map;
  * without confounding the AB-029 placement measurement with predictor variance. The rules-baseline
  * from AB-028 is deliberately NOT reused here — that baseline is part of the AB-028 spike's own
  * evidence set and lives in Python.
+ *
+ * <p>v0.2 (Codex round-1 loop, 2026-08-03): {@code model_id} + {@code model_version} replace the
+ * v0.1 invented {@code mlflow://models/dr-predictor/placeholder-constant/0.1.0} URI. The v0.1
+ * scheme was not backed by any real MLflow-registered model — it was a URI-shaped label. The v0.2
+ * fields honestly declare the placeholder: {@code MODEL_ID = "placeholder-constant"} with {@code
+ * MODEL_VERSION = "0.1.0-placeholder"} explicitly noting the artifact is NOT in the MLflow
+ * registry. The AB-028 spike will produce a real MLflow-anchored model with a real registered-model
+ * version.
  */
 public final class ConstantPredictor implements ScoringModel {
 
     private static final long serialVersionUID = 1L;
-    private static final String MODEL_REF =
-            "mlflow://models/dr-predictor/placeholder-constant/0.1.0";
+    private static final String MODEL_ID = "placeholder-constant";
+    private static final String MODEL_VERSION = "0.1.0-placeholder";
     private static final double DEFAULT_VALUE = 0.05;
 
     private final double value;
@@ -35,8 +43,13 @@ public final class ConstantPredictor implements ScoringModel {
     }
 
     @Override
-    public String getModelRef() {
-        return MODEL_REF;
+    public String getModelId() {
+        return MODEL_ID;
+    }
+
+    @Override
+    public String getModelVersion() {
+        return MODEL_VERSION;
     }
 
     @Override

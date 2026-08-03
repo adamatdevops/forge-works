@@ -103,16 +103,37 @@ public class DrPredictorJob {
 
         @Override
         public PredictionEnvelope map(NormalizedEvent event) {
+            // v0.2 (Codex round-1 loop): freshness handling tightened per RFC §6.3 G9.
+            //  - Boundary `>= 300` (was `> 300`); PC §3.0 eligibility gate is `< 5 minutes`, so at
+            //    exactly 5 minutes the input is NOT fresh enough.
+            //  - Null / malformed freshness → abstain with `input_freshness_underspecified`
+            //    (was silently coerced to 0L → score). RFC §6.3 G9 requires abstention on
+            //    underspecified freshness, not a synthetic zero-age.
+            //  - v0.1 field name `input_freshness_seconds` renamed to `input_freshness_age_seconds`
+            //    to avoid semantic collision with PC §3.3 `input_freshness` (a timestamp).
+            //  - `UUID.randomUUID()` + `Instant.now()` retained pending H10 real-impl PR
+            //    (deterministic prediction_id derivation blocked on RFC §5.1 model bundle lock).
             Instant now = Instant.now();
             Map<String, String> slice = buildSlice(event);
             Long freshnessSeconds = computeFreshness(event, now);
-            if (freshnessSeconds != null && freshnessSeconds > 300) {
+            if (freshnessSeconds == null) {
+                return PredictionEnvelope.abstain(
+                        UUID.randomUUID().toString(),
+                        event.getEventId(),
+                        "input_freshness_underspecified",
+                        slice,
+                        model.getModelId(),
+                        model.getModelVersion(),
+                        now);
+            }
+            if (freshnessSeconds >= 300) {
                 return PredictionEnvelope.abstain(
                         UUID.randomUUID().toString(),
                         event.getEventId(),
                         "input_stale",
                         slice,
-                        model.getModelRef(),
+                        model.getModelId(),
+                        model.getModelVersion(),
                         now);
             }
             double score = model.score(extractor.extract(event));
@@ -121,8 +142,9 @@ public class DrPredictorJob {
                     event.getEventId(),
                     score,
                     slice,
-                    model.getModelRef(),
-                    freshnessSeconds == null ? 0L : freshnessSeconds,
+                    model.getModelId(),
+                    model.getModelVersion(),
+                    freshnessSeconds,
                     now);
         }
 

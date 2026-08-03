@@ -1,8 +1,13 @@
-"""7 benchmark dimensions + Measurement value type (RFC §4).
+"""8 benchmark dimensions + Measurement value type (RFC §4).
 
 Dimensions and default weights are locked at RFC scoping-approval. Placeholders here
-match RFC v0.1 §6.2 proposals. The scoping-approval meeting locks the real weights
+match RFC v0.2 §6.2 proposals. The scoping-approval meeting locks the real weights
 by constructing a WeightedScoreRubric with an overriding weights dict.
+
+v0.2 (Codex round-1 loop, 2026-08-03): added D8 evidence integrity + operability per
+RFC v0.2 §4. Added `FROZEN` and `NOT_MEASURED` MeasurementStatus values per RFC v0.2
+§8 R1 scoring freeze + §6.2.1 absolute-anchor discipline (missing data ≠ successful
+measurement).
 """
 
 from __future__ import annotations
@@ -12,17 +17,32 @@ from enum import Enum
 
 
 class MeasurementStatus(str, Enum):
-    """Where a measurement came from — separates real measurements from stub / placeholder."""
+    """Where a measurement came from — separates real measurements from stub / placeholder.
+
+    v0.2 additions (Codex round-1 loop, 2026-08-03):
+
+    - ``FROZEN`` — measurement WOULD produce a value, but scoring is frozen per RFC §8 R1
+      (Option A pre-implementation asymmetry — see RFC v0.2 §8 R1 rewrite). Freeze lifts
+      when B-F prototypes reach effort parity OR a blinded reviewer runs.
+
+    - ``NOT_MEASURED`` — measurement path exists in the methodology but has not produced
+      a value yet (e.g., requires a run against real infrastructure). Distinct from
+      NOT_APPLICABLE (where the methodology itself cannot apply) and NOT_IMPLEMENTED
+      (where the stub has no measurement code at all). Per RFC v0.2 §6.2.1, missing data
+      scores 0 — a NOT_MEASURED value does NOT count as an OK measurement.
+    """
 
     OK = "ok"
     NOT_IMPLEMENTED = "not_implemented"
     NOT_APPLICABLE = "not_applicable"
+    NOT_MEASURED = "not_measured"
+    FROZEN = "frozen"
     FAILED = "failed"
 
 
 @dataclass(frozen=True)
 class Dimension:
-    """One of the 7 benchmark dimensions (RFC §4)."""
+    """One of the 8 benchmark dimensions (RFC §4)."""
 
     code: str
     name: str
@@ -34,13 +54,15 @@ class Dimension:
 
 D1_REPLAY = Dimension(
     code="D1",
-    name="Replay behavior",
-    unit="seconds",
+    name="Historical reproducibility",
+    unit="seconds + completion %",
     higher_is_better=False,
     default_weight=3,
     description=(
-        "Time to replay 30 days of events from Kafka offset zero to current tip. "
-        "Critical for retraining + audit; missing this makes calibration impossible."
+        "Time to reproduce the last 30 days of predictions from each option's canonical "
+        "retained source. Common correctness threshold: byte-identical predictions on "
+        "≥99.9% of replayed events. Retraining + audit-window reconstruction require "
+        "bounded recomputation time."
     ),
 )
 
@@ -51,8 +73,8 @@ D2_BACKPRESSURE = Dimension(
     higher_is_better=True,
     default_weight=2,
     description=(
-        "Behavior at 10x input rate — does it queue, drop, block upstream, or degrade gracefully? "
-        "v0 is low-volume; matters more at v1."
+        "Behavior at 10x §2.4 baseline input rate (500 events/sec) — does it queue, drop, "
+        "block upstream, or degrade gracefully? Weight=2 unless §2.4 envelope invalidates."
     ),
 )
 
@@ -75,9 +97,10 @@ D4_FAILURE_ISOLATION = Dimension(
     higher_is_better=True,
     default_weight=4,
     description=(
-        "Impact of predictor crash on (a) other Flink jobs, (b) Kafka backlog, "
-        "(c) upstream data producers. Advisory-only means low blast radius, but engineer trust "
-        "depends on isolation from deterministic paths."
+        "Impact of predictor crash on (a) other Flink jobs / co-located jobs, "
+        "(b) Kafka backlog, (c) upstream data producers. Explicitly measures blast radius "
+        "when the predictor faults; operability sub-checks (telemetry / MTTR / rollback / "
+        "abstention) live in D8."
     ),
 )
 
@@ -117,6 +140,22 @@ D7_COGNITIVE_LOAD = Dimension(
     ),
 )
 
+D8_EVIDENCE_INTEGRITY = Dimension(
+    code="D8",
+    name="Evidence integrity + operability",
+    unit="qualitative + coverage % per sub-check",
+    higher_is_better=True,
+    default_weight=4,
+    description=(
+        "Composite dimension covering: (a) replay determinism, (b) prediction identity "
+        "stability under retry, (c) full PC §3 field-conformance emission, (d) lifecycle "
+        "event delivery per PC §5, (e) label-join viability per GT §7 join key, "
+        "(f) audit-sink completeness under retry and crash, (g) operability: telemetry, "
+        "alerting, MTTR envelope, rollback, model fallback/abstention, runbook, ownership. "
+        "Corpus non-negotiable per README §Graduation criteria."
+    ),
+)
+
 
 DIMENSIONS: tuple[Dimension, ...] = (
     D1_REPLAY,
@@ -126,6 +165,7 @@ DIMENSIONS: tuple[Dimension, ...] = (
     D5_COST,
     D6_LATENCY,
     D7_COGNITIVE_LOAD,
+    D8_EVIDENCE_INTEGRITY,
 )
 
 DEFAULT_WEIGHTS: dict[str, int] = {d.code: d.default_weight for d in DIMENSIONS}
@@ -147,6 +187,15 @@ class Measurement:
             raise ValueError(msg)
         if self.status is MeasurementStatus.OK and self.value is None and not self.qualitative:
             msg = "measurement with status=OK must carry a value or qualitative note"
+            raise ValueError(msg)
+        # v0.2: FROZEN and NOT_MEASURED explicitly MUST NOT carry a value — the whole
+        # point is to prevent laundering a static assertion as a valid score.
+        no_value_statuses = {MeasurementStatus.FROZEN, MeasurementStatus.NOT_MEASURED}
+        if self.status in no_value_statuses and self.value is not None:
+            msg = (
+                f"measurement with status={self.status.value} MUST NOT carry a value "
+                "— use qualitative + note to document"
+            )
             raise ValueError(msg)
 
     @property
