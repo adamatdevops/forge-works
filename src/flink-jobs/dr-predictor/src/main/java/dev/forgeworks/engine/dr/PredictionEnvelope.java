@@ -14,11 +14,33 @@ import java.util.Map;
  *
  * <p>v0 constraints: single pool per §3.1; signal_role=recommendation (T2); type=score for the
  * placeholder predictor; estimand_id=deploy_slo_breach_60m_association_v0 per AB-033.
+ *
+ * <p>v0.2 changes (Codex round-1 loop, 2026-08-03):
+ *
+ * <ul>
+ *   <li>{@code model_ref} field REPLACED by {@code model_id} + {@code model_version} per PC §4.2
+ *       required fields. v0.1's {@code mlflow://...} URI scheme was invented; not in the contract.
+ *   <li>Canonical pool: v0.1 emitted {@code ["deploy", "slo"]} which are estimand-topic-names, not
+ *       pool names. v0.2 emits single canonical pool {@code "runtime"} (the estimand is about an
+ *       SLO breach of a running service — runtime is the closest fit in the canonical set; final
+ *       pool assignment to be confirmed against SC §3.1 canonical vocabulary in the real-impl PR).
+ *   <li>Freshness field renamed: v0.1's {@code input_freshness_seconds} (a duration) collided with
+ *       PC §3.3 {@code input_freshness} (a timestamp / age reference). v0.2 renames to {@code
+ *       input_freshness_age_seconds} to avoid the collision. PC §3.3 timestamp semantics will be
+ *       added in the real-impl PR alongside PC §3 field completeness.
+ * </ul>
+ *
+ * <p>DEFERRED (not v0.2 apply-now scope; will land in real-impl PR post-scoping-approval): PC §3
+ * required-field completeness (pools_contributing_now, structured slice per §3.5, correlation
+ * claims per §3.4, revalidate_after per §4.3, human_readable_summary), governance envelope
+ * propagation per §3.6, deterministic prediction identity, lifecycle events per §5. Each of these
+ * requires wiring beyond a field-rename and is blocked on the RFC §5.1 model-bundle lock.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PredictionEnvelope implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final String CANONICAL_POOL = "runtime";
 
     @JsonProperty("event_id")
     private final String eventId;
@@ -62,11 +84,14 @@ public class PredictionEnvelope implements Serializable {
     @JsonProperty("slice")
     private final Map<String, String> slice;
 
-    @JsonProperty("model_ref")
-    private final String modelRef;
+    @JsonProperty("model_id")
+    private final String modelId;
 
-    @JsonProperty("input_freshness_seconds")
-    private final Long inputFreshnessSeconds;
+    @JsonProperty("model_version")
+    private final String modelVersion;
+
+    @JsonProperty("input_freshness_age_seconds")
+    private final Long inputFreshnessAgeSeconds;
 
     /** Constructor for a scored prediction. */
     public static PredictionEnvelope score(
@@ -74,14 +99,15 @@ public class PredictionEnvelope implements Serializable {
             String correlationId,
             double value,
             Map<String, String> slice,
-            String modelRef,
-            long inputFreshnessSeconds,
+            String modelId,
+            String modelVersion,
+            long inputFreshnessAgeSeconds,
             Instant computedAt) {
         return new PredictionEnvelope(
                 eventId,
                 correlationId,
                 "deploy_slo_breach_60m_association_v0",
-                List.of("deploy", "slo"),
+                List.of(CANONICAL_POOL),
                 "recommendation",
                 "score",
                 "1.0",
@@ -92,8 +118,9 @@ public class PredictionEnvelope implements Serializable {
                 computedAt.toString(),
                 computedAt.plusSeconds(3600).toString(),
                 slice,
-                modelRef,
-                inputFreshnessSeconds);
+                modelId,
+                modelVersion,
+                inputFreshnessAgeSeconds);
     }
 
     /** Constructor for an abstain prediction. */
@@ -102,13 +129,14 @@ public class PredictionEnvelope implements Serializable {
             String correlationId,
             String abstainReason,
             Map<String, String> slice,
-            String modelRef,
+            String modelId,
+            String modelVersion,
             Instant computedAt) {
         return new PredictionEnvelope(
                 eventId,
                 correlationId,
                 "deploy_slo_breach_60m_association_v0",
-                List.of("deploy", "slo"),
+                List.of(CANONICAL_POOL),
                 "recommendation",
                 "abstain",
                 "1.0",
@@ -119,7 +147,8 @@ public class PredictionEnvelope implements Serializable {
                 computedAt.toString(),
                 computedAt.plusSeconds(3600).toString(),
                 slice,
-                modelRef,
+                modelId,
+                modelVersion,
                 null);
     }
 
@@ -139,8 +168,9 @@ public class PredictionEnvelope implements Serializable {
             String validFrom,
             String validUntil,
             Map<String, String> slice,
-            String modelRef,
-            Long inputFreshnessSeconds) {
+            String modelId,
+            String modelVersion,
+            Long inputFreshnessAgeSeconds) {
         this.eventId = eventId;
         this.correlationId = correlationId;
         this.estimandId = estimandId;
@@ -155,8 +185,9 @@ public class PredictionEnvelope implements Serializable {
         this.validFrom = validFrom;
         this.validUntil = validUntil;
         this.slice = slice == null ? null : Collections.unmodifiableMap(new HashMap<>(slice));
-        this.modelRef = modelRef;
-        this.inputFreshnessSeconds = inputFreshnessSeconds;
+        this.modelId = modelId;
+        this.modelVersion = modelVersion;
+        this.inputFreshnessAgeSeconds = inputFreshnessAgeSeconds;
     }
 
     public String getEventId() {
@@ -215,11 +246,15 @@ public class PredictionEnvelope implements Serializable {
         return slice;
     }
 
-    public String getModelRef() {
-        return modelRef;
+    public String getModelId() {
+        return modelId;
     }
 
-    public Long getInputFreshnessSeconds() {
-        return inputFreshnessSeconds;
+    public String getModelVersion() {
+        return modelVersion;
+    }
+
+    public Long getInputFreshnessAgeSeconds() {
+        return inputFreshnessAgeSeconds;
     }
 }

@@ -80,13 +80,17 @@ class BenchmarkRunner:
 
 
 def scoping_approval_placeholder_inputs() -> list[OptionInput]:
-    """Placeholder scores for the 5 stub prototypes.
+    """Placeholder scores for the 6 stub prototypes.
 
     Meant as an executable starting point for the scoping-approval meeting — the meeting
     replaces these with real per-option per-dimension scores after inspecting RFC §3
     analysis + any measured evidence.
+
+    v0.2 (Codex Loop #4): added Option F (StandalonePythonKafkaConsumerStub) per RFC §3.6.
+    Score dict includes D8 evidence-integrity + operability (also v0.2 addition).
     """
     neutral = {d.code: 3 for d in DIMENSIONS}
     return [
-        OptionInput(option_code=code, scores=dict(neutral)) for code in ("A", "B", "C", "D", "E")
+        OptionInput(option_code=code, scores=dict(neutral))
+        for code in ("A", "B", "C", "D", "E", "F")
     ]

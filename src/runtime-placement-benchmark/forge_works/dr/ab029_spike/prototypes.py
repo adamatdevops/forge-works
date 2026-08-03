@@ -1,23 +1,83 @@
-"""Placement prototype Protocol + stub implementations for all 5 RFC §3 options.
+"""Placement prototype Protocol + stub implementations for all 6 RFC §3 options.
 
 Each stub reports what its measurement WOULD produce (via `describe_capability`) but
 returns `MeasurementStatus.NOT_IMPLEMENTED` for actual measurements. Real prototypes
 swap in by implementing `PlacementPrototype` and overriding `measure(dimension)`.
 
-Option A has a real prototype at `SiblingFlinkPrototype` — measures D1/D3/D4/D7 from
-the actual `src/flink-jobs/dr-predictor/` module + reports NOT_APPLICABLE with
-reasoning for D2/D5/D6 (each requires a running cluster + real load to measure).
+Option A has a real-scaffold prototype at `SiblingFlinkPrototype`. Per RFC v0.2 §8 R1,
+all Option A scores are FROZEN pending B-F effort parity OR a blinded reviewer. The
+v0.1 static D4=5 / D7=5 assignments have been REMOVED in favor of `FROZEN` status.
+
+v0.2 changes (Codex round-1 loop on this prototype code, 2026-08-03):
+
+- **Registry aligned with RFC v0.2 §3.6** — added `StandalonePythonKafkaConsumerStub`
+  (Option F). Registry count 5 → 6.
+- **Scoring freeze per RFC v0.2 §8 R1 honored in code** — `SiblingFlinkPrototype`
+  D4/D7 measurers return `FROZEN` (no value) instead of the v0.1 static 5.0.
+- **D8 measurer added** — RFC v0.2 §4 added D8 (evidence integrity + operability).
+  Handler returns `NOT_APPLICABLE` with dual-reason note (D8 sub-checks require MLflow
+  audit sink + PC §5 lifecycle events + retry-idempotency tests that Option A prototype
+  does NOT yet implement; even without §8 R1 freeze, D8 would not be measurable).
+- **D1 / D3 measurers de-laundered** — v0.1 returned `OK` with qualitative descriptions
+  of capability while admitting numeric measurement was absent. v0.2 returns
+  `NOT_MEASURED` (RFC v0.2 §6.2.1 requires absolute anchors; unmeasured ≠ passed).
+- **Gate-evaluation surface added** — `evaluate_gates()` returns per-gate G1-G10 status
+  per RFC v0.2 §6.3. For scaffold-state Option A, every gate is `NOT_EVALUATED` with
+  evidence pointer "requires RFC §5.1 model bundle lock + real implementation pass."
+
+**Deferred to post-scoping-approval real-impl PR** (per reconciled loop artifact):
+governance envelope propagation (H4), structured slice per PC §3.5 (H5), deterministic
+prediction identity (H10), Kafka exactly-once (H11), PC §5 lifecycle events (H12),
+MLflow audit sink (H13), real AB-028 §4.3 feature extraction (H16), DLQ (M20),
+comprehensive Java test suite (M21 remainder). Each requires either the RFC §5.1
+model-bundle lock or systemic Flink pipeline work.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from forge_works.dr.ab029_spike.dimensions import DIMENSIONS, Measurement, MeasurementStatus
 
 _UNIMPLEMENTED_NOTE = "stub prototype — real prototype must override measure()"
+
+
+class GateStatus(str, Enum):
+    """Per-gate evaluation status for RFC v0.2 §6.3 G1-G10.
+
+    v0.2 addition (Codex round-1 loop, 2026-08-03) per H17 gate-evaluation surface.
+    """
+
+    PASS = "pass"  # noqa: S105  # not a password — RFC gate status enum value
+    FAIL = "fail"
+    CONDITIONAL = "conditional"
+    NOT_EVALUATED = "not_evaluated"
+
+
+@dataclass(frozen=True)
+class GateResult:
+    """One G1-G10 gate result."""
+
+    gate_code: str  # e.g. "G1", "G8"
+    status: GateStatus
+    evidence: str
+
+
+RFC_GATES: tuple[str, ...] = (
+    "G1",  # score ≥ 3 on all weight-4 dimensions (D3, D4, D8)
+    "G2",  # no breaking changes to PC §3 estimand semantics or GT §2.1 required fields
+    "G3",  # T1/T2-only authority
+    "G4",  # full PC §3 emission conformance
+    "G5",  # governance envelope enforcement
+    "G6",  # model-artifact immutability
+    "G7",  # audit + lifecycle event delivery
+    "G8",  # label-join viability
+    "G9",  # abstention / fallback path exists
+    "G10",  # MLflow-dependent options block on AB-032 verdict
+)
 
 
 @runtime_checkable
@@ -110,30 +170,52 @@ class BatchMaterializedStub(_StubBase):
     """Option D — scheduled batch job + materialized-view store + change notifications."""
 
     option_code: str = "D"
-    name: str = "Batch materialized-view"
+    name: str = "Batch materialized-view (Airflow + Postgres)"
     description: str = (
-        "Airflow scheduled batch job reads recent events from Kafka / warehouse, scores in "
-        "Python, writes predictions to a materialized view, publishes change notifications."
+        "Airflow scheduled DAG + in-cluster Postgres materialized view + lightweight Kafka "
+        "change-notification topic. DAG runs every 60s (configurable); scores in Python; "
+        "upserts predictions to Postgres. Pinned architecture per RFC v0.2 §3.4."
     )
     contract_implication_notes: tuple[str, ...] = (
-        "PC §5 requires a `staleness` field (predictions carry the batch-interval age).",
+        "Freshness semantics covered by existing PC §3.3 fields; no new field required.",
         "SC §5 requires source-access-pattern annotation for batch reader.",
     )
 
 
 @dataclass(frozen=True)
 class DedicatedInferenceStub(_StubBase):
-    """Option E — dedicated inference service (Triton / KServe)."""
+    """Option E — dedicated KServe inference service."""
 
     option_code: str = "E"
-    name: str = "Dedicated inference service"
+    name: str = "Dedicated inference service (KServe)"
     description: str = (
-        "Standalone Triton/KServe service. Flink job (thin) consumes events, calls the "
-        "inference service via gRPC, writes predictions back to Kafka."
+        "KServe InferenceService in the existing forge-works cluster, backed by sklearn-runtime "
+        "pod pulling models from MLflow. Thin Flink job calls the endpoint via gRPC. Pinned "
+        "architecture per RFC v0.2 §3.5. Blocks on AB-032 verdict per §6.3 G10."
     )
     contract_implication_notes: tuple[str, ...] = (
         "New service to run, monitor, on-call.",
-        "Cross-service latency (Flink <-> Triton) is a new failure mode.",
+        "Cross-service latency (Flink <-> KServe) is a new failure mode.",
+        "AB-032 MLflow registry-governance verdict is a hard prerequisite.",
+    )
+
+
+@dataclass(frozen=True)
+class StandalonePythonKafkaConsumerStub(_StubBase):
+    """Option F — standalone Python Kafka consumer service (v0.2 addition per RFC §3.6)."""
+
+    option_code: str = "F"
+    name: str = "Standalone Python Kafka consumer"
+    description: str = (
+        "Python aiokafka consumer service deployed as a Kubernetes Deployment (3 replicas, "
+        "consumer-group parallelism); reads forge.events.normalized.v1; scores in Python "
+        "(sklearn / XGBoost); publishes predictions; state (windowed features) held in Redis; "
+        "consumer-lag-driven autoscaling via keda. Pinned architecture per RFC v0.2 §3.6."
+    )
+    contract_implication_notes: tuple[str, ...] = (
+        "Consumer-group management, backpressure, state, exactly-once are all manual (no Flink primitives).",
+        "Redis-for-state adds an operational surface.",
+        "AB-032 MLflow verdict is a hard prerequisite if MLflow-loaded model is used.",
     )
 
 
@@ -143,6 +225,7 @@ ALL_STUB_PROTOTYPES: tuple[_StubBase, ...] = (
     InsightGeneratorExtensionStub(),
     BatchMaterializedStub(),
     DedicatedInferenceStub(),
+    StandalonePythonKafkaConsumerStub(),
 )
 
 
@@ -161,24 +244,37 @@ _DR_PREDICTOR_DIR = "src/flink-jobs/dr-predictor"
 
 @dataclass(frozen=True)
 class SiblingFlinkPrototype:
-    """Option A — real prototype backed by `src/flink-jobs/dr-predictor/`.
+    """Option A — real-scaffold prototype backed by `src/flink-jobs/dr-predictor/`.
 
-    Measures the four dimensions decidable from static inspection of the module + Flink
-    documented semantics (D1, D3, D4, D7). Reports NOT_APPLICABLE with reasoning for the
-    three that require a running cluster and real load (D2, D5, D6). Reports FAILED if
-    the expected module is missing.
+    v0.2 (Codex round-1 loop, 2026-08-03): reframed from "real prototype" to
+    "real-scaffold prototype." The Java module exists and the pipeline shape is
+    production-ready, but per Codex Loop #4 findings (H1, H4, H5, H7, H10, H11, H12,
+    H13, H16) the module does NOT yet satisfy RFC v0.2 §6.3 G1-G10 hard gates. Real
+    measurement requires: RFC §5.1 model-bundle lock; AB-032 MLflow verdict; full PC §3
+    field completeness; governance propagation; deterministic identity; PC §5 lifecycle;
+    exactly-once Kafka; real feature extraction; MLflow audit sink. All deferred to a
+    post-scoping-approval real-implementation PR.
+
+    Per RFC v0.2 §8 R1: ALL measurements FROZEN pending B-F effort parity or blinded
+    reviewer. D4 and D7 no longer emit static values.
     """
 
     option_code: str = "A"
-    name: str = "Sibling Flink job (real prototype)"
+    name: str = "Sibling Flink job (real scaffold — pre-freeze)"
     description: str = (
-        "Real Flink job at src/flink-jobs/dr-predictor/ — placeholder ConstantPredictor "
-        "model until AB-028 ships. Pipeline shape and Kafka topics are production-ready."
+        "Real Flink module scaffold at src/flink-jobs/dr-predictor/ — placeholder "
+        "ConstantPredictor model until AB-028 ships. Pipeline shape is production-ready but "
+        "PC §3 field completeness, governance propagation, PC §5 lifecycle events, MLflow "
+        "audit sink, and real feature extraction are deferred to real-implementation PR "
+        "post RFC §5.1 gate resolution."
     )
     contract_implication_notes: tuple[str, ...] = (
         "Emits to forge.predictions.dynamic_reliability.v1 — new Kafka topic (needs provisioning).",
         "Placeholder ConstantPredictor scoring — real model requires AB-028 spike + AB-032 MLflow.",
         "Estimand_id fixed to deploy_slo_breach_60m_association_v0 in envelope factory methods.",
+        "PC §3 field completeness DEFERRED to real-impl PR (Codex Loop #4 H1/H5).",
+        "Governance envelope propagation DEFERRED (Codex Loop #4 H4).",
+        "PC §5 lifecycle events NOT YET IMPLEMENTED (Codex Loop #4 H12).",
     )
     predictor_dir: Path = field(default_factory=lambda: _repo_root() / _DR_PREDICTOR_DIR)
 
@@ -194,6 +290,7 @@ class SiblingFlinkPrototype:
 
 
 def _measure_d1_replay(proto: SiblingFlinkPrototype) -> Measurement:
+    """D1 historical reproducibility — v0.2: NOT_MEASURED per RFC §6.2.1 (was OK-with-caveats)."""
     if not (proto.predictor_dir / "pom.xml").is_file():
         return Measurement(
             dimension_code="D1",
@@ -202,53 +299,60 @@ def _measure_d1_replay(proto: SiblingFlinkPrototype) -> Measurement:
         )
     return Measurement(
         dimension_code="D1",
-        status=MeasurementStatus.OK,
+        status=MeasurementStatus.NOT_MEASURED,
         qualitative=(
-            "Flink-native replay via Kafka consumer OffsetsInitializer + savepoint restore. "
-            "OffsetsInitializer.committedOffsets(EARLIEST) resets to earliest on missing group; "
-            "savepoint restore rewinds state to any prior checkpoint. Wall-clock time for a "
-            "full 30-day replay is proportional to (throughput * 30 days) / (job parallelism); "
-            "unmeasured until real Kafka cluster available."
+            "Capability documented: Flink-native replay via Kafka consumer OffsetsInitializer + "
+            "savepoint restore. Wall-clock for a full 30-day replay would be proportional to "
+            "(throughput * 30 days) / (job parallelism). Byte-identical correctness on ≥99.9% of "
+            "events (RFC §6.2.1 anchor for score 3) is UNMEASURED — requires real Kafka cluster + "
+            "instrumented replay run. v0.1 returned OK with qualitative only; v0.2 correctly "
+            "returns NOT_MEASURED per RFC §6.2.1 (missing data ≠ successful measurement)."
         ),
-        note="Capability confirmed by static inspection of DrPredictorJob.main().",
+        note="Capability confirmed by static inspection; measurement pending real infra.",
     )
 
 
 def _measure_d3_rollout(proto: SiblingFlinkPrototype) -> Measurement:
+    """D3 model rollout — v0.2: NOT_MEASURED (was OK-with-invented-numbers)."""
     _ = proto
     return Measurement(
         dimension_code="D3",
-        status=MeasurementStatus.OK,
+        status=MeasurementStatus.NOT_MEASURED,
         qualitative=(
-            "3-step rollout via savepoint + swap: (1) `flink savepoint <job-id> <path>` to snapshot "
-            "state, (2) `flink stop --savepointPath <path>` to halt job, (3) `flink run -s <path> "
-            "dr-predictor-0.1.0.jar` to resume with new binary. Model swap requires JAR rebuild + "
-            "redeploy — a real MLflow-loaded ScoringModel implementation lets model artifact swap "
-            "happen without JAR rebuild (see pattern-matcher/model/ModelLoader for the pattern). "
-            "Wall-clock: ~30s savepoint + ~15s restart, dominated by state size."
+            "Capability documented: 3-step rollout via savepoint + JAR swap: "
+            "(1) `flink savepoint <job-id> <path>`, (2) `flink stop --savepointPath <path>`, "
+            "(3) `flink run -s <path> dr-predictor-<version>.jar`. Model swap requires JAR rebuild "
+            "unless a real MLflow-loaded ScoringModel is added (pattern from pattern-matcher/model/"
+            "ModelLoader). Wall-clock not measured. v0.1's `~30s savepoint + ~15s restart` numbers "
+            "were reviewer-invented, not observed; v0.2 correctly withholds numeric values."
         ),
-        note="Mechanics confirmed; ConstantPredictor placeholder bypasses model-swap path entirely.",
+        note="Mechanics documented; wall-clock measurement pending real cluster run.",
     )
 
 
 def _measure_d4_isolation(proto: SiblingFlinkPrototype) -> Measurement:
+    """D4 failure isolation — v0.2: FROZEN per RFC §8 R1 (was static value=5.0)."""
     _ = proto
     return Measurement(
         dimension_code="D4",
-        status=MeasurementStatus.OK,
-        value=5.0,
+        status=MeasurementStatus.FROZEN,
         qualitative=(
-            "Standalone Flink job with dedicated JobManager + TaskManager slots — crash affects "
-            "only this job. No shared state with sibling jobs (pattern-matcher, event-router, "
-            "insight-generator) beyond Kafka topics. Consumer group forgeworks-dr-predictor is "
-            "distinct; predictor crash cannot rewind sibling consumer offsets. Highest possible "
-            "score on the 1-5 scale (higher_is_better=True per D4 dimension def)."
+            "Capability: standalone Flink job with dedicated JobManager + TaskManager slots — "
+            "crash affects only this job; consumer group forgeworks-dr-predictor is distinct "
+            "from sibling jobs. v0.1 asserted D4=5.0 as the reference for full isolation. "
+            "RFC v0.2 §6.2.1 anchor for score 5 requires 'automatic recovery <30s' — NEVER "
+            "MEASURED. RFC v0.2 §8 R1 also freezes all Option A scoring pending B-F effort "
+            "parity or blinded reviewer. v0.2 correctly returns FROZEN with no value."
         ),
-        note="Score 5.0 = full isolation. Sibling-Flink is the reference for D4 isolation.",
+        note=(
+            "Score 5.0 v0.1 assertion RESCINDED — recovery time not measured (RFC §6.2.1 "
+            "anchor mismatch); scoring frozen (RFC §8 R1)."
+        ),
     )
 
 
 def _measure_d7_cognitive_load(proto: SiblingFlinkPrototype) -> Measurement:
+    """D7 cognitive load — v0.2: FROZEN per RFC §8 R1 (was static value=5.0 justified by file count)."""
     src_dir = proto.predictor_dir / "src" / "main" / "java"
     if not src_dir.is_dir():
         return Measurement(
@@ -260,18 +364,20 @@ def _measure_d7_cognitive_load(proto: SiblingFlinkPrototype) -> Measurement:
     file_count = len(java_files)
     return Measurement(
         dimension_code="D7",
-        status=MeasurementStatus.OK,
-        value=5.0,
+        status=MeasurementStatus.FROZEN,
         qualitative=(
-            f"Same conceptual footprint as existing Flink jobs (pattern-matcher, event-router, "
-            f"insight-generator) — no new tools, no new languages, no new deploy path. "
-            f"Java file count: {file_count} (matches pattern-matcher's minimal-viable size). "
-            f"Operators already know: Flink DAG debugging, Kafka consumer groups, JAR deploy, "
-            f"savepoint/checkpoint. No new concepts introduced by this placement."
+            f"Capability: same conceptual footprint as existing Flink jobs (pattern-matcher, "
+            f"event-router, insight-generator). Java file count: {file_count}. v0.1 asserted "
+            f"D7=5.0 with rationale 'file count matches pattern-matcher's minimal-viable size.' "
+            f"RFC v0.2 §6.2.1 anchor for score 5 requires '0 new concepts; all patterns exist "
+            f"in current stack' — but Option A's real-impl PR (see contract_implications) will "
+            f"introduce PC §5 lifecycle events, MLflow audit sink, governance propagation — "
+            f"NEW patterns not yet in the current stack. File count is not proof of pattern "
+            f"reuse. RFC §8 R1 also freezes scoring. v0.2 correctly returns FROZEN."
         ),
         note=(
-            f"Score 5.0 = highest reuse of existing platform knowledge. "
-            f"File count {file_count} confirms minimal-viable module shape."
+            "Score 5.0 v0.1 assertion RESCINDED — file count ≠ concept-reuse evidence; "
+            "real-impl PR will introduce new concepts (lifecycle, audit-sink, governance)."
         ),
     )
 
@@ -324,6 +430,25 @@ def _measure_d6_latency(proto: SiblingFlinkPrototype) -> Measurement:
     )
 
 
+def _measure_d8_evidence_integrity(proto: SiblingFlinkPrototype) -> Measurement:
+    """D8 evidence integrity + operability — v0.2 NEW dimension per RFC §4."""
+    _ = proto
+    return _measure_na(
+        "D8",
+        (
+            "D8 has TWO independent reasons it cannot score right now for Option A: "
+            "(1) methodology gap — D8's 7 sub-checks (replay determinism, prediction identity "
+            "stability under retry, full PC §3 emission conformance, PC §5 lifecycle event "
+            "delivery, GT §7 label-join viability, audit-sink completeness, operability drills) "
+            "each require infrastructure Option A does NOT yet have: MLflow audit sink (Codex "
+            "Loop #4 H13), PC §5 lifecycle events (H12), Kafka exactly-once (H11), deterministic "
+            "prediction identity (H10). (2) process gate — RFC v0.2 §8 R1 also freezes all "
+            "Option A scoring. When BOTH reasons close (real-impl PR lands AND freeze lifts), "
+            "D8 can be measured. Not currently applicable."
+        ),
+    )
+
+
 _MEASURERS = {
     "D1": _measure_d1_replay,
     "D2": _measure_d2_backpressure,
@@ -332,9 +457,30 @@ _MEASURERS = {
     "D5": _measure_d5_cost,
     "D6": _measure_d6_latency,
     "D7": _measure_d7_cognitive_load,
+    "D8": _measure_d8_evidence_integrity,
 }
 
 
 def measure_all(prototype: PlacementPrototype) -> dict[str, Measurement]:
     """Convenience: measure every dimension for one prototype."""
     return {d.code: prototype.measure(d.code) for d in DIMENSIONS}
+
+
+def evaluate_gates(prototype: PlacementPrototype) -> dict[str, GateResult]:
+    """Return per-gate G1-G10 status for a prototype per RFC v0.2 §6.3.
+
+    v0.2 addition (Codex round-1 loop, 2026-08-03) per H17. Real evaluation logic
+    requires each gate's testing methodology to be implemented; for scaffold-state
+    Option A + stub Options B-F, every gate is NOT_EVALUATED. Gate evaluation lands
+    alongside the real-implementation PR that closes Codex Loop #4 deferred findings.
+    """
+    reason = (
+        f"Option {prototype.option_code}: gate evaluation not yet implemented. Requires RFC "
+        "§5.1 model bundle lock + real-implementation PR (Codex Loop #4 deferred H1/H4/H5/H7/"
+        "H10/H11/H12/H13). For pure-stub options (B-F currently) no prototype code exists to "
+        "evaluate. Contract surface exists here so future work can populate."
+    )
+    return {
+        gate: GateResult(gate_code=gate, status=GateStatus.NOT_EVALUATED, evidence=reason)
+        for gate in RFC_GATES
+    }

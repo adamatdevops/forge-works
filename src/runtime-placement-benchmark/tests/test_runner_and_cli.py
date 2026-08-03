@@ -15,7 +15,7 @@ from forge_works.dr.ab029_spike.runner import (
 def test_placeholder_inputs_cover_all_options() -> None:
     inputs = scoping_approval_placeholder_inputs()
     codes = {i.option_code for i in inputs}
-    assert codes == {"A", "B", "C", "D", "E"}
+    assert codes == {"A", "B", "C", "D", "E", "F"}
     for i in inputs:
         for d in DIMENSIONS:
             assert i.scores[d.code] == 3
@@ -24,7 +24,7 @@ def test_placeholder_inputs_cover_all_options() -> None:
 def test_runner_produces_matrix_and_decision() -> None:
     r = BenchmarkRunner()
     m, d = r.run(scoping_approval_placeholder_inputs())
-    assert len(m.options) == 5
+    assert len(m.options) == 6
     assert d.primary is not None
 
 
@@ -47,7 +47,7 @@ def test_cli_writes_out_dir(tmp_path) -> None:
     assert (tmp_path / "matrix.json").exists()
     assert (tmp_path / "matrix.md").exists()
     payload = json.loads((tmp_path / "matrix.json").read_text())
-    assert len(payload["options"]) == 5
+    assert len(payload["options"]) == 6
     assert exit_code in (0, 1)
 
 
@@ -55,7 +55,7 @@ def test_cli_json_only(capsys) -> None:
     main(["--json-only"])
     out = capsys.readouterr().out
     payload = json.loads(out)
-    assert len(payload["options"]) == 5
+    assert len(payload["options"]) == 6
 
 
 def test_load_inputs_accepts_scores_json(tmp_path) -> None:
@@ -67,6 +67,7 @@ def test_load_inputs_accepts_scores_json(tmp_path) -> None:
         "C": {"scores": scores},
         "D": {"scores": scores},
         "E": {"scores": scores},
+        "F": {"scores": scores},
     }
     path.write_text(json.dumps(payload))
     inputs = load_inputs(path)
@@ -78,16 +79,16 @@ def test_load_inputs_accepts_scores_json(tmp_path) -> None:
 def test_load_inputs_flat_scores_shape(tmp_path) -> None:
     path = tmp_path / "scores.json"
     scores = {d.code: 4 for d in DIMENSIONS}
-    payload = dict.fromkeys(("A", "B", "C", "D", "E"), scores)
+    payload = dict.fromkeys(("A", "B", "C", "D", "E", "F"), scores)
     path.write_text(json.dumps(payload))
     inputs = load_inputs(path)
-    assert {i.option_code for i in inputs} == {"A", "B", "C", "D", "E"}
+    assert {i.option_code for i in inputs} == {"A", "B", "C", "D", "E", "F"}
 
 
 def test_cli_ready_exit_semantics_when_all_disqualified(tmp_path) -> None:
     path = tmp_path / "scores.json"
     all_ones = {d.code: 1 for d in DIMENSIONS}
-    payload = dict.fromkeys(("A", "B", "C", "D", "E"), all_ones)
+    payload = dict.fromkeys(("A", "B", "C", "D", "E", "F"), all_ones)
     path.write_text(json.dumps(payload))
     exit_code = main(["--json-only", "--scores", str(path)])
     assert exit_code == 1
