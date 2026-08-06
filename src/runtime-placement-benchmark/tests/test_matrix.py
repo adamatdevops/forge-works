@@ -78,7 +78,10 @@ def test_all_disqualified_yields_no_primary() -> None:
     assert d.all_options_disqualified
     assert d.primary is None
     assert d.fallback is None
-    assert any("6th option" in n for n in d.notes)
+    # Post-v0.2 escalation semantic: Option F is the 6th (added in v0.2 as the
+    # resolution of v0.1 §8 R5's original "spike a 6th"), so all-disqualified now
+    # escalates to a 7th option, not repeat of Option F.
+    assert any("7th option" in n for n in d.notes)
 
 
 def test_json_roundtrips() -> None:

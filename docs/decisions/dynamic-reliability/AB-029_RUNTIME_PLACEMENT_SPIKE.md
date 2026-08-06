@@ -34,7 +34,7 @@ The spike is deliberately **architecture-only, no live traffic, uses AB-028's re
 
 - **Production-scale load testing.** v0 is shadow-mode / advisory-only; production throughput isn't the constraint. Prototype-scale (30-day replay) suffices for a placement decision.
 - **Model performance re-evaluation.** AB-028 owns model quality; this spike takes the AB-028 model as-is and measures the RUNTIME properties around it.
-- **T3/T4 actuation placement.** All 5 options are evaluated for T1/T2 (evidence + recommendation) only. T3/T4 placement is a separate doctrine change (see corpus README §v0 doctrine).
+- **T3/T4 actuation placement.** All 6 options are evaluated for T1/T2 (evidence + recommendation) only. T3/T4 placement is a separate doctrine change (see corpus README §v0 doctrine).
 - **Multi-tenant / multi-region deployment.** v0 is single-tenant (`forge-works` per governance envelope). Cross-region placement is a v1+ concern.
 - **Cost optimization beyond first-pass.** Cost per prediction is one dimension (§4), but full FinOps analysis (spot pricing, reserved instances, autoscaling profiles) is out of scope; representative on-demand pricing suffices.
 
@@ -253,17 +253,17 @@ Reassessment does not automatically flip the recommendation — it re-runs the m
 - **R1 — Prototype quality bias + Option A pre-implementation.** A well-instrumented prototype for one option may look better than a rushed prototype for another. **Option A is not starting from zero:** commits `0a1c406` (PR #31, `feat(dr): AB-029 Option A sibling-Flink prototype v0.1.0`) shipped 8 Java files under `src/flink-jobs/dr-predictor/` plus a Python `SiblingFlinkPrototype` class in `src/runtime-placement-benchmark/forge_works/dr/ab029_spike/prototypes.py` that already assigns static D4=5 and D7=5. The pre-implementation was documented in the CHANGELOG at PR-time as "first real prototype," but transparency does not offset scoring asymmetry against Options B–F which are stubs. Mitigation: (a) **scoring is FROZEN** on all options until (b) equivalent bootstrap effort has been invested in Options B–F (same author, ≤2 days each, tracked by commit + timesheet) OR (c) scoring is performed by a blinded reviewer against §6.2.1 absolute anchors, with option identities anonymized. Choice between (b) and (c) is a scoping-approval input. Option A's D4=5 and D7=5 static values are RESET to "not scored" until the parity condition is met.
 - **R2 — Measurement drift.** Different options may report metrics differently. Mitigation: shared MLflow tracking sink + explicit metric definitions in §4; single-source-of-truth for the AB-028 reference workload.
 - **R3 — Scoring hindsight bias.** Weights (§6.2) locked at scoping-approval BEFORE measurements. If measurements reveal a dimension is more/less important than pre-declared, that's a note for the Decision Record but does NOT retroactively change the ranking.
-- **R4 — 5 options is a lot.** If early measurements clearly disqualify 2+ options via §6.3 rules, spike may reduce to 3 finalists and re-scope. Document any option dropped and why.
-- **R5 — Recommendation may be "none of the above."** If all 5 options score below a floor (e.g., top score < 40 / max 105), the recommendation is to spike a 6th option. Not a failure — a valid outcome for a scoping spike.
+- **R4 — 6 options is a lot.** If early measurements clearly disqualify 2+ options via §6.3 rules, spike may reduce to 3 finalists and re-scope. Document any option dropped and why.
+- **R5 — Recommendation may be "none of the above."** If all 6 options score below a floor (e.g., top score < 40 / max 105 — per §6.2 weights across D1-D8), the recommendation is to spike a 7th option. Not a failure — a valid outcome for a scoping spike. (v0.1 wording said "spike a 6th"; Option F was added in v0.2 as the resolution of that gap — the escalation path is therefore now a 7th, not repeat of Option F.)
 
 ---
 
 ## 9. Timeline (indicative — not committed)
 
 - **T + 0:** Scoping-approval on this RFC. §3 options and §4 dimensions and §6.2 weights locked; §5 methodology refinements permitted.
-- **T + 1w:** Prototype scaffolding for all 5 options (skeleton + AB-028 workload wired in).
-- **T + 2w:** Measurement runs 1 (all 5 options × all 7 dimensions).
-- **T + 3w:** Measurement runs 2 + 3 (repeats for D1–D4, D6); §6.3 disqualification review.
+- **T + 1w:** Prototype scaffolding for all 6 options (skeleton + AB-028 workload wired in).
+- **T + 2w:** Measurement runs 1 (all 6 options × all 8 dimensions).
+- **T + 3w:** Measurement runs 2 + 3 (repeats for D1–D4, D6, D8); §6.3 disqualification review.
 - **T + 4w:** Comparison matrix compiled; Decision Record drafted with recommendation; contract-implications PRs (if any) drafted.
 
 Timeline is indicative. Runs in parallel with AB-028 feasibility spike execution; can share the AB-028 workload harness once AB-028 begins execution.
