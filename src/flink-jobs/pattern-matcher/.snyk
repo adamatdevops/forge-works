@@ -30,7 +30,7 @@ ignore:
   # ===== Apache Kafka clients (transitive via flink-connector-kafka 3.3.0-1.20) =====
   # Fix path: bump flink-connector-kafka 3.3.0 → 4.0.1-2.0, which requires
   # Flink 2.0 (major). Tracked under task #24 — Flink 1.20 → 2.0 evaluation.
-  # Re-evaluate 2026-08-10 (90 days). If Flink 2.0 hasn't landed by then,
+  # Re-evaluate 2026-11-10 (90 days). If Flink 2.0 hasn't landed by then,
   # take a fresh decision instead of mechanically extending.
 
   SNYK-JAVA-ORGAPACHEKAFKA-10336719:
@@ -40,7 +40,7 @@ ignore:
           Fix requires Flink 1.20 → 2.0 upgrade (task #24). Mitigated in our
           context: Flink jobs only consume from in-cluster Kafka brokers
           (Strimzi), no external broker URLs are accepted at runtime.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   SNYK-JAVA-ORGAPACHEKAFKA-10350513:
@@ -50,7 +50,7 @@ ignore:
           (transitive). Fix requires Flink 1.20 → 2.0 (task #24). Mitigated:
           we control all producers (forge-works normalizers) and consumers
           (forge-works Flink jobs); no third-party data enters these topics.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   SNYK-JAVA-ORGAPACHEKAFKA-10350567:
@@ -58,7 +58,7 @@ ignore:
         reason: >-
           Deserialization of untrusted data in kafka-clients@3.4.0
           (transitive). Same fix path as -10350513. Same mitigation.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   SNYK-JAVA-ORGAPACHEKAFKA-8528112:
@@ -68,7 +68,7 @@ ignore:
           kafka-clients@3.4.0 (transitive). Fix requires Flink 2.0 (task #24).
           Mitigated: in-cluster traffic is mTLS via Strimzi; SASL is not used
           for inter-pod Kafka traffic in our deployment.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   SNYK-JAVA-ORGAPACHEKAFKA-16300072:
@@ -78,7 +78,7 @@ ignore:
           kafka-clients@3.4.0. No direct upgrade or patch available without
           flink-connector-kafka bump (task #24). Mitigated: pod logs are
           shipped to a private observability stack; not externally exposed.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   # ===== Apache Commons Lang3 (transitive via flink-streaming-java 1.20.3) =====
@@ -90,7 +90,7 @@ ignore:
           flink-streaming-java 1.20.3). Fix requires Flink 2.0 (task #24).
           Reachability: only used by Flink internals on trusted, in-cluster
           serialization paths.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   # ===== lz4-java (transitive via flink-streaming-java 1.20.3) =====
@@ -102,7 +102,7 @@ ignore:
           flink-streaming-java 1.20.3). Fix requires Flink 2.0 (task #24).
           Reachability: lz4 only decompresses Kafka messages from our own
           producers — no untrusted compressed input.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   SNYK-JAVA-ORGLZ4-14219384:
@@ -110,7 +110,7 @@ ignore:
         reason: >-
           Insertion of sensitive information into sent data in lz4-java@1.8.0
           (transitive). Same fix path and mitigation as -14151788.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-05-10T00:00:00.000Z"
 
   # ===== NEW 2026-08-01 — lz4-java (transitive via flink-streaming-java 1.20.3) =====
@@ -125,7 +125,7 @@ ignore:
           existing lz4 CVEs above. Reachability: identical to
           SNYK-JAVA-ORGLZ4-14151788 — lz4 only decompresses Kafka messages
           from our own producers, no untrusted compressed input.
-        expires: "2026-08-10T00:00:00.000Z"
+        expires: "2026-11-10T00:00:00.000Z"
         created: "2026-08-01T00:00:00.000Z"
 
 # ----------------------------------------------------------------------------

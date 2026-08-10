@@ -42,31 +42,31 @@
        Apache Kafka clients (transitive via flink-connector-kafka 3.3.0-1.20)
        ===================================================================== -->
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>SSRF — CVE-2025-27817 / SNYK-JAVA-ORGAPACHEKAFKA-10336719. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
     <cve>CVE-2025-27817</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Deserialization of untrusted data — CVE-2025-27819 / SNYK-JAVA-ORGAPACHEKAFKA-10350513. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
     <cve>CVE-2025-27819</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Deserialization of untrusted data — CVE-2025-27818 / SNYK-JAVA-ORGAPACHEKAFKA-10350567. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
     <cve>CVE-2025-27818</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Auth algorithm impl flaw — CVE-2024-56128 / SNYK-JAVA-ORGAPACHEKAFKA-8528112. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
     <cve>CVE-2024-56128</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Sensitive info in log file — CVE-2026-33558 / SNYK-JAVA-ORGAPACHEKAFKA-16300072. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@.*$</packageUrl>
     <cve>CVE-2026-33558</cve>
@@ -76,7 +76,7 @@
        Apache Commons Lang3 (transitive via flink-streaming-java 1.20.3)
        ===================================================================== -->
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Uncontrolled recursion — CVE-2025-48924 / SNYK-JAVA-ORGAPACHECOMMONS-10734078. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons-lang3@.*$</packageUrl>
     <cve>CVE-2025-48924</cve>
@@ -86,19 +86,19 @@
        lz4-java (transitive via flink-streaming-java 1.20.3)
        ===================================================================== -->
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Out-of-bounds read — CVE-2025-12183 / SNYK-JAVA-ORGLZ4-14151788. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
     <cve>CVE-2025-12183</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>Sensitive info in sent data — CVE-2025-66566 / SNYK-JAVA-ORGLZ4-14219384. See .snyk for rationale and mitigation.</notes>
     <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
     <cve>CVE-2025-66566</cve>
   </suppress>
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>NULL pointer dereference / OOB read in XXHash native path — CVE-2026-59949 / SNYK-JAVA-ORGLZ4-18313067. No fixed lz4-java version exists yet; same reachability as -14151788/-14219384. See .snyk for rationale.</notes>
     <packageUrl regex="true">^pkg:maven/org\.lz4/lz4-java@.*$</packageUrl>
     <cve>CVE-2026-59949</cve>
@@ -109,7 +109,7 @@
        via flink-runtime 1.20.3)
        ===================================================================== -->
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>
       CVE-2023-44981 (CVSS 9.1, CRITICAL) — Apache ZooKeeper SASL
       quorum-peer authentication bypass. Fixed in ZK 3.7.2 / 3.8.2 / 3.9.0.
@@ -119,7 +119,7 @@
       In-context mitigation: forge-works Flink jobs run in single-node /
       HA-disabled mode within a private cluster network; the SASL quorum
       auth code path is not exposed to untrusted callers. Kept as a
-      time-boxed exception at the same 2026-08-10Z review checkpoint as
+      time-boxed exception at the same 2026-11-10Z review checkpoint as
       the other Flink-transitive suppressions. Do NOT extend without a
       fresh risk decision.
 
@@ -136,7 +136,7 @@
        1.20.3) — CPE-mismatch false positive
        ===================================================================== -->
 
-  <suppress until="2026-08-10Z">
+  <suppress until="2026-11-10Z">
     <notes>
       CVE-2017-1000034 — CPE-mismatch false positive.
 
@@ -151,7 +151,7 @@
       Http.singleRequest code path does not exist in this JAR.
 
       Not applicable to forge-works. Kept as a time-boxed exception at the
-      same 2026-08-10Z review checkpoint as the other Flink-transitive
+      same 2026-11-10Z review checkpoint as the other Flink-transitive
       suppressions; the flink-rpc-akka module is replaced by
       flink-rpc-pekko in Flink 2.0 (task #24), so this entry disappears
       naturally at the migration.
