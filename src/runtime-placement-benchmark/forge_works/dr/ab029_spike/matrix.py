@@ -40,7 +40,7 @@ class OptionResult:
 
 @dataclass(frozen=True)
 class ComparisonMatrix:
-    """5-option x 7-dimension matrix + per-option weighted totals."""
+    """6-option x 8-dimension matrix + per-option weighted totals."""
 
     generated_at: str
     rubric: WeightedScoreRubric
@@ -77,7 +77,7 @@ def build_placement_decision(matrix: ComparisonMatrix) -> PlacementDecision:
             all_options_disqualified=True,
             matrix=matrix,
             notes=[
-                "All 5 options disqualified per RFC §6.3 — recommendation is to spike a 6th option (RFC §8 R5)."
+                "All 6 options disqualified per RFC §6.3 — recommendation is to spike a 7th option (RFC §8 R5)."
             ],
         )
     primary = ranked[0]
@@ -127,7 +127,7 @@ def _header(matrix: ComparisonMatrix) -> list[str]:
         "",
         f"_Generated: {matrix.generated_at}_",
         "",
-        "> 5 options x 7 dimensions per RFC §4-§6. Cells reporting `NOT_IMPLEMENTED` come "
+        "> 6 options x 8 dimensions per RFC §4-§6. Cells reporting `NOT_IMPLEMENTED` come "
         "from stub prototypes — real prototypes replace them via `PlacementPrototype`.",
         "",
     ]
@@ -202,7 +202,7 @@ def _disqualification_section(matrix: ComparisonMatrix) -> list[str]:
 def _decision_section(decision: PlacementDecision) -> list[str]:
     lines = ["## Recommendation (RFC §6.2)", ""]
     if decision.all_options_disqualified:
-        lines.append("**NONE** — all 5 options disqualified. RFC §8 R5: spike a 6th option.")
+        lines.append("**NONE** — all 6 options disqualified. RFC §8 R5: spike a 7th option.")
     elif decision.primary is not None:
         lines.append(
             f"**Primary:** {decision.primary.option_code} {decision.primary.option_name} "

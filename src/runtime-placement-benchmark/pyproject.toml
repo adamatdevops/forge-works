@@ -1,7 +1,7 @@
 [project]
 name = "runtime-placement-benchmark"
 version = "0.1.0"
-description = "ForgeWorks AB-029 runtime placement benchmark framework — 5-option × 7-dimension comparison matrix + §6.2 weighted rubric + §6.3 disqualification."
+description = "ForgeWorks AB-029 runtime placement benchmark framework — 6-option × 8-dimension comparison matrix + §6.2 weighted rubric + §6.3 disqualification."
 requires-python = ">=3.11"
 
 dependencies = []

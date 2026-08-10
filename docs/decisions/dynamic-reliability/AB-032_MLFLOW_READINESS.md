@@ -40,7 +40,7 @@ The assessment is deliberately **audit-and-report, no infrastructure changes**. 
 
 - **Infrastructure changes.** This RFC does not change `infra/mlflow/`. If dimensions fail, the assessment REPORTS the failure and files follow-up AB-NNN entries; those entries own the change.
 - **Alternative model-registry platforms.** Weights & Biases, Neptune, SageMaker Model Registry — all deferred to a v1+ decision if MLflow proves unfit. This assessment is scoped to the existing deployment.
-- **T3/T4 actuation-time model serving.** All 6 dimensions are evaluated for T1/T2 (prediction produced + published + audit-visible) only. T3/T4 model serving latency is a different problem addressed by AB-029.
+- **T3/T4 actuation-time model serving.** All 8 dimensions (D1-D8, per v0.2 §4) are evaluated for T1/T2 (prediction produced + published + audit-visible) only. T3/T4 model serving latency is a different problem addressed by AB-029.
 - **Multi-region MLflow.** v0 is single-cluster (`dev` cluster only, per the current Kustomize base). Multi-region deployment is a v1+ concern.
 - **Cost optimization.** Cost is one input to D5 capacity planning, but full FinOps analysis (spot pricing, S3 lifecycle policies, RDS reservation) is out of scope; representative on-demand pricing suffices.
 
@@ -78,7 +78,7 @@ Verified from `infra/mlflow/base/mlflow.yaml` at commit `87d5072` (main tip at R
 | Backend store | PostgreSQL at `forge-postgres-postgresql.forge-engine.svc:5432/mlflow` | Shares Postgres cluster with `forge-engine`. Backup posture inherited from that Postgres, not verified here. |
 | Artifact root | `s3://fw-models-dev/mlflow/artifacts` | **DEV bucket.** Production-shipping calibration curves + model binaries CANNOT land in `-dev`; this is a hard blocker on any production dependency. |
 | Auth | No `--app-name basic-auth` flag; no reverse-proxy auth annotation on Service | Server-side MLflow API is un-authenticated. Any pod in the cluster can write, promote, or delete anything. |
-| Resources | Requests: 100m CPU / 512Mi. Limits: 500m CPU / 1Gi. | Sized for tracking-only workload. Capacity for weekly calibration publication × N cohorts × M models is untested. |
+| Resources | Requests: 100m CPU / 512Mi. Limits: 500m CPU / 1Gi. | Sized for tracking-only workload. Capacity for continuous calibration publication per PC §8 (primary safety cadence — full envelope quantified in §5.D5, with weekly baseline as an additive audit layer) × N cohorts × M models is untested. |
 | Probes | Liveness / readiness / startup on `/health` | Standard. No SLI defined for external consumers. |
 | Registry stages | Default MLflow stages available (`None`, `Staging`, `Production`, `Archived`) | No enforcement policy. Any writer can promote to `Production`. No aliases configured. |
 | Secrets | Postgres password from Secret `mlflow-db-secret` | Standard. No S3 credential secret visible in this manifest — assumed IRSA or shared cluster IAM. |
@@ -317,7 +317,7 @@ The dimensions below MUST be classified FAIL if their fitness gap exists AND can
 ## 8. Risks
 
 - **R1: Assessment produces "PASS" on paper but real production load breaks the deployment.** Mitigation: D5 envelope MUST be conservative; if the actual production load exceeds envelope by > 2× on any dimension, the report's PASS is invalidated and a re-assessment is required before further production dependency. This is documented in the report's own "re-assessment triggers" section.
-- **R2: Follow-up AB-NNN entries file and then rot.** Mitigation: each filed entry gets a `blocks:` annotation naming the specific corpus dependency it blocks (e.g., "blocks: PC §4.2 model promotion, PC §8 weekly calibration"). Rot-check is a `grep AB-032 roadmap/` at any future spike scoping approval.
+- **R2: Follow-up AB-NNN entries file and then rot.** Mitigation: each filed entry gets a `blocks:` annotation naming the specific corpus dependency it blocks (e.g., "blocks: PC §4.2 model promotion, PC §8 continuous calibration"). Rot-check is a `grep AB-032 roadmap/` at any future spike scoping approval.
 - **R3: The assessment surfaces a broken assumption in the corpus itself** — e.g., PC §8's continuous per-cohort calibration (sliding-window recomputation on label arrival, drift alarms, circuit-breaker firings) turns out to be a load the current deployment cannot support at any reasonable sizing. Mitigation: this is a valid outcome; the report's overall verdict may be "corpus assumption needs revision, filed as AB-NNN, cannot bless dependency until revised." Assessment is not obligated to preserve corpus assumptions that don't survive contact with the substrate.
 - **R4: Backup / restore drill against `forge-postgres-postgresql` risks the shared Postgres cluster.** Mitigation: drill runs against a scratch database + scratch namespace only; no touching of the production `mlflow` database. Documented in the D2 methodology (§5.D2 step 3: "Provision a scratch Postgres instance (test namespace)").
 - **R5: D1 auth verification requires attempting unauthorized promotion — could be misread as an actual attack.** Mitigation: assessment MUST be pre-announced to SRE + security (asynchronous FYI is sufficient); assessment output includes an "attempted operations" appendix so any security monitoring is not left guessing.
