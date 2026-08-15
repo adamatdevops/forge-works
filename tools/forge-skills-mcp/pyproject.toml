@@ -14,6 +14,7 @@ dependencies = [
     # don't pull the CVE-fixed versions. Kept in sync with src/backend/pyproject.toml.
     "pyjwt>=2.13.0",  # CVE-2026-48522/48523/48524/48525/48526 (fixed in 2.13.0)
     "pydantic-settings>=2.14.2",  # GHSA-4xgf-cpjx-pc3j (fixed in 2.14.2)
+    "cryptography>=50.0.0",  # CVE-2026-69249/69247/69248 + GHSA-537c-gmf6-5ccf (transitive via pyjwt[crypto] / mcp[crypto])
 ]
 
 [project.scripts]

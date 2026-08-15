@@ -24,6 +24,11 @@ dependencies = [
     "numpy>=2.4.1",
     # Observability
     "sentry-sdk>=2.0.0",  # FastAPI integration auto-enabled when fastapi is installed
+    # Explicit CVE floor — transitive via types-pyopenssl→types-redis (dev extra only,
+    # no runtime import path uses `cryptography` directly). Pinned here to close 7
+    # Dependabot alerts against cryptography 46.0.3 without waiting for types-redis
+    # to bump its own pin. Kept in sync with tools/forge-skills-mcp/pyproject.toml.
+    "cryptography>=50.0.0",  # CVE-2026-69249/69247/26007/69248/39892/34073 + GHSA-537c-gmf6-5ccf
 ]
 
 [project.optional-dependencies]
