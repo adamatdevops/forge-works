@@ -15,6 +15,7 @@ dependencies = [
     "pyjwt>=2.13.0",  # CVE-2026-48522/48523/48524/48525/48526 (fixed in 2.13.0)
     "pydantic-settings>=2.14.2",  # GHSA-4xgf-cpjx-pc3j (fixed in 2.14.2)
     "cryptography>=50.0.0",  # CVE-2026-69249/69247/69248 + GHSA-537c-gmf6-5ccf (transitive via pyjwt[crypto] / mcp[crypto])
+    "python-multipart>=0.0.31",  # CVE-2026-53539 (High, 7.5) + CVE-2026-53540/53538/53537 (Low) — transitive via mcp HTTP form-data transport
 ]
 
 [project.scripts]
