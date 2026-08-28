@@ -29,6 +29,13 @@ dependencies = [
     # Dependabot alerts against cryptography 46.0.3 without waiting for types-redis
     # to bump its own pin. Kept in sync with tools/forge-skills-mcp/pyproject.toml.
     "cryptography>=50.0.0",  # CVE-2026-69249/69247/26007/69248/39892/34073 + GHSA-537c-gmf6-5ccf
+    # Explicit CVE floors for backend transitives — closes 6 Dependabot alerts
+    # (Tier 2 PR-G of transitive-alert initiative). Pinned here rather than waiting
+    # for alembic/kubernetes/sentry-sdk/requests-oauthlib to bump their own pins.
+    "urllib3>=2.7.0",       # CVE-2026-44431 (High, cross-origin header leak on proxied redirects) + CVE-2026-44432 (High, decompression-bomb bypass) — transitive via sentry-sdk, kubernetes, requests
+    "Mako>=1.3.12",         # CVE-2026-44307 (High, backslash path traversal on Windows) + CVE-2026-41205 (High, double-slash prefix path traversal) — transitive via alembic
+    "Pygments>=2.20.0",     # CVE-2026-4539 (Low, ReDoS in GUID regex) — transitive via pytest→rich and sentry-sdk
+    "requests>=2.33.0",     # CVE-2026-25645 (Medium, insecure temp-file reuse in extract_zipped_paths) — transitive via kubernetes and requests-oauthlib
 ]
 
 [project.optional-dependencies]
