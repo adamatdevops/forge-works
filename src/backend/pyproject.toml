@@ -5,7 +5,9 @@ description = "ForgeWorks - Internal Developer Platform (Platform Orchestrator)"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "fastapi>=0.109.0",
+    # fastapi >=0.135.0 required for starlette>=1.0 compatibility (0.128 pins starlette<0.51.0).
+    # Bump enables the starlette CVE-floor pin below to actually resolve.
+    "fastapi>=0.135.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.14.2",
@@ -36,6 +38,12 @@ dependencies = [
     "Mako>=1.3.12",         # CVE-2026-44307 (High, backslash path traversal on Windows) + CVE-2026-41205 (High, double-slash prefix path traversal) — transitive via alembic
     "Pygments>=2.20.0",     # CVE-2026-4539 (Low, ReDoS in GUID regex) — transitive via pytest→rich and sentry-sdk
     "requests>=2.33.0",     # CVE-2026-25645 (Medium, insecure temp-file reuse in extract_zipped_paths) — transitive via kubernetes and requests-oauthlib
+    # Explicit CVE floors — Tier 2 PR-F of transitive-alert initiative (starlette major bump).
+    # starlette 1.x major bump enabled by the fastapi>=0.135.0 coordination above; safe because
+    # backend has zero direct starlette imports (all abstracted via FastAPI). Kept in sync with
+    # tools/forge-skills-mcp/pyproject.toml (starlette-only there).
+    "starlette>=1.3.1",     # CVE-2026-54283 (High, form-limit DoS) + CVE-2026-48818 (High, Windows StaticFiles SSRF/NTLM) + CVE-2026-48817 (Med, HTTPEndpoint getattr dispatch) + CVE-2026-48710 (Med, Host header path poisoning) + CVE-2026-54282 (Low, url.hostname poisoning) — transitive via fastapi
+    "idna>=3.15",           # CVE-2026-45409 (Medium, idna.encode bypass of CVE-2024-3651 fix) — transitive via httpx/anyio chain
 ]
 
 [project.optional-dependencies]
