@@ -34,7 +34,7 @@ class User(Base):
     )
 
     # Authentication
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Profile
@@ -92,7 +92,7 @@ class RefreshToken(Base):
     )
 
     # Token data
-    token_hash: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Timestamps

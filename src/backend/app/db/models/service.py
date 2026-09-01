@@ -69,12 +69,22 @@ class Service(Base):
 
     # Status
     status: Mapped[ServiceStatus] = mapped_column(
-        ENUM(ServiceStatus, name="service_status", create_type=False),
+        ENUM(
+            ServiceStatus,
+            name="service_status",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         default=ServiceStatus.UNKNOWN,
         nullable=False,
     )
     tier: Mapped[ServiceTier] = mapped_column(
-        ENUM(ServiceTier, name="service_tier", create_type=False),
+        ENUM(
+            ServiceTier,
+            name="service_tier",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         default=ServiceTier.STANDARD,
         nullable=False,
     )
