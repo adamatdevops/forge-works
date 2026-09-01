@@ -52,6 +52,7 @@ class Anomaly(Base):
         UUID(as_uuid=False),
         ForeignKey("services.id"),
         nullable=False,
+        index=True,
     )
 
     # Anomaly classification
@@ -72,6 +73,7 @@ class Anomaly(Base):
             values_callable=lambda enum_cls: [m.value for m in enum_cls],
         ),
         nullable=False,
+        index=True,
     )
 
     # Description
@@ -92,17 +94,23 @@ class Anomaly(Base):
 
     # Context
     context: Mapped[dict] = mapped_column(
-        JSONB, default=dict, nullable=False
+        JSONB, default=dict, server_default="{}", nullable=False
     )  # Additional context data
 
     # Status
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_acknowledged: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False, index=True
+    )
+    is_acknowledged: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     acknowledged_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
     acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Resolution
-    is_resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_resolved: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 

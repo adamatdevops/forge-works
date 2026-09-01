@@ -30,21 +30,23 @@ class Template(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    version: Mapped[str] = mapped_column(String(20), default="1.0.0", nullable=False)
+    version: Mapped[str] = mapped_column(
+        String(20), default="1.0.0", server_default="1.0.0", nullable=False
+    )
 
     # Classification (for ML recommendation)
     workload_type: Mapped[str] = mapped_column(String(50), nullable=False)  # api, batch, stream, ml
     language: Mapped[str] = mapped_column(String(50), nullable=False)  # python, go, typescript
     capabilities: Mapped[list[str]] = mapped_column(
-        ARRAY(String), default=list, nullable=False
+        ARRAY(String), default=list, server_default="{}", nullable=False
     )  # e.g., ["api", "crud", "async"]
     ideal_for: Mapped[list[str]] = mapped_column(
-        ARRAY(String), default=list, nullable=False
+        ARRAY(String), default=list, server_default="{}", nullable=False
     )  # e.g., ["low_latency", "rest_api"]
 
     # Tech stack details
     stack: Mapped[dict] = mapped_column(
-        JSONB, default=dict, nullable=False
+        JSONB, default=dict, server_default="{}", nullable=False
     )  # {"framework": "fastapi", "db": "postgresql", ...}
 
     # Template content
@@ -52,18 +54,28 @@ class Template(Base):
     documentation_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Included components
-    includes_ci: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    includes_cd: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    includes_monitoring: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    includes_tests: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    includes_ci: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
+    includes_cd: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
+    includes_monitoring: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
+    includes_tests: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
 
     # Usage statistics
-    usage_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    usage_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
 
     # Status
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
     is_recommended: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
+        Boolean, default=True, server_default="true", nullable=False
     )  # Show in recommendations
 
     # Timestamps

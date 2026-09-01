@@ -30,16 +30,19 @@ class Recommendation(Base):
         UUID(as_uuid=False),
         ForeignKey("teams.id"),
         nullable=True,
+        index=True,
     )
 
     # Input features (for ML training)
-    workload_type: Mapped[str] = mapped_column(String(50), nullable=False)  # api, batch, stream, ml
+    workload_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # api, batch, stream, ml
     language: Mapped[str] = mapped_column(String(50), nullable=False)  # python, go, typescript
     requirements: Mapped[list[str]] = mapped_column(
-        ARRAY(String), default=list, nullable=False
+        ARRAY(String), default=list, server_default="{}", nullable=False
     )  # e.g., ["high_throughput", "low_latency"]
     additional_context: Mapped[dict] = mapped_column(
-        JSONB, default=dict, nullable=False
+        JSONB, default=dict, server_default="{}", nullable=False
     )  # Any extra input features
 
     # Recommendations provided (ordered by score)
@@ -62,17 +65,21 @@ class Recommendation(Base):
         nullable=True,
     )
     was_override: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
+        Boolean, default=False, server_default="false", nullable=False
     )  # True if user picked different template
     override_reason: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )  # Why they overrode
 
     # Warnings issued
-    warnings: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, nullable=False)
+    warnings: Mapped[list[str]] = mapped_column(
+        ARRAY(String), default=list, server_default="{}", nullable=False
+    )
 
     # Model info
-    model_version: Mapped[str] = mapped_column(String(50), default="1.0.0", nullable=False)
+    model_version: Mapped[str] = mapped_column(
+        String(50), default="1.0.0", server_default="1.0.0", nullable=False
+    )
     inference_time_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Outcome tracking (for feedback loop)

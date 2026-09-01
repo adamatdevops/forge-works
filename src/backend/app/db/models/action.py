@@ -71,6 +71,7 @@ class Action(Base):
             values_callable=lambda enum_cls: [m.value for m in enum_cls],
         ),
         nullable=False,
+        index=True,
     )
     status: Mapped[ActionStatus] = mapped_column(
         ENUM(
@@ -80,6 +81,7 @@ class Action(Base):
             values_callable=lambda enum_cls: [m.value for m in enum_cls],
         ),
         default=ActionStatus.COMPLETED,
+        server_default="completed",
         nullable=False,
     )
 
@@ -89,14 +91,14 @@ class Action(Base):
     # Actor
     actor: Mapped[str] = mapped_column(String(100), nullable=False)  # User or system identifier
     actor_type: Mapped[str] = mapped_column(
-        String(50), default="user", nullable=False
+        String(50), default="user", server_default="user", nullable=False
     )  # user, system, automation
 
     # Target entity
     target_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # service, template, team, etc.
-    target_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
+    target_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
     target_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Related entities
@@ -114,7 +116,9 @@ class Action(Base):
     # Change details
     before_state: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     after_state: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    extra_metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    extra_metadata: Mapped[dict] = mapped_column(
+        JSONB, default=dict, server_default="{}", nullable=False
+    )
 
     # Error info (if failed)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -124,6 +128,7 @@ class Action(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
+        index=True,
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
