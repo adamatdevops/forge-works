@@ -448,6 +448,21 @@ jobs:
             redis httpx python-dotenv "python-jose[cryptography]" \
             "passlib[bcrypt]" bcrypt numpy scikit-learn pandas
 
+      # AB-037C: Alembic drift enforcement gate. Proves migrations apply cleanly
+      # against a fresh PG and that SQLAlchemy models match the head schema
+      # (via env.py compare_server_default + compare_type flags, set in AB-037B).
+      # Guards against the F1-F6 drift class reappearing — see
+      # research/db_audit/ALEMBIC_DRIFT_RECON.md. Deliberately runs BEFORE the
+      # pytest step so a drift/migration failure surfaces early with a clear
+      # cause rather than manifesting as a downstream test failure.
+      - name: Apply Alembic migrations + check for drift
+        run: |
+          cd src/backend
+          PYTHONPATH=. alembic upgrade head
+          PYTHONPATH=. alembic check
+        env:
+          DATABASE_URL: postgresql+asyncpg://forge:forge@localhost:5432/forge_test
+
       - name: Run tests
         run: |
           cd src/backend
