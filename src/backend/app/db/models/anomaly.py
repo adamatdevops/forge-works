@@ -56,11 +56,21 @@ class Anomaly(Base):
 
     # Anomaly classification
     type: Mapped[AnomalyType] = mapped_column(
-        ENUM(AnomalyType, name="anomaly_type", create_type=False),
+        ENUM(
+            AnomalyType,
+            name="anomaly_type",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         nullable=False,
     )
     severity: Mapped[AnomalySeverity] = mapped_column(
-        ENUM(AnomalySeverity, name="anomaly_severity", create_type=False),
+        ENUM(
+            AnomalySeverity,
+            name="anomaly_severity",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         nullable=False,
     )
 

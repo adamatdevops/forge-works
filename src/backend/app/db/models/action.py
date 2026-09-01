@@ -64,11 +64,21 @@ class Action(Base):
 
     # Action type and status
     type: Mapped[ActionType] = mapped_column(
-        ENUM(ActionType, name="action_type", create_type=False),
+        ENUM(
+            ActionType,
+            name="action_type",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         nullable=False,
     )
     status: Mapped[ActionStatus] = mapped_column(
-        ENUM(ActionStatus, name="action_status", create_type=False),
+        ENUM(
+            ActionStatus,
+            name="action_status",
+            create_type=False,
+            values_callable=lambda enum_cls: [m.value for m in enum_cls],
+        ),
         default=ActionStatus.COMPLETED,
         nullable=False,
     )
