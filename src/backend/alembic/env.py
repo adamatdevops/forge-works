@@ -52,6 +52,12 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        # AB-037B: enable server-default + type drift detection so `alembic check`
+        # and `alembic revision --autogenerate` catch the F5/F7 drift classes that
+        # led to the 2026-09-01 recon. Without these, autogen silently misses
+        # server_default and column-type changes. See research/db_audit/ALEMBIC_DRIFT_RECON.md.
+        compare_server_default=True,
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -60,7 +66,13 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     """Run migrations with connection."""
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        # AB-037B: enable server-default + type drift detection — see run_migrations_offline().
+        compare_server_default=True,
+        compare_type=True,
+    )
 
     with context.begin_transaction():
         context.run_migrations()

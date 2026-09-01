@@ -58,6 +58,7 @@ class Service(Base):
         UUID(as_uuid=False),
         ForeignKey("teams.id"),
         nullable=False,
+        index=True,
     )
 
     # Template used
@@ -65,6 +66,7 @@ class Service(Base):
         UUID(as_uuid=False),
         ForeignKey("templates.id"),
         nullable=True,
+        index=True,
     )
 
     # Status
@@ -76,7 +78,9 @@ class Service(Base):
             values_callable=lambda enum_cls: [m.value for m in enum_cls],
         ),
         default=ServiceStatus.UNKNOWN,
+        server_default="unknown",
         nullable=False,
+        index=True,
     )
     tier: Mapped[ServiceTier] = mapped_column(
         ENUM(
@@ -86,25 +90,36 @@ class Service(Base):
             values_callable=lambda enum_cls: [m.value for m in enum_cls],
         ),
         default=ServiceTier.STANDARD,
+        server_default="standard",
         nullable=False,
     )
 
     # Repository info
     repository_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    repository_branch: Mapped[str] = mapped_column(String(100), default="main", nullable=False)
+    repository_branch: Mapped[str] = mapped_column(
+        String(100), default="main", server_default="main", nullable=False
+    )
 
     # Deployment info
     namespace: Mapped[str | None] = mapped_column(String(100), nullable=True)
     argocd_app_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Metrics (for demo/anomaly detection)
-    deploys_today: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    rollbacks_this_week: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    deploys_today: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    rollbacks_this_week: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
     last_deploy_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Tags and metadata
-    tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, nullable=False)
-    extra_metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    tags: Mapped[list[str]] = mapped_column(
+        ARRAY(String), default=list, server_default="{}", nullable=False
+    )
+    extra_metadata: Mapped[dict] = mapped_column(
+        JSONB, default=dict, server_default="{}", nullable=False
+    )
 
     # Links
     documentation_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
