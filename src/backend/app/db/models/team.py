@@ -35,12 +35,6 @@ class Team(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     slack_channel: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    # AB-037C AC #3 deliberate-drift verification — DO NOT MERGE.
-    # This column is intentionally added WITHOUT a corresponding Alembic
-    # migration to prove the CI `alembic check` gate rejects model↔migration
-    # drift. Removed in the AC #4 revert commit; branch is closed without merge.
-    experimental_field: Mapped[str | None] = mapped_column(String(50), nullable=True)
-
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
