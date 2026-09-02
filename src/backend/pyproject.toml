@@ -55,6 +55,11 @@ dev = [
     "black>=24.1.0",
     "ruff>=0.1.0",
     "mypy>=1.8.0",
+    # AB-038: ephemeral PostgreSQL container for test fixtures. Alembic
+    # migrations apply against a hermetic PG so tests exercise real DDL
+    # (matches CI's postgres:14 service; skips container creation locally
+    # when DATABASE_URL points at a live PG the developer already provisioned).
+    "testcontainers[postgres]>=4.7.0",
     # Type stubs
     "types-redis>=4.6.0",
     "types-passlib>=1.7.7",

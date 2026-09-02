@@ -24,8 +24,15 @@ from app.db.models import (  # noqa: F401 - import to register models
 # Alembic Config object
 config = context.config
 
-# Set the database URL from settings
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Set the database URL from settings UNLESS the caller already supplied one via
+# `config.set_main_option("sqlalchemy.url", ...)` before invoking Alembic
+# programmatically (e.g., AB-038 test fixtures that spin up a testcontainers PG
+# instance separate from the app's configured database). Preserving a
+# pre-supplied URL keeps env.py compatible with both CLI invocations
+# (where nothing sets it and we want the app's configured DB) and programmatic
+# invocations from tests.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
